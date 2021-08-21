@@ -13,7 +13,10 @@ function MyApp({ Component, pageProps }: AppProps) {
 
     useEffect(() => {
         // This initiliazes Splitbee.js
-        splitbee.init();
+        splitbee.init({
+            scriptUrl: "/bee.js",
+            apiUrl: "/_hive",
+        });
 
         const handleRouteChange = (url: string) => {
             gtag.pageview(url);
