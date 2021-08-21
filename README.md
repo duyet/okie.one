@@ -1,4 +1,4 @@
-Okie.one
+![Okie.one](.github/screenshot/okie.png)
 
 ## Getting Started
 
