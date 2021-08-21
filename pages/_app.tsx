@@ -1,6 +1,7 @@
+import splitbee from "@splitbee/web";
+import { useRouter } from "next/router";
 import React, { useEffect } from "react";
 import type { AppProps } from "next/app";
-import { useRouter } from "next/router";
 import { ChakraProvider } from "@chakra-ui/react";
 
 import * as gtag from "../lib/gtag";
@@ -11,6 +12,9 @@ function MyApp({ Component, pageProps }: AppProps) {
     const router = useRouter();
 
     useEffect(() => {
+        // This initiliazes Splitbee.js
+        splitbee.init();
+
         const handleRouteChange = (url: string) => {
             gtag.pageview(url);
         };

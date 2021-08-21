@@ -1,10 +1,6 @@
 import Document, { Html, Head, Main, NextScript } from "next/document";
-import splitbee from '@splitbee/web';
 
 const MEASUREMENT_ID = process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS;
-
-// This initiliazes Splitbee.js
-splitbee.init()
 
 export default class MyDocument extends Document {
     render() {
