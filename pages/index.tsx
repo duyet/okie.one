@@ -1,9 +1,10 @@
-import type { NextPage } from "next";
 import Head from "next/head";
-import styles from "../styles/Home.module.css";
+import type { NextPage } from "next";
+import splitbee from "@splitbee/web";
 
-import Subscribe from "../components/Subscribe";
 import * as gtag from "../lib/gtag";
+import styles from "../styles/Home.module.css";
+import Subscribe from "../components/Subscribe";
 
 const Home: NextPage = () => {
     const onPostSubmit = (email: string) => {
@@ -12,6 +13,14 @@ const Home: NextPage = () => {
             params: {
                 email: Buffer.from(email).toString("base64"),
             },
+        });
+
+        // Splitbee
+        splitbee.user.set({
+            email,
+        });
+        splitbee.track("Submit Subscribe", {
+            email,
         });
     };
 
