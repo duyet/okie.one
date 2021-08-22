@@ -28,7 +28,7 @@ const Home: NextPage = () => {
         <div className={styles.container}>
             <Head>
                 <title>Okie.one</title>
-                <meta name="description" content="Create the best content from your favorite site" />
+                <meta name="description" content="Create the best content from your favorite source" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
 
@@ -38,7 +38,7 @@ const Home: NextPage = () => {
                         Okie<span>.one</span>
                     </h1>
 
-                    <p className={styles.description}>Create the best content from your favorite site!</p>
+                    <p className={styles.description}>Create the best content from your favorite source.</p>
                 </div>
 
                 <div className={styles.subscription}>
