@@ -43,7 +43,7 @@ const Subscribe: React.FC<IProps> = ({ onPostSubmit }) => {
 
   return (
     <Container>
-      <Box p={100}>
+      <Box marginTop="2rem">
         <Heading
           as={"h2"}
           fontSize={{ base: "xl", sm: "2xl" }}
