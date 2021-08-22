@@ -2,7 +2,15 @@
 
 ## Getting Started
 
-First, run the development server:
+First, create the `.env.local`:
+
+```
+NEXT_PUBLIC_GOOGLE_ANALYTICS=G-xxxxxxx
+NOTION_API_KEY=secret_**************
+NOTION_DATABASE_ID=************
+```
+
+Run the development server:
 
 ```bash
 yarn dev
