@@ -1,10 +1,24 @@
-import Link from "next/link"
+import { MODEL_DEFAULT } from "@/app/lib/config";
+import { createClient } from "@/app/lib/supabase/server";
+import Chat from "./components/chat/chat";
+import LayoutApp from "./components/layout/layout-app";
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+
+  const { data: user } = await supabase
+    .from("users")
+    .select("preferred_model")
+    .eq("id", auth?.user?.id || "")
+    .single();
+
   return (
-    <div>
-      <h1>Home</h1>
-      <Link href="/chat">Chat</Link>
-    </div>
-  )
+    <LayoutApp>
+      <Chat
+        userId={auth?.user?.id}
+        preferredModel={user?.preferred_model || MODEL_DEFAULT}
+      />
+    </LayoutApp>
+  );
 }
