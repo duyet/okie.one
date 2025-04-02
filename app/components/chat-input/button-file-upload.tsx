@@ -44,7 +44,7 @@ export function ButtonFileUpload({
               <Button
                 size="sm"
                 variant="secondary"
-                className="border-border dark:bg-secondary h-9 w-9 cursor-pointer rounded-full border bg-transparent"
+                className="border-border cursor-pointer dark:bg-secondary h-9 w-9 rounded-full border bg-transparent"
                 type="button"
                 aria-label="Add files"
               >

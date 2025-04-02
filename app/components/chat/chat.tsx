@@ -322,7 +322,7 @@ export default function Chat({
         {isFirstMessage ? (
           <motion.div
             key="onboarding"
-            className="absolute bottom-[50%] mx-auto max-w-[50rem] md:relative md:bottom-auto"
+            className="absolute bottom-[60%] max-w-[50rem] mx-auto md:relative md:bottom-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

@@ -1,11 +1,11 @@
-import Claude from "@/components/icons/claude"
-import DeepSeek from "@/components/icons/deepseek"
-import Gemini from "@/components/icons/gemini"
-import Grok from "@/components/icons/grok"
-import Mistral from "@/components/icons/mistral"
-import OpenAI from "@/components/icons/openai"
-import { mistral } from "@ai-sdk/mistral"
-import { openai } from "@ai-sdk/openai"
+import Claude from "@/components/icons/claude";
+import DeepSeek from "@/components/icons/deepseek";
+import Gemini from "@/components/icons/gemini";
+import Grok from "@/components/icons/grok";
+import Mistral from "@/components/icons/mistral";
+import OpenAI from "@/components/icons/openai";
+import { mistral } from "@ai-sdk/mistral";
+import { openai } from "@ai-sdk/openai";
 import {
   BookOpenText,
   Brain,
@@ -20,33 +20,31 @@ import {
   PaintBrush,
   PenNib,
   Sparkle,
-} from "@phosphor-icons/react/dist/ssr"
+} from "@phosphor-icons/react/dist/ssr";
 
-export const NON_AUTH_DAILY_MESSAGE_LIMIT = 5
-export const AUTH_DAILY_MESSAGE_LIMIT = 100
-export const REMAINING_QUERY_ALERT_THRESHOLD = 2
-export const DAILY_FILE_UPLOAD_LIMIT = 10
+export const NON_AUTH_DAILY_MESSAGE_LIMIT = 5;
+export const AUTH_DAILY_MESSAGE_LIMIT = 100;
+export const REMAINING_QUERY_ALERT_THRESHOLD = 2;
+export const DAILY_FILE_UPLOAD_LIMIT = 10;
 
 export type Model = {
-  id: string
-  name: string
-  provider: string
-  available?: boolean
-  api_sdk?: any
+  id: string;
+  name: string;
+  provider: string;
+  available?: boolean;
+  api_sdk?: any;
   features?: {
-    id: string
-    enabled: boolean
-  }[]
-}
+    id: string;
+    enabled: boolean;
+  }[];
+};
 
-// @todo: make it not available, just for demo purposes
 export const MODELS_NOT_AVAILABLE = [
   {
     id: "deepseek-r1",
     name: "DeepSeek R1",
     provider: "deepseek",
-    available: true,
-    // available: false,
+    available: false,
     api_sdk: false,
     features: [
       {
@@ -59,8 +57,7 @@ export const MODELS_NOT_AVAILABLE = [
     id: "gemini-1.5-pro",
     name: "Gemini 1.5 Pro",
     provider: "gemini",
-    available: true,
-    // available: false,
+    available: false,
     api_sdk: false,
     features: [
       {
@@ -73,8 +70,7 @@ export const MODELS_NOT_AVAILABLE = [
     id: "claude-3-5-sonnet",
     name: "Claude 3.5 Sonnet",
     provider: "claude",
-    available: true,
-    // available: false,
+    available: false,
     api_sdk: false,
     features: [
       {
@@ -87,8 +83,7 @@ export const MODELS_NOT_AVAILABLE = [
     id: "claude-3.7-sonnet",
     name: "Claude 3.7 Sonnet",
     provider: "claude",
-    available: true,
-    // available: false,
+    available: false,
     api_sdk: false,
     features: [
       {
@@ -101,8 +96,7 @@ export const MODELS_NOT_AVAILABLE = [
     id: "grok-2",
     name: "Grok 2",
     provider: "grok",
-    available: true,
-    // available: false,
+    available: false,
     api_sdk: false,
     features: [
       {
@@ -115,8 +109,7 @@ export const MODELS_NOT_AVAILABLE = [
     id: "gemini-2.0-flash",
     name: "Gemini 2.0 Flash",
     provider: "gemini",
-    available: true,
-    // available: false,
+    available: false,
     api_sdk: false,
     features: [
       {
@@ -129,8 +122,7 @@ export const MODELS_NOT_AVAILABLE = [
     id: "gemini-2.5-pro",
     name: "Gemini 2.5 Pro",
     provider: "gemini",
-    available: true,
-    // available: false,
+    available: false,
     api_sdk: false,
     features: [
       {
@@ -139,7 +131,7 @@ export const MODELS_NOT_AVAILABLE = [
       },
     ],
   },
-] as Model[]
+] as Model[];
 
 export const MODELS = [
   {
@@ -191,7 +183,7 @@ export const MODELS = [
     ],
     api_sdk: mistral("mistral-large-latest"),
   },
-] as Model[]
+] as Model[];
 
 export const MODELS_OPTIONS = [
   ...MODELS.map((model) => ({
@@ -199,14 +191,14 @@ export const MODELS_OPTIONS = [
     available: true,
   })),
   ...MODELS_NOT_AVAILABLE,
-] as Model[]
+] as Model[];
 
 export type Provider = {
-  id: string
-  name: string
-  available: boolean
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-}
+  id: string;
+  name: string;
+  available: boolean;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+};
 
 const PROVIDERS_NOT_AVAILABLE = [
   {
@@ -233,7 +225,7 @@ const PROVIDERS_NOT_AVAILABLE = [
     available: false,
     icon: Grok,
   },
-] as Provider[]
+] as Provider[];
 
 export const PROVIDERS = [
   {
@@ -246,7 +238,7 @@ export const PROVIDERS = [
     name: "Mistral",
     icon: Mistral,
   },
-] as Provider[]
+] as Provider[];
 
 export const PROVIDERS_OPTIONS = [
   ...PROVIDERS.map((provider) => ({
@@ -254,14 +246,14 @@ export const PROVIDERS_OPTIONS = [
     available: true,
   })),
   ...PROVIDERS_NOT_AVAILABLE,
-] as Provider[]
+] as Provider[];
 
-export const MODEL_DEFAULT = "pixtral-large-latest"
+export const MODEL_DEFAULT = "pixtral-large-latest";
 
-export const APP_NAME = "zola"
-export const APP_DOMAIN = "https://zola.chat"
+export const APP_NAME = "Zola";
+export const APP_DOMAIN = "https://zola.chat";
 export const APP_DESCRIPTION =
-  "zola is a free, open-source AI chat app with a beautiful, minimal interface and multi-model support."
+  "Zola is a free, open-source AI chat app with multi-model support.";
 
 export const PERSONAS = [
   {
@@ -313,7 +305,7 @@ export const PERSONAS = [
     `,
     icon: CookingPot,
   },
-]
+];
 
 export const SUGGESTIONS = [
   {
@@ -400,8 +392,8 @@ export const SUGGESTIONS = [
     ],
     icon: Lightbulb,
   },
-]
+];
 
-export const SYSTEM_PROMPT_DEFAULT = `You are Zola, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don’t try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.`
+export const SYSTEM_PROMPT_DEFAULT = `You are Zola, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don’t try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.`;
 
-export const MESSAGE_MAX_LENGTH = 4000
+export const MESSAGE_MAX_LENGTH = 4000;

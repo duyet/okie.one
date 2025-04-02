@@ -1,15 +1,14 @@
-# zola
+# Zola
 
 [zola.chat](https://zola.chat)
 
-**zola** is a free, open-source AI chat app with a beautiful, minimal interface and multi-model support.
+**Zola** is a free, open-source AI chat app with multi-model support.
 
 ![zola screenshot](./public/cover_zola.jpg)
 
 ## Features
 
 - multi-model support (OpenAI, Mistral, etc.)
-- minimal UI built with [shadcn/ui](https://ui.shadcn.com/)
 - light and dark mode
 - prompt suggestions
 - file uploads
@@ -21,7 +20,7 @@ coming soon.
 
 ## Built with
 
-- [prompt-kit](https://github.com/ibelick/prompt-kit) — AI components
+- [prompt-kit](https://prompt-kit.com/) — AI components
 - [shadcn/ui](https://ui.shadcn.com) — core components
 - [motion-primitives](https://motion-primitives.com) — animated components
 - [vercel ai sdk](https://vercel.com/blog/introducing-the-vercel-ai-sdk) — model integration, AI features
