@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "@/components/ui/sonner";
 import { APP_DESCRIPTION, APP_NAME } from "@/app/lib/config";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,8 +26,17 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isDev = process.env.NODE_ENV === "development";
+
   return (
     <html lang="en" suppressHydrationWarning>
+      {!isDev ? (
+        <Script
+          async
+          src="https://analytics.umami.is/script.js"
+          data-website-id="42e5b68c-5478-41a6-bc68-088d029cee52"
+        />
+      ) : null}
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
