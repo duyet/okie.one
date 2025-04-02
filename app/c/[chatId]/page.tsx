@@ -1,21 +1,21 @@
-import { createClient } from "@/app/lib/supabase/server";
-import { Message } from "ai";
-import { redirect } from "next/navigation";
-import Chat from "../../components/chat/chat";
-import LayoutApp from "../../components/layout/layout-app";
+import { createClient } from "@/app/lib/supabase/server"
+import { Message } from "ai"
+import { redirect } from "next/navigation"
+import Chat from "../../components/chat/chat"
+import LayoutApp from "../../components/layout/layout-app"
 
 export default async function PrivatePage({
   params,
 }: {
-  params: Promise<{ chatId: string }>;
+  params: Promise<{ chatId: string }>
 }) {
-  const { chatId } = await params;
-  const supabase = await createClient();
+  const { chatId } = await params
+  const supabase = await createClient()
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const { data: userData, error: userError } = await supabase.auth.getUser()
 
   if (userError || !userData?.user) {
-    redirect("/");
+    redirect("/")
   }
 
   const { data: chatData, error: chatError } = await supabase
@@ -23,17 +23,17 @@ export default async function PrivatePage({
     .select("id, title, model, system_prompt")
     .eq("id", chatId)
     .eq("user_id", userData.user.id)
-    .single();
+    .single()
 
   if (chatError || !chatData) {
-    redirect("/");
+    redirect("/")
   }
 
   const { data: messages, error: messagesError } = await supabase
     .from("messages")
     .select("*")
     .eq("chat_id", chatId)
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
 
   const formattedMessages: Message[] =
     messages?.map((message) => ({
@@ -41,10 +41,10 @@ export default async function PrivatePage({
       content: message.content,
       experimental_attachments: message.attachments,
       role: message.role,
-    })) || [];
+    })) || []
 
   if (messagesError || !messages) {
-    redirect("/");
+    redirect("/")
   }
 
   return (
@@ -57,5 +57,5 @@ export default async function PrivatePage({
         systemPrompt={chatData.system_prompt || "You are a helpful assistant."}
       />
     </LayoutApp>
-  );
+  )
 }

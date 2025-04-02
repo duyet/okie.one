@@ -1,37 +1,37 @@
-"use client";
+"use client"
 
-import { MODELS_OPTIONS, PROVIDERS_OPTIONS } from "@/app/lib/config";
-import { Button } from "@/components/ui/button";
+import { MODELS_OPTIONS, PROVIDERS_OPTIONS } from "@/app/lib/config"
+import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { CaretDown, Image } from "@phosphor-icons/react";
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
+import { CaretDown, Image } from "@phosphor-icons/react"
 
 type ModelSelectorProps = {
-  selectedModelId: string;
-  setSelectedModelId: (modelId: string) => void;
-  className?: string;
-};
+  selectedModelId: string
+  setSelectedModelId: (modelId: string) => void
+  className?: string
+}
 
 export function ModelSelector({
   selectedModelId,
   setSelectedModelId,
   className,
 }: ModelSelectorProps) {
-  const model = MODELS_OPTIONS.find((model) => model.id === selectedModelId);
+  const model = MODELS_OPTIONS.find((model) => model.id === selectedModelId)
   const provider = PROVIDERS_OPTIONS.find(
     (provider) => provider.id === model?.provider
-  );
+  )
 
   return (
     <TooltipProvider>
@@ -65,10 +65,10 @@ export function ModelSelector({
           {MODELS_OPTIONS.map((model) => {
             const provider = PROVIDERS_OPTIONS.find(
               (provider) => provider.id === model.provider
-            );
+            )
             const hasFileUpload = model.features?.find(
               (feature) => feature.id === "file-upload"
-            )?.enabled;
+            )?.enabled
 
             return (
               <DropdownMenuItem
@@ -100,10 +100,10 @@ export function ModelSelector({
                   )}
                 </div>
               </DropdownMenuItem>
-            );
+            )
           })}
         </DropdownMenuContent>
       </DropdownMenu>
     </TooltipProvider>
-  );
+  )
 }

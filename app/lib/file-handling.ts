@@ -1,9 +1,9 @@
-import { toast } from "@/components/ui/toast";
-import { SupabaseClient } from "@supabase/supabase-js";
-import { DAILY_FILE_UPLOAD_LIMIT } from "./config";
-import { createClient } from "./supabase/client";
+import { toast } from "@/components/ui/toast"
+import { SupabaseClient } from "@supabase/supabase-js"
+import { DAILY_FILE_UPLOAD_LIMIT } from "./config"
+import { createClient } from "./supabase/client"
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
 const ALLOWED_FILE_TYPES = [
   "image/jpeg",
   "image/png",
@@ -15,53 +15,53 @@ const ALLOWED_FILE_TYPES = [
   "text/csv",
   "application/vnd.ms-excel",
   "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-];
+]
 
 export type Attachment = {
-  name: string;
-  contentType: string;
-  url: string;
-};
+  name: string
+  contentType: string
+  url: string
+}
 
 export function validateFile(file: File): { isValid: boolean; error?: string } {
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
       error: `File size exceeds ${MAX_FILE_SIZE / (1024 * 1024)}MB limit`,
-    };
+    }
   }
 
   if (!ALLOWED_FILE_TYPES.includes(file.type)) {
     return {
       isValid: false,
       error: "File type not supported",
-    };
+    }
   }
 
-  return { isValid: true };
+  return { isValid: true }
 }
 
 export async function uploadFile(
   supabase: SupabaseClient,
   file: File
 ): Promise<string> {
-  const fileExt = file.name.split(".").pop();
-  const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`;
-  const filePath = `uploads/${fileName}`;
+  const fileExt = file.name.split(".").pop()
+  const fileName = `${Math.random().toString(36).substring(2)}.${fileExt}`
+  const filePath = `uploads/${fileName}`
 
   const { error: uploadError } = await supabase.storage
     .from("chat-attachments")
-    .upload(filePath, file);
+    .upload(filePath, file)
 
   if (uploadError) {
-    throw new Error(`Error uploading file: ${uploadError.message}`);
+    throw new Error(`Error uploading file: ${uploadError.message}`)
   }
 
   const {
     data: { publicUrl },
-  } = supabase.storage.from("chat-attachments").getPublicUrl(filePath);
+  } = supabase.storage.from("chat-attachments").getPublicUrl(filePath)
 
-  return publicUrl;
+  return publicUrl
 }
 
 export function createAttachment(file: File, url: string): Attachment {
@@ -69,7 +69,7 @@ export function createAttachment(file: File, url: string): Attachment {
     name: file.name,
     contentType: file.type,
     url: url,
-  };
+  }
 }
 
 export async function processFiles(
@@ -77,23 +77,23 @@ export async function processFiles(
   chatId: string,
   userId: string
 ): Promise<Attachment[]> {
-  const supabase = createClient();
-  const attachments: Attachment[] = [];
+  const supabase = createClient()
+  const attachments: Attachment[] = []
 
   for (const file of files) {
-    const validation = validateFile(file);
+    const validation = validateFile(file)
     if (!validation.isValid) {
-      console.warn(`File ${file.name} validation failed:`, validation.error);
+      console.warn(`File ${file.name} validation failed:`, validation.error)
       toast({
         title: "File validation failed",
         description: validation.error,
         status: "error",
-      });
-      continue;
+      })
+      continue
     }
 
     try {
-      const url = await uploadFile(supabase, file);
+      const url = await uploadFile(supabase, file)
 
       const { error } = await supabase.from("chat_attachments").insert({
         chat_id: chatId,
@@ -102,49 +102,49 @@ export async function processFiles(
         file_name: file.name,
         file_type: file.type,
         file_size: file.size,
-      });
+      })
 
-      if (error) throw new Error(`Database insertion failed: ${error.message}`);
+      if (error) throw new Error(`Database insertion failed: ${error.message}`)
 
-      const attachment = createAttachment(file, url);
-      attachments.push(attachment);
+      const attachment = createAttachment(file, url)
+      attachments.push(attachment)
     } catch (error) {
-      console.error(`Error processing file ${file.name}:`, error);
+      console.error(`Error processing file ${file.name}:`, error)
     }
   }
 
-  return attachments;
+  return attachments
 }
 
 export class FileUploadLimitError extends Error {
-  code: string;
+  code: string
   constructor(message: string) {
-    super(message);
-    this.code = "DAILY_FILE_LIMIT_REACHED";
+    super(message)
+    this.code = "DAILY_FILE_LIMIT_REACHED"
   }
 }
 
 export async function checkFileUploadLimit(userId: string) {
-  const supabase = createClient();
-  const now = new Date();
+  const supabase = createClient()
+  const now = new Date()
   const startOfToday = new Date(
     Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate())
-  );
-  const startOfTodayISO = startOfToday.toISOString();
+  )
+  const startOfTodayISO = startOfToday.toISOString()
 
   const { count, error } = await supabase
     .from("chat_attachments")
     .select("*", { count: "exact", head: true })
     .eq("user_id", userId)
-    .gte("created_at", startOfTodayISO);
+    .gte("created_at", startOfTodayISO)
 
   if (error) {
-    throw new Error(error.message);
+    throw new Error(error.message)
   }
 
   if (count && count >= DAILY_FILE_UPLOAD_LIMIT) {
-    throw new FileUploadLimitError("Daily file upload limit reached.");
+    throw new FileUploadLimitError("Daily file upload limit reached.")
   }
 
-  return count;
+  return count
 }

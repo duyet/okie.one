@@ -1,37 +1,35 @@
-"use client";
+"use client"
 
-import { signInWithGoogle } from "@/app/lib/api";
-import { APP_NAME } from "@/app/lib/config";
-import { createClient } from "@/app/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { useState } from "react";
-import { HeaderGoBack } from "../components/header-go-back";
+import { signInWithGoogle } from "@/app/lib/api"
+import { APP_NAME } from "@/app/lib/config"
+import { createClient } from "@/app/lib/supabase/client"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
+import { useState } from "react"
+import { HeaderGoBack } from "../components/header-go-back"
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const supabase = createClient();
+  const supabase = createClient()
 
   async function handleSignInWithGoogle() {
     try {
-      setIsLoading(true);
-      setError(null);
+      setIsLoading(true)
+      setError(null)
 
-      const data = await signInWithGoogle(supabase);
+      const data = await signInWithGoogle(supabase)
 
       // Redirect to the provider URL
       if (data?.url) {
-        window.location.href = data.url;
+        window.location.href = data.url
       }
     } catch (err: any) {
-      console.error("Error signing in with Google:", err);
-      setError(
-        err.message || "An unexpected error occurred. Please try again."
-      );
+      console.error("Error signing in with Google:", err)
+      setError(err.message || "An unexpected error occurred. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   }
 
@@ -91,5 +89,5 @@ export default function LoginPage() {
         </p>
       </footer>
     </div>
-  );
+  )
 }

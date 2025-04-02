@@ -1,23 +1,23 @@
-"use client";
+"use client"
 
-import React, { useState } from "react";
-import { TextMorph } from "../motion-primitives/text-morph";
+import React, { useState } from "react"
+import { TextMorph } from "../motion-primitives/text-morph"
 
 type ButtonCopyProps = {
-  code: string;
-};
+  code: string
+}
 
 export function ButtonCopy({ code }: ButtonCopyProps) {
-  const [hasCopyLabel, setHasCopyLabel] = useState(false);
+  const [hasCopyLabel, setHasCopyLabel] = useState(false)
 
   const onCopy = () => {
-    navigator.clipboard.writeText(code);
-    setHasCopyLabel(true);
+    navigator.clipboard.writeText(code)
+    setHasCopyLabel(true)
 
     setTimeout(() => {
-      setHasCopyLabel(false);
-    }, 1000);
-  };
+      setHasCopyLabel(false)
+    }, 1000)
+  }
 
   return (
     <button
@@ -27,5 +27,5 @@ export function ButtonCopy({ code }: ButtonCopyProps) {
     >
       <TextMorph as="span">{hasCopyLabel ? "Copied" : "Copy"}</TextMorph>
     </button>
-  );
+  )
 }

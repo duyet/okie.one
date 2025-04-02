@@ -1,54 +1,54 @@
-"use client";
+"use client"
 
-import { TRANSITION_SUGGESTIONS } from "@/app/lib/motion";
-import { PromptSuggestion } from "@/components/prompt-kit/prompt-suggestion";
-import { AnimatePresence, motion } from "motion/react";
-import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { SUGGESTIONS as SUGGESTIONS_CONFIG } from "../../lib/config";
+import { TRANSITION_SUGGESTIONS } from "@/app/lib/motion"
+import { PromptSuggestion } from "@/components/prompt-kit/prompt-suggestion"
+import { AnimatePresence, motion } from "motion/react"
+import React, { memo, useCallback, useEffect, useMemo, useState } from "react"
+import { SUGGESTIONS as SUGGESTIONS_CONFIG } from "../../lib/config"
 
 type SuggestionsProps = {
-  onValueChange: (value: string) => void;
-  onSuggestion: (suggestion: string) => void;
-  value?: string;
-};
+  onValueChange: (value: string) => void
+  onSuggestion: (suggestion: string) => void
+  value?: string
+}
 
 export const Suggestions = memo(function Suggestions({
   onValueChange,
   onSuggestion,
   value,
 }: SuggestionsProps) {
-  const MotionPromptSuggestion = motion(PromptSuggestion);
-  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const MotionPromptSuggestion = motion(PromptSuggestion)
+  const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
   const activeCategoryData = SUGGESTIONS_CONFIG.find(
     (group) => group.label === activeCategory
-  );
+  )
 
   const showCategorySuggestions =
-    activeCategoryData && activeCategoryData.items.length > 0;
+    activeCategoryData && activeCategoryData.items.length > 0
 
   useEffect(() => {
     if (!value) {
-      setActiveCategory(null);
+      setActiveCategory(null)
     }
-  }, [value]);
+  }, [value])
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
-      setActiveCategory(null);
-      onSuggestion(suggestion);
-      onValueChange("");
+      setActiveCategory(null)
+      onSuggestion(suggestion)
+      onValueChange("")
     },
     [onSuggestion, onValueChange]
-  );
+  )
 
   const handleCategoryClick = useCallback(
     (suggestion: { label: string; prompt: string }) => {
-      setActiveCategory(suggestion.label);
-      onValueChange(suggestion.prompt);
+      setActiveCategory(suggestion.label)
+      onValueChange(suggestion.prompt)
     },
     [onValueChange]
-  );
+  )
 
   const suggestionsGrid = useMemo(
     () => (
@@ -93,7 +93,7 @@ export const Suggestions = memo(function Suggestions({
       </motion.div>
     ),
     [handleCategoryClick]
-  );
+  )
 
   const suggestionsList = useMemo(
     () => (
@@ -136,11 +136,11 @@ export const Suggestions = memo(function Suggestions({
       </motion.div>
     ),
     [handleSuggestionClick]
-  );
+  )
 
   return (
     <AnimatePresence mode="popLayout">
       {showCategorySuggestions ? suggestionsList : suggestionsGrid}
     </AnimatePresence>
-  );
-});
+  )
+})

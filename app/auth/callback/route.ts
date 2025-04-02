@@ -1,17 +1,17 @@
-import { createClient } from "@/app/lib/supabase/server";
-import { createGuestServerClient } from "@/app/lib/supabase/server-guest";
-import { NextResponse } from "next/server";
+import { createClient } from "@/app/lib/supabase/server"
+import { createGuestServerClient } from "@/app/lib/supabase/server-guest"
+import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get("code")
   // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/"
 
   if (code) {
-    const supabase = await createClient();
-    const supabaseAdmin = await createGuestServerClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    const supabase = await createClient()
+    const supabaseAdmin = await createGuestServerClient()
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
       // If successful authentication and we have user data, upsert to users table
@@ -28,33 +28,33 @@ export async function GET(request: Request) {
                 created_at: new Date().toISOString(),
               },
               { onConflict: "id" }
-            );
+            )
 
           if (upsertError) {
-            console.error("Error upserting user:", upsertError);
+            console.error("Error upserting user:", upsertError)
             // Continue with redirect even if user upsert fails
           }
         } catch (err) {
-          console.error("Error in user upsert:", err);
+          console.error("Error in user upsert:", err)
           // Continue with redirect even if there's an error
         }
       }
 
-      const forwardedHost = request.headers.get("x-forwarded-host"); // original origin before load balancer
-      const isLocalEnv = process.env.NODE_ENV === "development";
+      const forwardedHost = request.headers.get("x-forwarded-host") // original origin before load balancer
+      const isLocalEnv = process.env.NODE_ENV === "development"
       if (isLocalEnv) {
         // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${origin}${next}`)
       } else if (forwardedHost) {
-        return NextResponse.redirect(`https://${forwardedHost}${next}`);
+        return NextResponse.redirect(`https://${forwardedHost}${next}`)
       } else {
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${origin}${next}`)
       }
     } else {
-      console.error("Auth error:", error);
+      console.error("Auth error:", error)
       return NextResponse.redirect(
         `${origin}/auth/error?message=${encodeURIComponent(error.message)}`
-      );
+      )
     }
   }
 
@@ -63,5 +63,5 @@ export async function GET(request: Request) {
     `${origin}/auth/error?message=${encodeURIComponent(
       "Missing authentication code"
     )}`
-  );
+  )
 }

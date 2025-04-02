@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandDialog,
@@ -7,83 +7,83 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
-import { Input } from "@/components/ui/input";
+} from "@/components/ui/command"
+import { Input } from "@/components/ui/input"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 import {
   Check,
   ListMagnifyingGlass,
   PencilSimple,
   TrashSimple,
   X,
-} from "@phosphor-icons/react";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { ChatHistory } from "./history";
+} from "@phosphor-icons/react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import type { ChatHistory } from "./history"
 
 type CommandHistoryProps = {
-  chatHistory: ChatHistory[];
-  onSaveEdit: (id: string, newTitle: string) => Promise<void>;
-  onConfirmDelete: (id: string) => Promise<void>;
-};
+  chatHistory: ChatHistory[]
+  onSaveEdit: (id: string, newTitle: string) => Promise<void>
+  onConfirmDelete: (id: string) => Promise<void>
+}
 
 export function CommandHistory({
   chatHistory,
   onSaveEdit,
   onConfirmDelete,
 }: CommandHistoryProps) {
-  const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenChange = (open: boolean) => {
-    setOpen(open);
+    setOpen(open)
     if (!open) {
-      setSearchQuery("");
-      setEditingId(null);
-      setEditTitle("");
-      setDeletingId(null);
+      setSearchQuery("")
+      setEditingId(null)
+      setEditTitle("")
+      setDeletingId(null)
     }
-  };
+  }
 
   const handleEdit = (chat: ChatHistory) => {
-    setEditingId(chat.id);
-    setEditTitle(chat.title);
-  };
+    setEditingId(chat.id)
+    setEditTitle(chat.title)
+  }
 
   const handleSaveEdit = (id: string) => {
-    onSaveEdit(id, editTitle);
-    setEditingId(null);
-  };
+    onSaveEdit(id, editTitle)
+    setEditingId(null)
+  }
 
   const handleCancelEdit = () => {
-    setEditingId(null);
-  };
+    setEditingId(null)
+  }
 
   const handleDelete = (id: string) => {
-    setDeletingId(id);
-  };
+    setDeletingId(id)
+  }
 
   const handleConfirmDelete = (id: string) => {
-    onConfirmDelete(id);
-    setDeletingId(null);
-  };
+    onConfirmDelete(id)
+    setDeletingId(null)
+  }
 
   const handleCancelDelete = () => {
-    setDeletingId(null);
-  };
+    setDeletingId(null)
+  }
 
   const filteredChat = chatHistory.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  )
 
   return (
     <>
@@ -122,8 +122,8 @@ export function CommandHistory({
                       <form
                         className="flex w-full items-center justify-between"
                         onSubmit={(e) => {
-                          e.preventDefault();
-                          handleSaveEdit(chat.id);
+                          e.preventDefault()
+                          handleSaveEdit(chat.id)
                         }}
                       >
                         <Input
@@ -157,8 +157,8 @@ export function CommandHistory({
                     <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
                       <form
                         onSubmit={(e) => {
-                          e.preventDefault();
-                          handleConfirmDelete(chat.id);
+                          e.preventDefault()
+                          handleConfirmDelete(chat.id)
                         }}
                         className="flex w-full items-center justify-between"
                       >
@@ -172,8 +172,8 @@ export function CommandHistory({
                             autoFocus
                             onKeyDown={(e) => {
                               if (e.key === "Escape") {
-                                e.preventDefault();
-                                handleCancelDelete();
+                                e.preventDefault()
+                                handleCancelDelete()
                               }
                             }}
                           />
@@ -242,8 +242,8 @@ export function CommandHistory({
                             variant="ghost"
                             className="text-muted-foreground hover:text-foreground size-8"
                             onClick={(e) => {
-                              e.stopPropagation();
-                              if (chat) handleEdit(chat);
+                              e.stopPropagation()
+                              if (chat) handleEdit(chat)
                             }}
                             type="button"
                           >
@@ -254,8 +254,8 @@ export function CommandHistory({
                             variant="ghost"
                             className="text-muted-foreground hover:text-destructive size-8"
                             onClick={(e) => {
-                              e.stopPropagation();
-                              if (chat?.id) handleDelete(chat.id);
+                              e.stopPropagation()
+                              if (chat?.id) handleDelete(chat.id)
                             }}
                             type="button"
                           >
@@ -272,5 +272,5 @@ export function CommandHistory({
         </Command>
       </CommandDialog>
     </>
-  );
+  )
 }

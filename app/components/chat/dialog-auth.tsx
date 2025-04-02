@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import { signInWithGoogle } from "@/app/lib/api";
-import { createClient } from "@/app/lib/supabase/client";
-import { Button } from "@/components/ui/button";
+import { signInWithGoogle } from "@/app/lib/api"
+import { createClient } from "@/app/lib/supabase/client"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -10,40 +10,38 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { useState } from "react";
+} from "@/components/ui/dialog"
+import { useState } from "react"
 
 type DialogAuthProps = {
-  open: boolean;
-  setOpen: (open: boolean) => void;
-};
+  open: boolean
+  setOpen: (open: boolean) => void
+}
 
 export function DialogAuth({ open, setOpen }: DialogAuthProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const supabase = createClient();
+  const supabase = createClient()
 
   const handleSignInWithGoogle = async () => {
     try {
-      setIsLoading(true);
-      setError(null);
+      setIsLoading(true)
+      setError(null)
 
-      const data = await signInWithGoogle(supabase);
+      const data = await signInWithGoogle(supabase)
 
       // Redirect to the provider URL
       if (data?.url) {
-        window.location.href = data.url;
+        window.location.href = data.url
       }
     } catch (err: any) {
-      console.error("Error signing in with Google:", err);
-      setError(
-        err.message || "An unexpected error occurred. Please try again."
-      );
+      console.error("Error signing in with Google:", err)
+      setError(err.message || "An unexpected error occurred. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -81,5 +79,5 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

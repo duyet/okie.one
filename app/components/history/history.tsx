@@ -1,71 +1,71 @@
-"use client";
+"use client"
 
-import { useBreakpoint } from "@/app/hooks/use-breakpoint";
-import { createClient } from "@/app/lib/supabase/client";
-import { useEffect, useState } from "react";
-import { CommandHistory } from "./command-history";
-import { DrawerHistory } from "./drawer-history";
+import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { createClient } from "@/app/lib/supabase/client"
+import { useEffect, useState } from "react"
+import { CommandHistory } from "./command-history"
+import { DrawerHistory } from "./drawer-history"
 
 export type ChatHistory = {
-  id: string;
-  title: string;
-  created_at: string;
-};
+  id: string
+  title: string
+  created_at: string
+}
 
 export function History() {
-  const isMobile = useBreakpoint(768);
-  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([]);
+  const isMobile = useBreakpoint(768)
+  const [chatHistory, setChatHistory] = useState<ChatHistory[]>([])
 
   useEffect(() => {
     const fetchChatHistory = async () => {
-      const supabase = createClient();
+      const supabase = createClient()
 
-      const { data: auth, error: authError } = await supabase.auth.getUser();
+      const { data: auth, error: authError } = await supabase.auth.getUser()
       if (authError || !auth?.user) {
-        return;
+        return
       }
 
       const { data: chatHistory, error: chatHistoryError } = await supabase
         .from("chats")
         .select("*")
-        .eq("user_id", auth.user.id);
+        .eq("user_id", auth.user.id)
 
       if (chatHistoryError) {
-        console.error("Error fetching chat history:", chatHistoryError);
+        console.error("Error fetching chat history:", chatHistoryError)
       }
 
-      setChatHistory(chatHistory as ChatHistory[]);
-    };
+      setChatHistory(chatHistory as ChatHistory[])
+    }
 
-    fetchChatHistory();
-  }, []);
+    fetchChatHistory()
+  }, [])
 
   const handleSaveEdit = async (id: string, newTitle: string) => {
-    const supabase = await createClient();
+    const supabase = await createClient()
 
     const { error } = await supabase
       .from("chats")
       .update({ title: newTitle })
-      .eq("id", id);
+      .eq("id", id)
 
     if (!error) {
       setChatHistory(
         chatHistory.map((chat) =>
           chat.id === id ? { ...chat, title: newTitle } : chat
         )
-      );
+      )
     }
-  };
+  }
 
   const handleConfirmDelete = async (id: string) => {
-    const supabase = await createClient();
+    const supabase = await createClient()
 
-    const { error } = await supabase.from("chats").delete().eq("id", id);
+    const { error } = await supabase.from("chats").delete().eq("id", id)
 
     if (!error) {
-      setChatHistory(chatHistory.filter((chat) => chat.id !== id));
+      setChatHistory(chatHistory.filter((chat) => chat.id !== id))
     }
-  };
+  }
 
   if (isMobile) {
     return (
@@ -74,7 +74,7 @@ export function History() {
         onSaveEdit={handleSaveEdit}
         onConfirmDelete={handleConfirmDelete}
       />
-    );
+    )
   }
 
   return (
@@ -83,5 +83,5 @@ export function History() {
       onSaveEdit={handleSaveEdit}
       onConfirmDelete={handleConfirmDelete}
     />
-  );
+  )
 }

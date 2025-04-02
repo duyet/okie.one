@@ -1,39 +1,39 @@
-"use client";
+"use client"
 
-import { APP_NAME } from "@/app/lib/config";
+import { APP_NAME } from "@/app/lib/config"
 import {
   PromptInput,
   PromptInputAction,
   PromptInputActions,
   PromptInputTextarea,
-} from "@/components/prompt-kit/prompt-input";
-import { Button } from "@/components/ui/button";
-import { ArrowUp, Stop } from "@phosphor-icons/react";
-import React, { useCallback } from "react";
-import { ButtonFileUpload } from "./button-file-upload";
-import { FileList } from "./file-list";
-import { PromptSystem } from "./prompt-system";
-import { SelectModel } from "./select-model";
+} from "@/components/prompt-kit/prompt-input"
+import { Button } from "@/components/ui/button"
+import { ArrowUp, Stop } from "@phosphor-icons/react"
+import React, { useCallback } from "react"
+import { ButtonFileUpload } from "./button-file-upload"
+import { FileList } from "./file-list"
+import { PromptSystem } from "./prompt-system"
+import { SelectModel } from "./select-model"
 
 type ChatInputProps = {
-  value: string;
-  onValueChange: (value: string) => void;
-  onSend: () => void;
-  isSubmitting?: boolean;
-  hasMessages?: boolean;
-  files: File[];
-  onFileUpload: (files: File[]) => void;
-  onFileRemove: (file: File) => void;
-  onSuggestion: (suggestion: string) => void;
-  hasSuggestions?: boolean;
-  onSelectModel: (model: string) => void;
-  selectedModel: string;
-  isUserAuthenticated: boolean;
-  onSelectSystemPrompt: (systemPrompt: string) => void;
-  systemPrompt?: string;
-  stop: () => void;
-  status?: "submitted" | "streaming" | "ready" | "error";
-};
+  value: string
+  onValueChange: (value: string) => void
+  onSend: () => void
+  isSubmitting?: boolean
+  hasMessages?: boolean
+  files: File[]
+  onFileUpload: (files: File[]) => void
+  onFileRemove: (file: File) => void
+  onSuggestion: (suggestion: string) => void
+  hasSuggestions?: boolean
+  onSelectModel: (model: string) => void
+  selectedModel: string
+  isUserAuthenticated: boolean
+  onSelectSystemPrompt: (systemPrompt: string) => void
+  systemPrompt?: string
+  stop: () => void
+  status?: "submitted" | "streaming" | "ready" | "error"
+}
 
 export function ChatInput({
   value,
@@ -55,28 +55,28 @@ export function ChatInput({
 }: ChatInputProps) {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (isSubmitting) return;
+      if (isSubmitting) return
 
       if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        onSend();
+        e.preventDefault()
+        onSend()
       }
     },
     [onSend, isSubmitting]
-  );
+  )
 
   const handleMainClick = () => {
     if (isSubmitting && status !== "streaming") {
-      return;
+      return
     }
 
     if (isSubmitting && status === "streaming") {
-      stop();
-      return;
+      stop()
+      return
     }
 
-    onSend();
-  };
+    onSend()
+  }
 
   return (
     <div className="relative flex w-full flex-col gap-4">
@@ -136,5 +136,5 @@ export function ChatInput({
         </PromptInput>
       </div>
     </div>
-  );
+  )
 }

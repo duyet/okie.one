@@ -1,16 +1,16 @@
-"use client";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "@phosphor-icons/react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "@phosphor-icons/react"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { Suspense } from "react"
 
 // Create a separate component that uses useSearchParams
 function AuthErrorContent() {
-  const searchParams = useSearchParams();
+  const searchParams = useSearchParams()
   const message =
-    searchParams.get("message") || "An error occurred during authentication.";
+    searchParams.get("message") || "An error occurred during authentication."
 
   return (
     <div className="w-full max-w-md space-y-8">
@@ -33,7 +33,7 @@ function AuthErrorContent() {
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 export default function AuthErrorPage() {
@@ -67,5 +67,5 @@ export default function AuthErrorPage() {
         </p>
       </footer>
     </div>
-  );
+  )
 }

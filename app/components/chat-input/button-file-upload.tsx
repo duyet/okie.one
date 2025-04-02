@@ -1,30 +1,30 @@
-import { MODELS_OPTIONS } from "@/app/lib/config";
+import { MODELS_OPTIONS } from "@/app/lib/config"
 import {
   FileUpload,
   FileUploadContent,
   FileUploadTrigger,
-} from "@/components/prompt-kit/file-upload";
-import { Button } from "@/components/ui/button";
+} from "@/components/prompt-kit/file-upload"
+import { Button } from "@/components/ui/button"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/components/ui/popover"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
-import { FileArrowUp, Paperclip } from "@phosphor-icons/react";
-import React from "react";
-import { PopoverContentAuth } from "./popover-content-auth";
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
+import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
+import React from "react"
+import { PopoverContentAuth } from "./popover-content-auth"
 
 type ButtonFileUploadProps = {
-  onFileUpload: (files: File[]) => void;
-  isUserAuthenticated: boolean;
-  model: string;
-};
+  onFileUpload: (files: File[]) => void
+  isUserAuthenticated: boolean
+  model: string
+}
 
 export function ButtonFileUpload({
   onFileUpload,
@@ -33,7 +33,7 @@ export function ButtonFileUpload({
 }: ButtonFileUploadProps) {
   const isFileUploadAvailable = MODELS_OPTIONS.find(
     (m) => m.id === model
-  )?.features?.find((f) => f.id === "file-upload")?.enabled;
+  )?.features?.find((f) => f.id === "file-upload")?.enabled
 
   if (!isFileUploadAvailable) {
     return (
@@ -44,7 +44,7 @@ export function ButtonFileUpload({
               <Button
                 size="sm"
                 variant="secondary"
-                className="border-border cursor-pointer dark:bg-secondary h-9 w-9 rounded-full border bg-transparent"
+                className="border-border dark:bg-secondary h-9 w-9 cursor-pointer rounded-full border bg-transparent"
                 type="button"
                 aria-label="Add files"
               >
@@ -62,7 +62,7 @@ export function ButtonFileUpload({
           </div>
         </PopoverContent>
       </Popover>
-    );
+    )
   }
 
   if (!isUserAuthenticated) {
@@ -86,7 +86,7 @@ export function ButtonFileUpload({
         </Tooltip>
         <PopoverContentAuth />
       </Popover>
-    );
+    )
   }
 
   return (
@@ -126,5 +126,5 @@ export function ButtonFileUpload({
         </div>
       </FileUploadContent>
     </FileUpload>
-  );
+  )
 }

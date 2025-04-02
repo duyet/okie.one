@@ -1,12 +1,12 @@
-import { Button } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button"
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@/components/ui/tooltip"
 import {
   Check,
   ListMagnifyingGlass,
@@ -14,68 +14,68 @@ import {
   PencilSimple,
   TrashSimple,
   X,
-} from "@phosphor-icons/react";
-import Link from "next/link";
-import { useState } from "react";
-import type { ChatHistory } from "./history";
+} from "@phosphor-icons/react"
+import Link from "next/link"
+import { useState } from "react"
+import type { ChatHistory } from "./history"
 
 type DrawerHistoryProps = {
-  chatHistory: ChatHistory[];
-  onSaveEdit: (id: string, newTitle: string) => Promise<void>;
-  onConfirmDelete: (id: string) => Promise<void>;
-};
+  chatHistory: ChatHistory[]
+  onSaveEdit: (id: string, newTitle: string) => Promise<void>
+  onConfirmDelete: (id: string) => Promise<void>
+}
 
 export function DrawerHistory({
   chatHistory,
   onSaveEdit,
   onConfirmDelete,
 }: DrawerHistoryProps) {
-  const [open, setOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [open, setOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState("")
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenChange = (open: boolean) => {
-    setOpen(open);
+    setOpen(open)
     if (!open) {
-      setSearchQuery("");
-      setEditingId(null);
-      setEditTitle("");
-      setDeletingId(null);
+      setSearchQuery("")
+      setEditingId(null)
+      setEditTitle("")
+      setDeletingId(null)
     }
-  };
+  }
 
   const handleEdit = (chat: ChatHistory) => {
-    setEditingId(chat.id);
-    setEditTitle(chat.title);
-  };
+    setEditingId(chat.id)
+    setEditTitle(chat.title)
+  }
 
   const handleSaveEdit = (id: string) => {
-    onSaveEdit(id, editTitle);
-    setEditingId(null);
-  };
+    onSaveEdit(id, editTitle)
+    setEditingId(null)
+  }
 
   const handleCancelEdit = () => {
-    setEditingId(null);
-  };
+    setEditingId(null)
+  }
 
   const handleDelete = (id: string) => {
-    setDeletingId(id);
-  };
+    setDeletingId(id)
+  }
 
   const handleConfirmDelete = (id: string) => {
-    onConfirmDelete(id);
-    setDeletingId(null);
-  };
+    onConfirmDelete(id)
+    setDeletingId(null)
+  }
 
   const handleCancelDelete = () => {
-    setDeletingId(null);
-  };
+    setDeletingId(null)
+  }
 
   const filteredChat = chatHistory.filter((chat) =>
     chat.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  )
 
   return (
     <Drawer open={open} onOpenChange={handleOpenChange}>
@@ -116,8 +116,8 @@ export function DrawerHistory({
                         <form
                           className="flex w-full items-center justify-between"
                           onSubmit={(e) => {
-                            e.preventDefault();
-                            handleSaveEdit(chat.id);
+                            e.preventDefault()
+                            handleSaveEdit(chat.id)
                           }}
                         >
                           <Input
@@ -151,8 +151,8 @@ export function DrawerHistory({
                       <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2.5">
                         <form
                           onSubmit={(e) => {
-                            e.preventDefault();
-                            handleConfirmDelete(chat.id);
+                            e.preventDefault()
+                            handleConfirmDelete(chat.id)
                           }}
                           className="flex w-full items-center justify-between"
                         >
@@ -166,8 +166,8 @@ export function DrawerHistory({
                               autoFocus
                               onKeyDown={(e) => {
                                 if (e.key === "Escape") {
-                                  e.preventDefault();
-                                  handleCancelDelete();
+                                  e.preventDefault()
+                                  handleCancelDelete()
                                 }
                               }}
                             />
@@ -214,8 +214,8 @@ export function DrawerHistory({
                               variant="ghost"
                               className="text-muted-foreground hover:text-foreground size-8"
                               onClick={(e) => {
-                                e.preventDefault();
-                                handleEdit(chat);
+                                e.preventDefault()
+                                handleEdit(chat)
                               }}
                               type="button"
                             >
@@ -226,8 +226,8 @@ export function DrawerHistory({
                               variant="ghost"
                               className="text-muted-foreground hover:text-destructive size-8"
                               onClick={(e) => {
-                                e.preventDefault();
-                                handleDelete(chat.id);
+                                e.preventDefault()
+                                handleDelete(chat.id)
                               }}
                               type="button"
                             >
@@ -245,5 +245,5 @@ export function DrawerHistory({
         </div>
       </DrawerContent>
     </Drawer>
-  );
+  )
 }

@@ -1,8 +1,8 @@
-"use client";
+"use client"
 
-import { useBreakpoint } from "@/app/hooks/use-breakpoint";
-import { APP_NAME } from "@/app/lib/config";
-import { Button } from "@/components/ui/button";
+import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { APP_NAME } from "@/app/lib/config"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 import {
   Drawer,
   DrawerContent,
@@ -18,8 +18,8 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { Info } from "@phosphor-icons/react";
+} from "@/components/ui/drawer"
+import { Info } from "@phosphor-icons/react"
 
 const InfoContent = () => (
   <div className="space-y-4">
@@ -50,7 +50,7 @@ const InfoContent = () => (
       .
     </p>
   </div>
-);
+)
 
 const defaultTrigger = (
   <Button
@@ -61,14 +61,14 @@ const defaultTrigger = (
   >
     <Info className="size-4" />
   </Button>
-);
+)
 
 type AppInfoProps = {
-  trigger?: React.ReactNode;
-};
+  trigger?: React.ReactNode
+}
 
 export function AppInfo({ trigger = defaultTrigger }: AppInfoProps) {
-  const isMobile = useBreakpoint(768);
+  const isMobile = useBreakpoint(768)
 
   if (isMobile) {
     return (
@@ -93,7 +93,7 @@ export function AppInfo({ trigger = defaultTrigger }: AppInfoProps) {
           </DrawerContent>
         </Drawer>
       </>
-    );
+    )
   }
 
   return (
@@ -118,5 +118,5 @@ export function AppInfo({ trigger = defaultTrigger }: AppInfoProps) {
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }

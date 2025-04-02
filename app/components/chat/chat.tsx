@@ -1,38 +1,38 @@
-"use client";
+"use client"
 
-import { ChatInput } from "@/app/components/chat-input/chat-input";
-import { Conversation } from "@/app/components/chat/conversation";
+import { ChatInput } from "@/app/components/chat-input/chat-input"
+import { Conversation } from "@/app/components/chat/conversation"
 import {
   checkRateLimits,
   createGuestUser,
   createNewChat,
   updateChatModel,
-} from "@/app/lib/api";
+} from "@/app/lib/api"
 import {
   MESSAGE_MAX_LENGTH,
   REMAINING_QUERY_ALERT_THRESHOLD,
   SYSTEM_PROMPT_DEFAULT,
-} from "@/app/lib/config";
+} from "@/app/lib/config"
 import {
   Attachment,
   checkFileUploadLimit,
   processFiles,
-} from "@/app/lib/file-handling";
-import { API_ROUTE_CHAT } from "@/app/lib/routes";
-import { toast } from "@/components/ui/toast";
-import { cn } from "@/lib/utils";
-import { Message, useChat } from "@ai-sdk/react";
-import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { DialogAuth } from "./dialog-auth";
+} from "@/app/lib/file-handling"
+import { API_ROUTE_CHAT } from "@/app/lib/routes"
+import { toast } from "@/components/ui/toast"
+import { cn } from "@/lib/utils"
+import { Message, useChat } from "@ai-sdk/react"
+import { AnimatePresence, motion } from "motion/react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { DialogAuth } from "./dialog-auth"
 
 type ChatProps = {
-  initialMessages?: Message[];
-  chatId?: string;
-  userId?: string;
-  preferredModel: string;
-  systemPrompt?: string;
-};
+  initialMessages?: Message[]
+  chatId?: string
+  userId?: string
+  preferredModel: string
+  systemPrompt?: string
+}
 
 export default function Chat({
   initialMessages,
@@ -41,13 +41,13 @@ export default function Chat({
   preferredModel,
   systemPrompt: propSystemPrompt,
 }: ChatProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [hasDialogAuth, setHasDialogAuth] = useState(false);
-  const [userId, setUserId] = useState<string | null>(propUserId || null);
-  const [chatId, setChatId] = useState<string | null>(propChatId || null);
-  const [files, setFiles] = useState<File[]>([]);
-  const [selectedModel, setSelectedModel] = useState(preferredModel);
-  const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt);
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [hasDialogAuth, setHasDialogAuth] = useState(false)
+  const [userId, setUserId] = useState<string | null>(propUserId || null)
+  const [chatId, setChatId] = useState<string | null>(propChatId || null)
+  const [files, setFiles] = useState<File[]>([])
+  const [selectedModel, setSelectedModel] = useState(preferredModel)
+  const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt)
 
   const {
     messages,
@@ -63,59 +63,59 @@ export default function Chat({
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages,
-  });
+  })
 
   useEffect(() => {
     if (error) {
-      let errorMsg = "Something went wrong.";
+      let errorMsg = "Something went wrong."
       try {
-        const parsed = JSON.parse(error.message);
-        errorMsg = parsed.error || errorMsg;
+        const parsed = JSON.parse(error.message)
+        errorMsg = parsed.error || errorMsg
       } catch {
-        errorMsg = error.message || errorMsg;
+        errorMsg = error.message || errorMsg
       }
       toast({
         title: errorMsg,
         status: "error",
-      });
+      })
     }
-  }, [error]);
+  }, [error])
 
   useEffect(() => {
     const checkMessageLimits = async () => {
-      if (!userId) return;
-      const rateData = await checkRateLimits(userId, !!propUserId);
+      if (!userId) return
+      const rateData = await checkRateLimits(userId, !!propUserId)
 
       if (rateData.remaining === 0 && !propUserId) {
-        setHasDialogAuth(true);
+        setHasDialogAuth(true)
       }
-    };
-    checkMessageLimits();
-  }, [userId]);
+    }
+    checkMessageLimits()
+  }, [userId])
 
   const isFirstMessage = useMemo(() => {
-    return messages.length === 0;
-  }, [messages]);
+    return messages.length === 0
+  }, [messages])
 
   useEffect(() => {
     const createGuestUserEffect = async () => {
       if (!propUserId) {
-        const storedGuestId = localStorage.getItem("guestId");
+        const storedGuestId = localStorage.getItem("guestId")
         if (storedGuestId) {
-          setUserId(storedGuestId);
+          setUserId(storedGuestId)
         } else {
-          const newGuestId = crypto.randomUUID();
-          localStorage.setItem("guestId", newGuestId);
-          await createGuestUser(newGuestId);
-          setUserId(newGuestId);
+          const newGuestId = crypto.randomUUID()
+          localStorage.setItem("guestId", newGuestId)
+          await createGuestUser(newGuestId)
+          setUserId(newGuestId)
         }
       }
-    };
-    createGuestUserEffect();
-  }, [propUserId]);
+    }
+    createGuestUserEffect()
+  }, [propUserId])
 
   const ensureChatExists = async () => {
-    if (!userId) return null;
+    if (!userId) return null
     if (isFirstMessage) {
       try {
         const newChatId = await createNewChat(
@@ -124,94 +124,94 @@ export default function Chat({
           selectedModel,
           Boolean(propUserId),
           systemPrompt
-        );
-        setChatId(newChatId);
+        )
+        setChatId(newChatId)
         if (propUserId) {
-          window.history.pushState(null, "", `/c/${newChatId}`);
+          window.history.pushState(null, "", `/c/${newChatId}`)
         }
-        return newChatId;
+        return newChatId
       } catch (err: any) {
-        let errorMessage = "Something went wrong.";
+        let errorMessage = "Something went wrong."
         try {
-          const parsed = JSON.parse(err.message);
-          errorMessage = parsed.error || errorMessage;
+          const parsed = JSON.parse(err.message)
+          errorMessage = parsed.error || errorMessage
         } catch {
-          errorMessage = err.message || errorMessage;
+          errorMessage = err.message || errorMessage
         }
         toast({
           title: errorMessage,
           status: "error",
-        });
-        return null;
+        })
+        return null
       }
     }
-    return chatId;
-  };
+    return chatId
+  }
 
   const handleModelChange = useCallback(
     async (model: string) => {
-      setSelectedModel(model);
+      setSelectedModel(model)
 
       if (chatId) {
         try {
-          await updateChatModel(chatId, model);
+          await updateChatModel(chatId, model)
         } catch (err) {
-          console.error("Failed to update chat model:", err);
+          console.error("Failed to update chat model:", err)
           toast({
             title: "Failed to update chat model",
             status: "error",
-          });
+          })
         }
       }
     },
     [chatId]
-  );
+  )
 
   const submit = async () => {
     if (!userId) {
-      return;
+      return
     }
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
-    const currentChatId = await ensureChatExists();
+    const currentChatId = await ensureChatExists()
 
     if (!currentChatId) {
-      setIsSubmitting(false);
-      return;
+      setIsSubmitting(false)
+      return
     }
 
     if (input.length > MESSAGE_MAX_LENGTH) {
       toast({
         title: `The message you submitted was too long, please submit something shorter. (Max ${MESSAGE_MAX_LENGTH} characters)`,
         status: "error",
-      });
-      setIsSubmitting(false);
-      return;
+      })
+      setIsSubmitting(false)
+      return
     }
 
     try {
-      const rateData = await checkRateLimits(userId, !!propUserId);
+      const rateData = await checkRateLimits(userId, !!propUserId)
 
       if (rateData.remaining === REMAINING_QUERY_ALERT_THRESHOLD) {
         toast({
           title: `Only ${rateData.remaining} query${rateData.remaining === 1 ? "" : "ies"} remaining today.`,
           status: "info",
-        });
+        })
       }
     } catch (err) {
-      setIsSubmitting(false);
-      console.error("Rate limit check failed:", err);
+      setIsSubmitting(false)
+      console.error("Rate limit check failed:", err)
     }
 
-    let newAttachments: Attachment[] = [];
+    let newAttachments: Attachment[] = []
     if (files.length > 0) {
       try {
-        await checkFileUploadLimit(userId);
+        await checkFileUploadLimit(userId)
       } catch (error: any) {
         if (error.code === "DAILY_FILE_LIMIT_REACHED") {
-          toast({ title: error.message, status: "error" });
-          setIsSubmitting(false);
-          return;
+          toast({ title: error.message, status: "error" })
+          setIsSubmitting(false)
+          return
         }
       }
 
@@ -219,10 +219,10 @@ export default function Chat({
         files,
         currentChatId,
         userId
-      );
+      )
 
-      newAttachments = processedAttachments;
-      setFiles([]);
+      newAttachments = processedAttachments
+      setFiles([])
     }
 
     const options = {
@@ -234,43 +234,43 @@ export default function Chat({
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
       },
       experimental_attachments: newAttachments || undefined,
-    };
+    }
 
-    handleSubmit(undefined, options);
-    setInput("");
-    setIsSubmitting(false);
-  };
+    handleSubmit(undefined, options)
+    setInput("")
+    setIsSubmitting(false)
+  }
 
   const handleDelete = (id: string) => {
-    setMessages(messages.filter((message) => message.id !== id));
-  };
+    setMessages(messages.filter((message) => message.id !== id))
+  }
 
   const handleEdit = (id: string, newText: string) => {
     setMessages(
       messages.map((message) =>
         message.id === id ? { ...message, content: newText } : message
       )
-    );
-  };
+    )
+  }
 
   const handleInputChange = useCallback(
     (value: string) => {
-      setInput(value);
+      setInput(value)
     },
     [setInput]
-  );
+  )
 
   const handleFileUpload = useCallback((newFiles: File[]) => {
-    setFiles((prev) => [...prev, ...newFiles]);
-  }, []);
+    setFiles((prev) => [...prev, ...newFiles])
+  }, [])
 
   const handleFileRemove = useCallback((file: File) => {
-    setFiles((prev) => prev.filter((f) => f !== file));
-  }, []);
+    setFiles((prev) => prev.filter((f) => f !== file))
+  }, [])
 
   const handleSuggestion = useCallback(
     async (suggestion: string) => {
-      const currentChatId = await ensureChatExists();
+      const currentChatId = await ensureChatExists()
 
       const options = {
         body: {
@@ -280,7 +280,7 @@ export default function Chat({
           isAuthenticated: !!propUserId,
           systemPrompt: "You are a helpful assistant.",
         },
-      };
+      }
 
       append(
         {
@@ -288,14 +288,14 @@ export default function Chat({
           content: suggestion,
         },
         options
-      );
+      )
     },
     [ensureChatExists, userId, selectedModel, propUserId, append]
-  );
+  )
 
   const handleSelectSystemPrompt = useCallback((newSystemPrompt: string) => {
-    setSystemPrompt(newSystemPrompt);
-  }, []);
+    setSystemPrompt(newSystemPrompt)
+  }, [])
 
   const handleReload = () => {
     const options = {
@@ -306,10 +306,10 @@ export default function Chat({
         isAuthenticated: !!propUserId,
         systemPrompt: systemPrompt || "You are a helpful assistant.",
       },
-    };
+    }
 
-    reload(options);
-  };
+    reload(options)
+  }
 
   return (
     <div
@@ -322,7 +322,7 @@ export default function Chat({
         {isFirstMessage ? (
           <motion.div
             key="onboarding"
-            className="absolute bottom-[60%] max-w-[50rem] mx-auto md:relative md:bottom-auto"
+            className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -381,5 +381,5 @@ export default function Chat({
         />
       </motion.div>
     </div>
-  );
+  )
 }

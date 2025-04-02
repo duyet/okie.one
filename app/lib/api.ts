@@ -1,14 +1,14 @@
-import { APP_DOMAIN } from "@/app/lib/config";
-import { SupabaseClient } from "@supabase/supabase-js";
+import { APP_DOMAIN } from "@/app/lib/config"
+import { SupabaseClient } from "@supabase/supabase-js"
 import {
   AUTH_DAILY_MESSAGE_LIMIT,
   NON_AUTH_DAILY_MESSAGE_LIMIT,
-} from "./config";
+} from "./config"
 import {
   API_ROUTE_CREATE_CHAT,
   API_ROUTE_CREATE_GUEST,
   API_ROUTE_UPDATE_CHAT_MODEL,
-} from "./routes";
+} from "./routes"
 
 /**
  * Creates a new chat for the specified user
@@ -31,20 +31,20 @@ export async function createNewChat(
         isAuthenticated,
         systemPrompt,
       }),
-    });
-    const responseData = await res.json();
+    })
+    const responseData = await res.json()
 
     if (!res.ok) {
       throw new Error(
         responseData.error ||
           `Failed to create chat: ${res.status} ${res.statusText}`
-      );
+      )
     }
 
-    return responseData.chatId;
+    return responseData.chatId
   } catch (error) {
-    console.error("Error creating new chat:", error);
-    throw error;
+    console.error("Error creating new chat:", error)
+    throw error
   }
 }
 
@@ -57,27 +57,27 @@ export async function createGuestUser(guestId: string) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: guestId }),
-    });
-    const responseData = await res.json();
+    })
+    const responseData = await res.json()
     if (!res.ok) {
       throw new Error(
         responseData.error ||
           `Failed to create guest user: ${res.status} ${res.statusText}`
-      );
+      )
     }
 
-    return responseData;
+    return responseData
   } catch (err) {
-    console.error("Error creating guest user:", err);
-    throw err;
+    console.error("Error creating guest user:", err)
+    throw err
   }
 }
 
 export class UsageLimitError extends Error {
-  code: string;
+  code: string
   constructor(message: string) {
-    super(message);
-    this.code = "DAILY_LIMIT_REACHED";
+    super(message)
+    this.code = "DAILY_LIMIT_REACHED"
   }
 }
 
@@ -97,28 +97,26 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
       "message_count, daily_message_count, daily_reset, anonymous, premium"
     )
     .eq("id", userId)
-    .maybeSingle();
+    .maybeSingle()
 
   if (userDataError) {
-    throw new Error("Error fetching user data: " + userDataError.message);
+    throw new Error("Error fetching user data: " + userDataError.message)
   }
   if (!userData) {
-    throw new Error("User record not found for id: " + userId);
+    throw new Error("User record not found for id: " + userId)
   }
 
   // Decide which daily limit to use.
-  const isAnonymous = userData.anonymous;
+  const isAnonymous = userData.anonymous
   // (Assuming these are imported from your config)
   const dailyLimit = isAnonymous
     ? NON_AUTH_DAILY_MESSAGE_LIMIT
-    : AUTH_DAILY_MESSAGE_LIMIT;
+    : AUTH_DAILY_MESSAGE_LIMIT
 
   // Reset the daily counter if the day has changed (using UTC).
-  const now = new Date();
-  let dailyCount = userData.daily_message_count || 0;
-  const lastReset = userData.daily_reset
-    ? new Date(userData.daily_reset)
-    : null;
+  const now = new Date()
+  let dailyCount = userData.daily_message_count || 0
+  const lastReset = userData.daily_reset ? new Date(userData.daily_reset) : null
 
   if (
     !lastReset ||
@@ -126,26 +124,26 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
     now.getUTCMonth() !== lastReset.getUTCMonth() ||
     now.getUTCDate() !== lastReset.getUTCDate()
   ) {
-    dailyCount = 0;
+    dailyCount = 0
     const { error: resetError } = await supabase
       .from("users")
       .update({ daily_message_count: 0, daily_reset: now.toISOString() })
-      .eq("id", userId);
+      .eq("id", userId)
     if (resetError) {
-      throw new Error("Failed to reset daily count: " + resetError.message);
+      throw new Error("Failed to reset daily count: " + resetError.message)
     }
   }
 
   // Check if the daily limit is reached.
   if (dailyCount >= dailyLimit) {
-    throw new UsageLimitError("Daily message limit reached.");
+    throw new UsageLimitError("Daily message limit reached.")
   }
 
   return {
     userData,
     dailyCount,
     dailyLimit,
-  };
+  }
 }
 
 /**
@@ -161,34 +159,34 @@ export async function incrementUsage(
   userId: string,
   currentCounts?: { messageCount: number; dailyCount: number }
 ): Promise<void> {
-  let messageCount: number;
-  let dailyCount: number;
+  let messageCount: number
+  let dailyCount: number
 
   if (currentCounts) {
-    messageCount = currentCounts.messageCount;
-    dailyCount = currentCounts.dailyCount;
+    messageCount = currentCounts.messageCount
+    dailyCount = currentCounts.dailyCount
   } else {
     // If counts weren't provided, fetch them
     const { data: userData, error: userDataError } = await supabase
       .from("users")
       .select("message_count, daily_message_count")
       .eq("id", userId)
-      .maybeSingle();
+      .maybeSingle()
 
     if (userDataError || !userData) {
       throw new Error(
         "Error fetching user data: " +
           (userDataError?.message || "User not found")
-      );
+      )
     }
 
-    messageCount = userData.message_count || 0;
-    dailyCount = userData.daily_message_count || 0;
+    messageCount = userData.message_count || 0
+    dailyCount = userData.daily_message_count || 0
   }
 
   // Increment both overall and daily message counts.
-  const newOverallCount = messageCount + 1;
-  const newDailyCount = dailyCount + 1;
+  const newOverallCount = messageCount + 1
+  const newDailyCount = dailyCount + 1
 
   const { error: updateError } = await supabase
     .from("users")
@@ -196,10 +194,10 @@ export async function incrementUsage(
       message_count: newOverallCount,
       daily_message_count: newDailyCount,
     })
-    .eq("id", userId);
+    .eq("id", userId)
 
   if (updateError) {
-    throw new Error("Failed to update usage data: " + updateError.message);
+    throw new Error("Failed to update usage data: " + updateError.message)
   }
 }
 
@@ -216,12 +214,12 @@ export async function checkAndIncrementUsage(
   supabase: SupabaseClient,
   userId: string
 ): Promise<void> {
-  const { userData, dailyCount } = await checkUsage(supabase, userId);
+  const { userData, dailyCount } = await checkUsage(supabase, userId)
 
   await incrementUsage(supabase, userId, {
     messageCount: userData.message_count || 0,
     dailyCount,
-  });
+  })
 }
 
 /**
@@ -244,18 +242,18 @@ export async function checkRateLimits(
         method: "GET",
         headers: { "Content-Type": "application/json" },
       }
-    );
-    const responseData = await res.json();
+    )
+    const responseData = await res.json()
     if (!res.ok) {
       throw new Error(
         responseData.error ||
           `Failed to check rate limits: ${res.status} ${res.statusText}`
-      );
+      )
     }
-    return responseData;
+    return responseData
   } catch (err) {
-    console.error("Error checking rate limits:", err);
-    throw err;
+    console.error("Error checking rate limits:", err)
+    throw err
   }
 }
 
@@ -268,20 +266,20 @@ export async function updateChatModel(chatId: string, model: string) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chatId, model }),
-    });
-    const responseData = await res.json();
+    })
+    const responseData = await res.json()
 
     if (!res.ok) {
       throw new Error(
         responseData.error ||
           `Failed to update chat model: ${res.status} ${res.statusText}`
-      );
+      )
     }
 
-    return responseData;
+    return responseData
   } catch (error) {
-    console.error("Error updating chat model:", error);
-    throw error;
+    console.error("Error updating chat model:", error)
+    throw error
   }
 }
 
@@ -290,7 +288,7 @@ export async function updateChatModel(chatId: string, model: string) {
  */
 export async function signInWithGoogle(supabase: SupabaseClient) {
   try {
-    const isDev = process.env.NODE_ENV === "development";
+    const isDev = process.env.NODE_ENV === "development"
 
     // Get base URL dynamically (will work in both browser and server environments)
     let baseUrl = isDev
@@ -299,7 +297,7 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
         ? window.location.origin
         : process.env.NEXT_PUBLIC_VERCEL_URL
           ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-          : APP_DOMAIN;
+          : APP_DOMAIN
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -310,16 +308,16 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
           prompt: "consent",
         },
       },
-    });
+    })
 
     if (error) {
-      throw error;
+      throw error
     }
 
     // Return the provider URL
-    return data;
+    return data
   } catch (err) {
-    console.error("Error signing in with Google:", err);
-    throw err;
+    console.error("Error signing in with Google:", err)
+    throw err
   }
 }

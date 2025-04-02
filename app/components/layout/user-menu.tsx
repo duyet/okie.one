@@ -1,25 +1,25 @@
-"use client";
+"use client"
 
-import { Database } from "@/app/types/database.types";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Database } from "@/app/types/database.types"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/dropdown-menu"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Info, User } from "@phosphor-icons/react";
-import { APP_NAME } from "../../lib/config";
-import { AppInfo } from "./app-info";
-import { Settings } from "./settings";
+} from "@/components/ui/tooltip"
+import { Info, User } from "@phosphor-icons/react"
+import { APP_NAME } from "../../lib/config"
+import { AppInfo } from "./app-info"
+import { Settings } from "./settings"
 
-type User = Database["public"]["Tables"]["users"]["Row"];
+type User = Database["public"]["Tables"]["users"]["Row"]
 
 export default function UserMenu({ user }: { user: User }) {
   return (
@@ -65,5 +65,5 @@ export default function UserMenu({ user }: { user: User }) {
         />
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

@@ -1,39 +1,39 @@
-"use client";
+"use client"
 
-import { useBreakpoint } from "@/app/hooks/use-breakpoint";
-import { AUTH_DAILY_MESSAGE_LIMIT } from "@/app/lib/config";
-import { createClient } from "@/app/lib/supabase/client";
-import type { Database } from "@/app/types/database.types";
-import { ModelSelector } from "@/components/common/model-selector";
-import { Button } from "@/components/ui/button";
+import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { AUTH_DAILY_MESSAGE_LIMIT } from "@/app/lib/config"
+import { createClient } from "@/app/lib/supabase/client"
+import type { Database } from "@/app/types/database.types"
+import { ModelSelector } from "@/components/common/model-selector"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer";
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { SignOut, User, X } from "@phosphor-icons/react";
-import { useTheme } from "next-themes";
-import { useRouter } from "next/navigation";
-import type React from "react";
-import { useState } from "react";
+} from "@/components/ui/dialog"
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { cn } from "@/lib/utils"
+import { SignOut, User, X } from "@phosphor-icons/react"
+import { useTheme } from "next-themes"
+import { useRouter } from "next/navigation"
+import type React from "react"
+import { useState } from "react"
 
-type UserType = Database["public"]["Tables"]["users"]["Row"];
+type UserType = Database["public"]["Tables"]["users"]["Row"]
 
 interface SettingsProps {
-  user: UserType;
-  trigger?: React.ReactNode;
+  user: UserType
+  trigger?: React.ReactNode
 }
 
 export function Settings({ user, trigger }: SettingsProps) {
-  const [open, setOpen] = useState(false);
-  const isMobile = useBreakpoint(768);
+  const [open, setOpen] = useState(false)
+  const isMobile = useBreakpoint(768)
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => setOpen(false)
 
   const defaultTrigger = (
     <DropdownMenuItem
@@ -43,7 +43,7 @@ export function Settings({ user, trigger }: SettingsProps) {
       <User className="size-4" />
       <span>Settings</span>
     </DropdownMenuItem>
-  );
+  )
 
   if (isMobile) {
     return (
@@ -53,7 +53,7 @@ export function Settings({ user, trigger }: SettingsProps) {
           <SettingsContent isDrawer onClose={handleClose} user={user} />
         </DrawerContent>
       </Drawer>
-    );
+    )
   }
 
   return (
@@ -66,7 +66,7 @@ export function Settings({ user, trigger }: SettingsProps) {
         <SettingsContent onClose={handleClose} user={user} />
       </DialogContent>
     </Dialog>
-  );
+  )
 }
 
 function SettingsContent({
@@ -74,41 +74,41 @@ function SettingsContent({
   isDrawer = false,
   user,
 }: {
-  onClose: () => void;
-  isDrawer?: boolean;
-  user: UserType;
+  onClose: () => void
+  isDrawer?: boolean
+  user: UserType
 }) {
-  const { theme, setTheme } = useTheme();
-  const [selectedTheme, setSelectedTheme] = useState(theme || "system");
+  const { theme, setTheme } = useTheme()
+  const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
     user?.preferred_model || "gpt-4o"
-  );
-  const supabase = createClient();
-  const router = useRouter();
+  )
+  const supabase = createClient()
+  const router = useRouter()
 
   const handleModelChange = async (value: string) => {
-    setSelectedModelId(value);
+    setSelectedModelId(value)
 
     try {
-      const supabase = createClient();
+      const supabase = createClient()
       const { error } = await supabase
         .from("users")
         .update({ preferred_model: value })
-        .eq("id", user.id);
+        .eq("id", user.id)
 
       if (error) {
-        console.error("Error updating preferred model:", error);
+        console.error("Error updating preferred model:", error)
       }
     } catch (err) {
-      console.error("Failed to update preferred model:", err);
+      console.error("Failed to update preferred model:", err)
     }
-  };
+  }
 
   const themes = [
     { id: "system", name: "System", colors: ["#ffffff", "#1a1a1a"] },
     { id: "light", name: "Light", colors: ["#ffffff"] },
     { id: "dark", name: "Dark", colors: ["#1a1a1a"] },
-  ];
+  ]
 
   return (
     <div
@@ -190,8 +190,8 @@ function SettingsContent({
                 key={theme.id}
                 type="button"
                 onClick={() => {
-                  setSelectedTheme(theme.id);
-                  setTheme(theme.id);
+                  setSelectedTheme(theme.id)
+                  setTheme(theme.id)
                 }}
                 className={`rounded-lg border p-3 ${
                   selectedTheme === theme.id
@@ -266,8 +266,8 @@ function SettingsContent({
               size="sm"
               className="flex items-center gap-2"
               onClick={() => {
-                supabase.auth.signOut();
-                router.push("/");
+                supabase.auth.signOut()
+                router.push("/")
               }}
             >
               <SignOut className="size-4" />
@@ -305,5 +305,5 @@ function SettingsContent({
         </div>
       </div> */}
     </div>
-  );
+  )
 }

@@ -1,5 +1,5 @@
-import { createClient } from "@/app/lib/supabase/server";
-import { createGuestServerClient } from "@/app/lib/supabase/server-guest";
+import { createClient } from "@/app/lib/supabase/server"
+import { createGuestServerClient } from "@/app/lib/supabase/server-guest"
 
 /**
  * Validates the user's identity
@@ -13,17 +13,17 @@ export async function validateUserIdentity(
 ) {
   const supabase = isAuthenticated
     ? await createClient()
-    : await createGuestServerClient();
+    : await createGuestServerClient()
 
   if (isAuthenticated) {
-    const { data: authData, error: authError } = await supabase.auth.getUser();
+    const { data: authData, error: authError } = await supabase.auth.getUser()
 
     if (authError || !authData?.user?.id) {
-      throw new Error("Unable to get authenticated user");
+      throw new Error("Unable to get authenticated user")
     }
 
     if (authData.user.id !== userId) {
-      throw new Error("User ID does not match authenticated user");
+      throw new Error("User ID does not match authenticated user")
     }
   } else {
     const { data: userRecord, error: userError } = await supabase
@@ -31,12 +31,12 @@ export async function validateUserIdentity(
       .select("id")
       .eq("id", userId)
       .eq("anonymous", true)
-      .maybeSingle();
+      .maybeSingle()
 
     if (userError || !userRecord) {
-      throw new Error("Invalid or missing guest user");
+      throw new Error("Invalid or missing guest user")
     }
   }
 
-  return supabase;
+  return supabase
 }

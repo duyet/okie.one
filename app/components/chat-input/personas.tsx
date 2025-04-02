@@ -1,19 +1,19 @@
-"use client";
+"use client"
 
-import { PERSONAS } from "@/app/lib/config";
-import { TRANSITION_SUGGESTIONS } from "@/app/lib/motion";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { motion } from "motion/react";
-import { memo } from "react";
+import { PERSONAS } from "@/app/lib/config"
+import { TRANSITION_SUGGESTIONS } from "@/app/lib/motion"
+import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
+import { motion } from "motion/react"
+import { memo } from "react"
 
 type ButtonPersonaProps = {
-  label: string;
-  prompt: string;
-  onSelectSystemPrompt: (systemPrompt: string) => void;
-  systemPrompt?: string;
-  icon: React.ElementType;
-};
+  label: string
+  prompt: string
+  onSelectSystemPrompt: (systemPrompt: string) => void
+  systemPrompt?: string
+  icon: React.ElementType
+}
 
 const ButtonPersona = memo(function ButtonPersona({
   label,
@@ -22,8 +22,8 @@ const ButtonPersona = memo(function ButtonPersona({
   systemPrompt,
   icon,
 }: ButtonPersonaProps) {
-  const isActive = systemPrompt === prompt;
-  const Icon = icon;
+  const isActive = systemPrompt === prompt
+  const Icon = icon
 
   return (
     <Button
@@ -43,13 +43,13 @@ const ButtonPersona = memo(function ButtonPersona({
       <Icon className="size-4" />
       {label}
     </Button>
-  );
-});
+  )
+})
 
 type PersonasProps = {
-  onSelectSystemPrompt: (systemPrompt: string) => void;
-  systemPrompt?: string;
-};
+  onSelectSystemPrompt: (systemPrompt: string) => void
+  systemPrompt?: string
+}
 
 export const Personas = memo(function Personas({
   onSelectSystemPrompt,
@@ -92,5 +92,5 @@ export const Personas = memo(function Personas({
         </motion.div>
       ))}
     </motion.div>
-  );
-});
+  )
+})

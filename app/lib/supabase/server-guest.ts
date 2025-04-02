@@ -1,5 +1,5 @@
-import type { Database } from "@/app/types/database.types";
-import { createServerClient } from "@supabase/ssr";
+import type { Database } from "@/app/types/database.types"
+import { createServerClient } from "@supabase/ssr"
 
 export async function createGuestServerClient() {
   return createServerClient<Database>(
@@ -11,5 +11,5 @@ export async function createGuestServerClient() {
         setAll: () => {},
       },
     }
-  );
+  )
 }
