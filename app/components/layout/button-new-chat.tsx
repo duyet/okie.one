@@ -23,7 +23,12 @@ export function ButtonNewChat({ userId, preferredModel }: ButtonNewChatProps) {
       return
     }
 
-    const newChatId = await createNewChat(userId, "new chat", preferredModel)
+    const newChatId = await createNewChat(
+      userId,
+      "new chat",
+      preferredModel,
+      true
+    )
     router.push(`/c/${newChatId}`)
   }
 

@@ -1,4 +1,5 @@
 import { checkUsage } from "@/app/lib/api"
+import { SYSTEM_PROMPT_DEFAULT } from "@/app/lib/config"
 import { validateUserIdentity } from "@/app/lib/server/api"
 
 export async function POST(request: Request) {
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
         user_id: userId,
         title: title || "New Chat",
         model: model,
-        system_prompt: systemPrompt || "You are a helpful assistant.",
+        system_prompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
       })
       .select("*")
       .single()
