@@ -1,7 +1,7 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { APP_NAME } from "@/app/lib/config"
+import { APP_DESCRIPTION, APP_NAME } from "@/app/lib/config"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -24,9 +24,8 @@ import { Info } from "@phosphor-icons/react"
 const InfoContent = () => (
   <div className="space-y-4">
     <p className="text-foreground leading-relaxed">
-      {APP_NAME} is an open-source, beautifully designed AI chat app supporting
-      multiple AI models, with an intuitive and minimalistic user experience.
-      Built with Vercel's AI SDK, Supabase, and prompt-kit components.
+      {APP_DESCRIPTION} Built with Vercel's AI SDK, Supabase, and prompt-kit
+      components.
     </p>
     <p className="text-foreground leading-relaxed">
       The code is available on{" "}
@@ -37,8 +36,8 @@ const InfoContent = () => (
         className="underline"
       >
         GitHub
-      </a>{" "}
-      and you can also follow the creator on{" "}
+      </a>
+      , you can also follow the creator on{" "}
       <a
         href="https://twitter.com/ibelick"
         target="_blank"
