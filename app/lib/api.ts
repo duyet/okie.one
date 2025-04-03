@@ -1,4 +1,4 @@
-import { APP_DOMAIN } from "@/app/lib/config"
+import { APP_DOMAIN, MODEL_DEFAULT } from "@/app/lib/config"
 import { SupabaseClient } from "@supabase/supabase-js"
 import {
   AUTH_DAILY_MESSAGE_LIMIT,
@@ -27,7 +27,7 @@ export async function createNewChat(
       body: JSON.stringify({
         userId,
         title,
-        model,
+        model: model || MODEL_DEFAULT,
         isAuthenticated,
         systemPrompt,
       }),

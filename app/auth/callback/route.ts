@@ -1,3 +1,4 @@
+import { MODEL_DEFAULT } from "@/app/lib/config"
 import { createClient } from "@/app/lib/supabase/server"
 import { createGuestServerClient } from "@/app/lib/supabase/server-guest"
 import { NextResponse } from "next/server"
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
                 premium: false,
                 message_count: 0,
                 created_at: new Date().toISOString(),
+                preferred_model: MODEL_DEFAULT,
               },
               { onConflict: "id" }
             )

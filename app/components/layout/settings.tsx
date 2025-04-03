@@ -1,7 +1,7 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { AUTH_DAILY_MESSAGE_LIMIT } from "@/app/lib/config"
+import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/app/lib/config"
 import { createClient } from "@/app/lib/supabase/client"
 import type { Database } from "@/app/types/database.types"
 import { ModelSelector } from "@/components/common/model-selector"
@@ -81,7 +81,7 @@ function SettingsContent({
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
-    user?.preferred_model || "gpt-4o"
+    user?.preferred_model || MODEL_DEFAULT
   )
   const supabase = createClient()
   const router = useRouter()
