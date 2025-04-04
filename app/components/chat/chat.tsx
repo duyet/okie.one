@@ -25,6 +25,7 @@ import { Message, useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { DialogAuth } from "./dialog-auth"
+import { FeedbackWidget } from "./feedback-widget"
 
 type ChatProps = {
   initialMessages?: Message[]
@@ -380,6 +381,7 @@ export default function Chat({
           status={status}
         />
       </motion.div>
+      <FeedbackWidget authUserId={propUserId} />
     </div>
   )
 }
