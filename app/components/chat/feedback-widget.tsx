@@ -134,7 +134,7 @@ export function FeedbackWidget({ authUserId }: FeedbackWidgetProps) {
           </motion.span>
         </MorphingPopoverTrigger>
         <MorphingPopoverContent
-          className="border-border bg-background fixed right-4 bottom-4 rounded-xl border p-0 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),_0_2px_5px_0px_rgba(0,0,0,0.06)]"
+          className="border-border bg-popover fixed right-4 bottom-4 rounded-xl border p-0 shadow-[0_9px_9px_0px_rgba(0,0,0,0.01),_0_2px_5px_0px_rgba(0,0,0,0.06)]"
           style={{
             transformOrigin: "bottom right",
           }}
@@ -165,7 +165,7 @@ export function FeedbackWidget({ authUserId }: FeedbackWidgetProps) {
                   key="form"
                   className="flex h-full flex-col"
                   onSubmit={handleSubmit}
-                  initial={{ opacity: 0, y: -10, filter: "blur(2px)" }}
+                  initial={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                   exit={{ opacity: 0, y: 10, filter: "blur(2px)" }}
                   transition={TRANSITION_CONTENT}

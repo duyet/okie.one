@@ -48,7 +48,6 @@ export default function UserMenu({ user }: { user: User }) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <Settings
-          user={user}
           trigger={
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
               <User className="size-4" />

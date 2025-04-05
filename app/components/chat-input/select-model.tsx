@@ -35,7 +35,7 @@ export function SelectModel({
               <Button
                 size="sm"
                 variant="secondary"
-                className="border-border dark:bg-secondary text-accent-foreground h-9 w-auto cursor-pointer rounded-full border bg-transparent"
+                className="border-border dark:bg-secondary text-accent-foreground h-9 w-auto rounded-full border bg-transparent"
                 type="button"
               >
                 {provider?.icon && <provider.icon className="size-5" />}

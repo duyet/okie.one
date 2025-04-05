@@ -37,14 +37,14 @@ const InfoContent = () => (
       >
         GitHub
       </a>
-      , you can also follow the creator on{" "}
+      . Made by{" "}
       <a
         href="https://twitter.com/ibelick"
         target="_blank"
         rel="noopener noreferrer"
         className="underline"
       >
-        X
+        @ibelick
       </a>
       .
     </p>

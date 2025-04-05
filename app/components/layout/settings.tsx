@@ -3,7 +3,7 @@
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/app/lib/config"
 import { createClient } from "@/app/lib/supabase/client"
-import type { Database } from "@/app/types/database.types"
+import { useUser } from "@/app/providers/user-provider"
 import { ModelSelector } from "@/components/common/model-selector"
 import { Button } from "@/components/ui/button"
 import {
@@ -20,20 +20,18 @@ import { SignOut, User, X } from "@phosphor-icons/react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import type React from "react"
-import { useState } from "react"
-
-type UserType = Database["public"]["Tables"]["users"]["Row"]
+import { useEffect, useState } from "react"
 
 interface SettingsProps {
-  user: UserType
   trigger?: React.ReactNode
 }
 
-export function Settings({ user, trigger }: SettingsProps) {
+export function Settings({ trigger }: SettingsProps) {
+  const { user } = useUser()
   const [open, setOpen] = useState(false)
   const isMobile = useBreakpoint(768)
 
-  const handleClose = () => setOpen(false)
+  if (!user) return null
 
   const defaultTrigger = (
     <DropdownMenuItem
@@ -50,7 +48,7 @@ export function Settings({ user, trigger }: SettingsProps) {
       <Drawer open={open} onOpenChange={setOpen}>
         <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
         <DrawerContent>
-          <SettingsContent isDrawer onClose={handleClose} user={user} />
+          <SettingsContent isDrawer onClose={() => setOpen(false)} />
         </DrawerContent>
       </Drawer>
     )
@@ -63,7 +61,7 @@ export function Settings({ user, trigger }: SettingsProps) {
         <DialogHeader className="border-border border-b px-6 py-4">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
-        <SettingsContent onClose={handleClose} user={user} />
+        <SettingsContent onClose={() => setOpen(false)} />
       </DialogContent>
     </Dialog>
   )
@@ -72,36 +70,32 @@ export function Settings({ user, trigger }: SettingsProps) {
 function SettingsContent({
   onClose,
   isDrawer = false,
-  user,
 }: {
   onClose: () => void
   isDrawer?: boolean
-  user: UserType
 }) {
+  const { user, updateUser, signOut } = useUser()
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
     user?.preferred_model || MODEL_DEFAULT
   )
-  const supabase = createClient()
   const router = useRouter()
 
-  const handleModelChange = async (value: string) => {
-    setSelectedModelId(value)
-
-    try {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from("users")
-        .update({ preferred_model: value })
-        .eq("id", user.id)
-
-      if (error) {
-        console.error("Error updating preferred model:", error)
-      }
-    } catch (err) {
-      console.error("Failed to update preferred model:", err)
+  useEffect(() => {
+    if (user?.preferred_model) {
+      setSelectedModelId(user.preferred_model)
     }
+  }, [user?.preferred_model])
+
+  const handleModelSelection = async (value: string) => {
+    setSelectedModelId(value)
+    await updateUser({ preferred_model: value })
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/")
   }
 
   const themes = [
@@ -109,6 +103,8 @@ function SettingsContent({
     { id: "light", name: "Light", colors: ["#ffffff"] },
     { id: "dark", name: "Dark", colors: ["#1a1a1a"] },
   ]
+
+  if (!user) return null
 
   return (
     <div
@@ -222,28 +218,9 @@ function SettingsContent({
           <div className="relative">
             <ModelSelector
               selectedModelId={selectedModelId}
-              setSelectedModelId={handleModelChange}
+              setSelectedModelId={handleModelSelection}
               className="w-full"
             />
-            {/* <Select value={selectedModel} onValueChange={handleModelChange}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
-              </SelectTrigger>
-              <SelectContent>
-                {PROVIDERS.map((provider) => (
-                  <SelectGroup key={provider.id}>
-                    <SelectLabel>{provider.name}</SelectLabel>
-                    {MODELS.filter(
-                      (model) => model.provider === provider.id
-                    ).map((model) => (
-                      <SelectItem key={model.id} value={model.id}>
-                        {model.name}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                ))}
-              </SelectContent>
-            </Select> */}
           </div>
           <p className="text-muted-foreground mt-2 text-xs">
             This model will be used by default for new conversations
@@ -265,10 +242,7 @@ function SettingsContent({
               variant="secondary"
               size="sm"
               className="flex items-center gap-2"
-              onClick={() => {
-                supabase.auth.signOut()
-                router.push("/")
-              }}
+              onClick={handleSignOut}
             >
               <SignOut className="size-4" />
               <span>Sign out</span>
@@ -276,7 +250,6 @@ function SettingsContent({
           </div>
         </div>
       </div>
-
       {/* Delete Account, not ready yet */}
       {/* <div className="border-border border-t">
         <div className="px-6 py-4">

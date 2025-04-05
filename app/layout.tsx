@@ -5,6 +5,9 @@ import { APP_DESCRIPTION, APP_NAME } from "@/app/lib/config"
 import { Toaster } from "@/components/ui/sonner"
 import { ThemeProvider } from "next-themes"
 import Script from "next/script"
+import { createClient } from "./lib/supabase/server"
+import { UserProvider } from "./providers/user-provider"
+import { UserProfile } from "./types/user"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,12 +24,29 @@ export const metadata: Metadata = {
   description: APP_DESCRIPTION,
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   const isDev = process.env.NODE_ENV === "development"
+  const supabase = await createClient()
+  const { data } = await supabase.auth.getUser()
+
+  let userProfile = null
+  if (data.user) {
+    const { data: userProfileData } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", data.user?.id)
+      .single()
+
+    userProfile = {
+      ...userProfileData,
+      profile_image: data.user?.user_metadata.avatar_url,
+      display_name: data.user?.user_metadata.name,
+    } as UserProfile
+  }
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -40,15 +60,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Toaster position="top-center" />
-          {children}
-        </ThemeProvider>
+        <UserProvider initialUser={userProfile}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Toaster position="top-center" />
+            {children}
+          </ThemeProvider>
+        </UserProvider>
       </body>
     </html>
   )

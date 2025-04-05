@@ -42,7 +42,7 @@ function PromptSuggestion({
         variant={variant || "ghost"}
         size={size || "sm"}
         className={cn(
-          "w-full cursor-pointer justify-start rounded-xl py-2",
+          "w-full justify-start rounded-xl py-2",
           "hover:bg-accent",
           className
         )}
@@ -63,7 +63,7 @@ function PromptSuggestion({
       variant={variant || "ghost"}
       size={size || "sm"}
       className={cn(
-        "w-full cursor-pointer justify-start gap-0 rounded-xl py-2",
+        "w-full justify-start gap-0 rounded-xl py-2",
         "hover:bg-accent",
         className
       )}

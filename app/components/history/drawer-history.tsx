@@ -194,7 +194,7 @@ export function DrawerHistory({
                         </form>
                       </div>
                     ) : (
-                      <div className="group flex cursor-pointer items-center justify-between rounded-lg px-2 py-1.5">
+                      <div className="group flex items-center justify-between rounded-lg px-2 py-1.5">
                         <Link
                           href={`/c/${chat.id}`}
                           key={chat.id}

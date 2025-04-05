@@ -119,7 +119,7 @@ export function ChatInput({
             <PromptInputAction tooltip={isSubmitting ? "Sending..." : "Send"}>
               <Button
                 size="sm"
-                className="h-9 w-9 cursor-pointer rounded-full transition-all duration-300 ease-out"
+                className="size-9 rounded-full transition-all duration-300 ease-out"
                 disabled={isSubmitting || (status !== "streaming" && !value)}
                 type="button"
                 onClick={handleMainClick}

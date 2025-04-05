@@ -1,32 +1,16 @@
+"use client"
+
 import { History } from "@/app/components/history/history"
-import { createClient } from "@/app/lib/supabase/server"
-import { Database } from "@/app/types/database.types"
+import { useUser } from "@/app/providers/user-provider"
 import Link from "next/link"
 import { APP_NAME } from "../../lib/config"
 import { AppInfo } from "./app-info"
 import { ButtonNewChat } from "./button-new-chat"
 import UserMenu from "./user-menu"
 
-export async function Header() {
-  const supabase = await createClient()
-  const { data } = await supabase.auth.getUser()
-  const isLoggedIn = data.user !== null
-
-  let userProfile = null
-  if (data.user) {
-    const { data: userProfileData } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", data.user?.id)
-      .single()
-    userProfile = userProfileData
-  }
-
-  const userData = {
-    ...userProfile,
-    profile_image: data.user?.user_metadata.avatar_url,
-    display_name: data.user?.user_metadata.name,
-  } as Database["public"]["Tables"]["users"]["Row"]
+export function Header() {
+  const { user } = useUser()
+  const isLoggedIn = !!user
 
   return (
     <header className="h-app-header fixed top-0 right-0 left-0 z-50">
@@ -48,11 +32,11 @@ export async function Header() {
         ) : (
           <div className="flex items-center gap-4">
             <ButtonNewChat
-              userId={data.user.id}
-              preferredModel={userData.preferred_model!}
+              userId={user.id}
+              preferredModel={user.preferred_model!}
             />
             <History />
-            <UserMenu user={userData} />
+            <UserMenu user={user} />
           </div>
         )}
       </div>
