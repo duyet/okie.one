@@ -78,7 +78,7 @@ Zola requires Supabase for authentication and storage. Follow these steps to set
 
 Create the following tables in your Supabase SQL editor:
 
-```sql
+````sql
 -- Users table
 CREATE TABLE users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -134,41 +134,10 @@ CREATE TABLE feedback (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Usage history table
-CREATE TABLE usage_history (
-  id SERIAL PRIMARY KEY,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE NOT NULL,
-  message_count INTEGER NOT NULL,
-  period_start TIMESTAMPTZ NOT NULL,
-  period_end TIMESTAMPTZ NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
 -- Set up RLS policies
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE chats ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
-ALTER TABLE chat_attachments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE feedback ENABLE ROW LEVEL SECURITY;
-
--- Create RLS policies
-CREATE POLICY "Users can view their own data" ON users
-  FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update their own data" ON users
-  FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Users can view their own chats" ON chats
-  FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can create their own chats" ON chats
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own chats" ON chats
-  FOR DELETE USING (auth.uid() = user_id);
-
--- Similar policies for messages and attachments
-```
+RLS setup and policies coming soon.
+For now, make sure to enable RLS on all user-related tables:
+users, chats, messages, chat_attachments, feedback
 
 ### Storage Setup
 
@@ -184,7 +153,7 @@ Create a bucket named `chat-attachments` with the following CORS configuration:
     }
   ]
 }
-```
+````
 
 ## Docker Installation
 
@@ -252,7 +221,7 @@ docker run -p 3000:3000 \
 Create a `docker-compose.yml` file in the root of your project:
 
 ```yaml
-version: '3'
+version: "3"
 
 services:
   zola:
@@ -327,10 +296,12 @@ You can customize various aspects of Zola by modifying the configuration files:
 ### Common Issues
 
 1. **Connection to Supabase fails**
+
    - Check your Supabase URL and API keys
    - Ensure your IP address is allowed in Supabase
 
 2. **AI models not responding**
+
    - Verify your API keys for OpenAI/Mistral
    - Check that the models specified in config are available
 

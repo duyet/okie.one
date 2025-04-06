@@ -16,7 +16,7 @@
 
 ## Installation
 
-coming soon.
+See [INSTALL.md](./INSTALL.md) for setup instructions.
 
 ## Built with
 

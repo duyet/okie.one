@@ -121,41 +121,6 @@ export type Database = {
         }
         Relationships: []
       }
-      usage_history: {
-        Row: {
-          created_at: string | null
-          id: number
-          message_count: number
-          period_end: string
-          period_start: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: number
-          message_count: number
-          period_end: string
-          period_start: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: number
-          message_count?: number
-          period_end?: string
-          period_start?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "usage_history_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       users: {
         Row: {
           anonymous: boolean | null
