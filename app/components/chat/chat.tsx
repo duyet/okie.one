@@ -40,7 +40,6 @@ export default function Chat({
 }: ChatProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
-  const [userId, setUserId] = useState<string | null>(propUserId || null)
   const [chatId, setChatId] = useState<string | null>(propChatId || null)
   const [files, setFiles] = useState<File[]>([])
   const [selectedModel, setSelectedModel] = useState(preferredModel)
@@ -63,6 +62,10 @@ export default function Chat({
     initialMessages,
   })
 
+  const isFirstMessage = useMemo(() => {
+    return messages.length === 0
+  }, [messages])
+
   useEffect(() => {
     if (error) {
       let errorMsg = "Something went wrong."
@@ -79,41 +82,42 @@ export default function Chat({
     }
   }, [error])
 
-  useEffect(() => {
-    const checkMessageLimits = async () => {
-      if (!userId) return
-      const rateData = await checkRateLimits(userId, !!propUserId)
+  const getOrCreateGuestUserId = async (): Promise<string | null> => {
+    if (propUserId) return propUserId
+
+    const stored = localStorage.getItem("guestId")
+    if (stored) return stored
+
+    const guestId = crypto.randomUUID()
+    localStorage.setItem("guestId", guestId)
+    await createGuestUser(guestId)
+    return guestId
+  }
+
+  const checkLimitsAndNotify = async (uid: string): Promise<boolean> => {
+    try {
+      const rateData = await checkRateLimits(uid, !!propUserId)
 
       if (rateData.remaining === 0 && !propUserId) {
         setHasDialogAuth(true)
+        return false
       }
-    }
-    checkMessageLimits()
-  }, [userId])
 
-  const isFirstMessage = useMemo(() => {
-    return messages.length === 0
-  }, [messages])
-
-  useEffect(() => {
-    const createGuestUserEffect = async () => {
-      if (!propUserId) {
-        const storedGuestId = localStorage.getItem("guestId")
-        if (storedGuestId) {
-          setUserId(storedGuestId)
-        } else {
-          const newGuestId = crypto.randomUUID()
-          localStorage.setItem("guestId", newGuestId)
-          await createGuestUser(newGuestId)
-          setUserId(newGuestId)
-        }
+      if (rateData.remaining === REMAINING_QUERY_ALERT_THRESHOLD) {
+        toast({
+          title: `Only ${rateData.remaining} query${rateData.remaining === 1 ? "" : "ies"} remaining today.`,
+          status: "info",
+        })
       }
-    }
-    createGuestUserEffect()
-  }, [propUserId])
 
-  const ensureChatExists = async () => {
-    if (!userId) return null
+      return true
+    } catch (err) {
+      console.error("Rate limit check failed:", err)
+      return false
+    }
+  }
+
+  const ensureChatExists = async (userId: string) => {
     if (isFirstMessage) {
       try {
         const newChat = await createNewChat(
@@ -149,28 +153,56 @@ export default function Chat({
 
   const handleModelChange = useCallback(
     async (model: string) => {
+      if (!chatId) return
+
       setSelectedModel(model)
 
-      if (chatId) {
-        try {
-          await updateChatModel(chatId, model)
-        } catch (err) {
-          console.error("Failed to update chat model:", err)
-          toast({
-            title: "Failed to update chat model",
-            status: "error",
-          })
-        }
+      try {
+        await updateChatModel(chatId, model)
+      } catch (err) {
+        console.error("Failed to update chat model:", err)
+        toast({
+          title: "Failed to update chat model",
+          status: "error",
+        })
       }
     },
     [chatId]
   )
 
+  const handleFileUploads = async (
+    uid: string,
+    chatId: string
+  ): Promise<Attachment[] | null> => {
+    if (files.length === 0) return []
+
+    try {
+      await checkFileUploadLimit(uid)
+    } catch (err: any) {
+      if (err.code === "DAILY_FILE_LIMIT_REACHED") {
+        toast({ title: err.message, status: "error" })
+        return null
+      }
+    }
+
+    try {
+      const processed = await processFiles(files, chatId, uid)
+      setFiles([])
+      return processed
+    } catch (err) {
+      toast({ title: "Failed to process files", status: "error" })
+      return null
+    }
+  }
+
   const submit = async () => {
-    if (!userId) {
+    setIsSubmitting(true)
+
+    const uid = await getOrCreateGuestUserId()
+
+    if (!uid) {
       return
     }
-    setIsSubmitting(true)
 
     const optimisticId = `optimistic-${Date.now().toString()}`
     const optimisticMessage = {
@@ -183,7 +215,14 @@ export default function Chat({
     setMessages((prev) => [...prev, optimisticMessage])
     setInput("")
 
-    const currentChatId = await ensureChatExists()
+    const allowed = await checkLimitsAndNotify(uid)
+    if (!allowed) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+      setIsSubmitting(false)
+      return
+    }
+
+    const currentChatId = await ensureChatExists(uid)
 
     if (!currentChatId) {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
@@ -201,61 +240,22 @@ export default function Chat({
       return
     }
 
-    try {
-      const rateData = await checkRateLimits(userId, !!propUserId)
-
-      if (rateData.remaining === REMAINING_QUERY_ALERT_THRESHOLD) {
-        toast({
-          title: `Only ${rateData.remaining} query${rateData.remaining === 1 ? "" : "ies"} remaining today.`,
-          status: "info",
-        })
-      }
-    } catch (err) {
-      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+    const attachments = await handleFileUploads(uid, currentChatId)
+    if (attachments === null) {
+      setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
       setIsSubmitting(false)
-      console.error("Rate limit check failed:", err)
       return
-    }
-
-    let newAttachments: Attachment[] = []
-    if (files.length > 0) {
-      try {
-        await checkFileUploadLimit(userId)
-      } catch (error: any) {
-        if (error.code === "DAILY_FILE_LIMIT_REACHED") {
-          toast({ title: error.message, status: "error" })
-          setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-          setIsSubmitting(false)
-          return
-        }
-      }
-
-      try {
-        const processedAttachments = await processFiles(
-          files,
-          currentChatId,
-          userId
-        )
-
-        newAttachments = processedAttachments
-        setFiles([])
-      } catch (error) {
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-        toast({ title: "Failed to process files", status: "error" })
-        setIsSubmitting(false)
-        return
-      }
     }
 
     const options = {
       body: {
         chatId: currentChatId,
-        userId,
+        userId: uid,
         model: selectedModel,
         isAuthenticated: !!propUserId,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
       },
-      experimental_attachments: newAttachments || undefined,
+      experimental_attachments: attachments || undefined,
     }
 
     try {
@@ -310,7 +310,22 @@ export default function Chat({
 
       setMessages((prev) => [...prev, optimisticMessage])
 
-      const currentChatId = await ensureChatExists()
+      const uid = await getOrCreateGuestUserId()
+
+      if (!uid) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+        setIsSubmitting(false)
+        return
+      }
+
+      const allowed = await checkLimitsAndNotify(uid)
+      if (!allowed) {
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+        setIsSubmitting(false)
+        return
+      }
+
+      const currentChatId = await ensureChatExists(uid)
 
       if (!currentChatId) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
@@ -321,7 +336,7 @@ export default function Chat({
       const options = {
         body: {
           chatId: currentChatId,
-          userId,
+          userId: uid,
           model: selectedModel,
           isAuthenticated: !!propUserId,
           systemPrompt: SYSTEM_PROMPT_DEFAULT,
@@ -338,18 +353,23 @@ export default function Chat({
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       setIsSubmitting(false)
     },
-    [ensureChatExists, userId, selectedModel, propUserId, append]
+    [ensureChatExists, selectedModel, propUserId, append]
   )
 
   const handleSelectSystemPrompt = useCallback((newSystemPrompt: string) => {
     setSystemPrompt(newSystemPrompt)
   }, [])
 
-  const handleReload = () => {
+  const handleReload = async () => {
+    const uid = await getOrCreateGuestUserId()
+    if (!uid) {
+      return
+    }
+
     const options = {
       body: {
         chatId,
-        userId,
+        userId: uid,
         model: selectedModel,
         isAuthenticated: !!propUserId,
         systemPrompt: systemPrompt || "You are a helpful assistant.",

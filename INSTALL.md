@@ -28,9 +28,36 @@ OPENAI_API_KEY=your_openai_api_key
 # Mistral
 MISTRAL_API_KEY=your_mistral_api_key
 
+# CSRF Protection
+CSRF_SECRET=your_csrf_secret_key
+
 # Optional: Set the URL for production
 # NEXT_PUBLIC_VERCEL_URL=your_production_url
 ```
+
+### Generating a CSRF Secret
+
+The `CSRF_SECRET` is used to protect your application against Cross-Site Request Forgery attacks. You need to generate a secure random string for this value. Here are a few ways to generate one:
+
+#### Using Node.js
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+#### Using OpenSSL
+
+```bash
+openssl rand -hex 32
+```
+
+#### Using Python
+
+```bash
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Copy the generated value and add it to your `.env.local` file as the `CSRF_SECRET` value.
 
 ## Local Installation
 
