@@ -6,7 +6,7 @@ import Link from "next/link"
 import { APP_NAME } from "../../../lib/config"
 import { AppInfo } from "./app-info"
 import { ButtonNewChat } from "./button-new-chat"
-import UserMenu from "./user-menu"
+import { UserMenu } from "./user-menu"
 
 export function Header() {
   const { user } = useUser()

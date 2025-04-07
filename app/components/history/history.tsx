@@ -2,9 +2,18 @@
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
+import dynamic from "next/dynamic"
 import { useParams, useRouter } from "next/navigation"
-import { CommandHistory } from "./command-history"
-import { DrawerHistory } from "./drawer-history"
+
+const CommandHistory = dynamic(
+  () => import("./command-history").then((mod) => mod.CommandHistory),
+  { ssr: false }
+)
+
+const DrawerHistory = dynamic(
+  () => import("./drawer-history").then((mod) => mod.DrawerHistory),
+  { ssr: false }
+)
 
 export function History() {
   const isMobile = useBreakpoint(768)

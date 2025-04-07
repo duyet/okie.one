@@ -21,9 +21,18 @@ import { API_ROUTE_CHAT } from "@/lib/routes"
 import { cn } from "@/lib/utils"
 import { Message, useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
+import dynamic from "next/dynamic"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { DialogAuth } from "./dialog-auth"
-import { FeedbackWidget } from "./feedback-widget"
+
+const FeedbackWidget = dynamic(
+  () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
+  { ssr: false }
+)
+
+const DialogAuth = dynamic(
+  () => import("./dialog-auth").then((mod) => mod.DialogAuth),
+  { ssr: false }
+)
 
 type ChatProps = {
   initialMessages?: Message[]

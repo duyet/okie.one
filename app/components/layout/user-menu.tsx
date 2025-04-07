@@ -15,14 +15,26 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Info, Question, User } from "@phosphor-icons/react"
+import dynamic from "next/dynamic"
 import { APP_NAME } from "../../../lib/config"
-import { AppInfo } from "./app-info"
-import { Feedback } from "./feedback"
-import { Settings } from "./settings"
+
+const AppInfo = dynamic(() => import("./app-info").then((mod) => mod.AppInfo), {
+  ssr: false,
+})
+
+const Feedback = dynamic(
+  () => import("./feedback").then((mod) => mod.Feedback),
+  { ssr: false }
+)
+
+const Settings = dynamic(
+  () => import("./settings").then((mod) => mod.Settings),
+  { ssr: false }
+)
 
 type User = Database["public"]["Tables"]["users"]["Row"]
 
-export default function UserMenu({ user }: { user: User }) {
+export function UserMenu({ user }: { user: User }) {
   return (
     <DropdownMenu>
       <Tooltip>
