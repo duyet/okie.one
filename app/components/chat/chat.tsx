@@ -3,12 +3,8 @@
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
 import { toast } from "@/components/ui/toast"
-import {
-  checkRateLimits,
-  createGuestUser,
-  createNewChat,
-  updateChatModel,
-} from "@/lib/api"
+import { checkRateLimits, createGuestUser, updateChatModel } from "@/lib/api"
+import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
 import {
   MESSAGE_MAX_LENGTH,
   REMAINING_QUERY_ALERT_THRESHOLD,
@@ -49,6 +45,7 @@ export default function Chat({
   const [files, setFiles] = useState<File[]>([])
   const [selectedModel, setSelectedModel] = useState(preferredModel)
   const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt)
+  const { createNewChat } = useChatHistory()
 
   const {
     messages,
@@ -119,18 +116,19 @@ export default function Chat({
     if (!userId) return null
     if (isFirstMessage) {
       try {
-        const newChatId = await createNewChat(
+        const newChat = await createNewChat(
           userId,
           input,
           selectedModel,
           Boolean(propUserId),
           systemPrompt
         )
-        setChatId(newChatId)
+        if (!newChat) return null
+        setChatId(newChat.id)
         if (propUserId) {
-          window.history.pushState(null, "", `/c/${newChatId}`)
+          window.history.pushState(null, "", `/c/${newChat.id}`)
         }
-        return newChatId
+        return newChat.id
       } catch (err: any) {
         let errorMessage = "Something went wrong."
         try {

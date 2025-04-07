@@ -1,53 +1,11 @@
-import { APP_DOMAIN, MODEL_DEFAULT } from "@/lib/config"
+import { APP_DOMAIN } from "@/lib/config"
 import { SupabaseClient } from "@supabase/supabase-js"
 import {
   AUTH_DAILY_MESSAGE_LIMIT,
   NON_AUTH_DAILY_MESSAGE_LIMIT,
 } from "./config"
 import { fetchClient } from "./fetch"
-import {
-  API_ROUTE_CREATE_CHAT,
-  API_ROUTE_CREATE_GUEST,
-  API_ROUTE_UPDATE_CHAT_MODEL,
-} from "./routes"
-
-/**
- * Creates a new chat for the specified user
- */
-export async function createNewChat(
-  userId: string,
-  title?: string,
-  model?: string,
-  isAuthenticated?: boolean,
-  systemPrompt?: string
-) {
-  try {
-    const res = await fetchClient(API_ROUTE_CREATE_CHAT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId,
-        title,
-        model: model || MODEL_DEFAULT,
-        isAuthenticated,
-        systemPrompt,
-      }),
-    })
-    const responseData = await res.json()
-
-    if (!res.ok) {
-      throw new Error(
-        responseData.error ||
-          `Failed to create chat: ${res.status} ${res.statusText}`
-      )
-    }
-
-    return responseData.chatId
-  } catch (error) {
-    console.error("Error creating new chat:", error)
-    throw error
-  }
-}
+import { API_ROUTE_CREATE_GUEST, API_ROUTE_UPDATE_CHAT_MODEL } from "./routes"
 
 /**
  * Creates a guest user record on the server

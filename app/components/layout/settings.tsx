@@ -13,8 +13,9 @@ import {
 } from "@/components/ui/dialog"
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { toast } from "@/components/ui/toast"
+import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
 import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/lib/config"
-import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import { SignOut, User, X } from "@phosphor-icons/react"
 import { useTheme } from "next-themes"
@@ -75,6 +76,7 @@ function SettingsContent({
   isDrawer?: boolean
 }) {
   const { user, updateUser, signOut } = useUser()
+  const { resetHistory } = useChatHistory()
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
@@ -94,8 +96,14 @@ function SettingsContent({
   }
 
   const handleSignOut = async () => {
-    await signOut()
-    router.push("/")
+    try {
+      await resetHistory()
+      await signOut()
+      router.push("/")
+    } catch (e) {
+      console.error("Sign out failed:", e)
+      toast({ title: "Failed to sign out", status: "error" })
+    }
   }
 
   const themes = [

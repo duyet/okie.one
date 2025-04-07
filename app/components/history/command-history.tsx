@@ -9,11 +9,13 @@ import {
   CommandList,
 } from "@/components/ui/command"
 import { Input } from "@/components/ui/input"
+import { toast } from "@/components/ui/toast"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import type { ChatHistory } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
 import {
   Check,
@@ -23,8 +25,7 @@ import {
   X,
 } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
-import type { ChatHistory } from "./history"
+import { useEffect, useState } from "react"
 
 type CommandHistoryProps = {
   chatHistory: ChatHistory[]
@@ -56,25 +57,26 @@ export function CommandHistory({
 
   const handleEdit = (chat: ChatHistory) => {
     setEditingId(chat.id)
-    setEditTitle(chat.title)
+    setEditTitle(chat.title || "")
   }
 
-  const handleSaveEdit = (id: string) => {
-    onSaveEdit(id, editTitle)
+  const handleSaveEdit = async (id: string) => {
     setEditingId(null)
+    await onSaveEdit(id, editTitle)
   }
 
   const handleCancelEdit = () => {
     setEditingId(null)
+    setEditTitle("")
   }
 
   const handleDelete = (id: string) => {
     setDeletingId(id)
   }
 
-  const handleConfirmDelete = (id: string) => {
-    onConfirmDelete(id)
+  const handleConfirmDelete = async (id: string) => {
     setDeletingId(null)
+    await onConfirmDelete(id)
   }
 
   const handleCancelDelete = () => {
@@ -82,7 +84,7 @@ export function CommandHistory({
   }
 
   const filteredChat = chatHistory.filter((chat) =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+    (chat.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
@@ -223,7 +225,7 @@ export function CommandHistory({
                         Boolean(editingId || deletingId) &&
                           "hover:bg-transparent! data-[selected=true]:bg-transparent"
                       )}
-                      value={chat.title}
+                      value={chat.title || "Untitled Chat"}
                     >
                       <div className="min-w-0 flex-1">
                         <span className="line-clamp-1 text-base font-normal">

@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/sonner"
+import { ChatHistoryProvider } from "@/lib/chat-store/chat-history-provider"
 import { APP_DESCRIPTION, APP_NAME } from "@/lib/config"
 import { ThemeProvider } from "next-themes"
 import Script from "next/script"
@@ -63,15 +64,17 @@ export default async function RootLayout({
       >
         <LayoutClient />
         <UserProvider initialUser={userProfile}>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="light"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <Toaster position="top-center" />
-            {children}
-          </ThemeProvider>
+          <ChatHistoryProvider userId={userProfile?.id}>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="light"
+              enableSystem
+              disableTransitionOnChange
+            >
+              <Toaster position="top-center" />
+              {children}
+            </ThemeProvider>
+          </ChatHistoryProvider>
         </UserProvider>
       </body>
     </html>

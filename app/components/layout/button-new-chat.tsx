@@ -6,42 +6,24 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { NotePencil } from "@phosphor-icons/react/dist/ssr"
-import { useRouter } from "next/navigation"
-import React from "react"
-import { createNewChat } from "../../../lib/api"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 
-type ButtonNewChatProps = {
-  userId: string
-  preferredModel: string
-}
-
-export function ButtonNewChat({ userId, preferredModel }: ButtonNewChatProps) {
-  const router = useRouter()
-
-  const handleCreateNewChat = async () => {
-    if (!userId) {
-      return
-    }
-
-    const newChatId = await createNewChat(
-      userId,
-      "new chat",
-      preferredModel,
-      true
-    )
-    router.push(`/c/${newChatId}`)
+export function ButtonNewChat() {
+  const pathname = usePathname()
+  if (pathname === "/") {
+    return null
   }
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <button
-          onClick={handleCreateNewChat}
-          type="button"
+        <Link
+          href="/"
           className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1.5 transition-colors"
         >
           <NotePencil size={24} />
-        </button>
+        </Link>
       </TooltipTrigger>
       <TooltipContent>New Chat</TooltipContent>
     </Tooltip>

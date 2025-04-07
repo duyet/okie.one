@@ -40,8 +40,8 @@ export async function POST(request: Request) {
       )
     }
 
-    // Return the new chatId
-    return new Response(JSON.stringify({ chatId: chatData.id }), {
+    // return the new chat to write to indexedDB
+    return new Response(JSON.stringify({ chat: chatData }), {
       status: 200,
     })
   } catch (err: any) {

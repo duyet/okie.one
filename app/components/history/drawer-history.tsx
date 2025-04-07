@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { ChatHistory } from "@/lib/chat-store/types"
 import {
   Check,
   ListMagnifyingGlass,
@@ -17,7 +18,6 @@ import {
 } from "@phosphor-icons/react"
 import Link from "next/link"
 import { useState } from "react"
-import type { ChatHistory } from "./history"
 
 type DrawerHistoryProps = {
   chatHistory: ChatHistory[]
@@ -48,12 +48,12 @@ export function DrawerHistory({
 
   const handleEdit = (chat: ChatHistory) => {
     setEditingId(chat.id)
-    setEditTitle(chat.title)
+    setEditTitle(chat.title || "")
   }
 
-  const handleSaveEdit = (id: string) => {
-    onSaveEdit(id, editTitle)
+  const handleSaveEdit = async (id: string) => {
     setEditingId(null)
+    await onSaveEdit(id, editTitle)
   }
 
   const handleCancelEdit = () => {
@@ -64,9 +64,9 @@ export function DrawerHistory({
     setDeletingId(id)
   }
 
-  const handleConfirmDelete = (id: string) => {
-    onConfirmDelete(id)
+  const handleConfirmDelete = async (id: string) => {
     setDeletingId(null)
+    await onConfirmDelete(id)
   }
 
   const handleCancelDelete = () => {
@@ -74,7 +74,7 @@ export function DrawerHistory({
   }
 
   const filteredChat = chatHistory.filter((chat) =>
-    chat.title.toLowerCase().includes(searchQuery.toLowerCase())
+    (chat.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   return (
@@ -204,7 +204,9 @@ export function DrawerHistory({
                             {chat.title}
                           </span>
                           <span className="mr-2 text-xs font-normal text-gray-500">
-                            {new Date(chat.created_at).toLocaleDateString()}
+                            {chat.created_at
+                              ? new Date(chat.created_at).toLocaleDateString()
+                              : "Unknown Date"}
                           </span>
                         </Link>
                         <div className="flex items-center">
