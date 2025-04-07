@@ -3,9 +3,9 @@
 import { Button } from "@/components/ui/button"
 import { PopoverContent } from "@/components/ui/popover"
 import React, { useState } from "react"
-import { signInWithGoogle } from "../../lib/api"
-import { APP_NAME } from "../../lib/config"
-import { createClient } from "../../lib/supabase/client"
+import { signInWithGoogle } from "../../../lib/api"
+import { APP_NAME } from "../../../lib/config"
+import { createClient } from "../../../lib/supabase/client"
 
 export function PopoverContentAuth() {
   const [isLoading, setIsLoading] = useState(false)

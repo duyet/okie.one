@@ -1,9 +1,9 @@
 "use client"
 
-import { signInWithGoogle } from "@/app/lib/api"
-import { APP_NAME } from "@/app/lib/config"
-import { createClient } from "@/app/lib/supabase/client"
 import { Button } from "@/components/ui/button"
+import { signInWithGoogle } from "@/lib/api"
+import { APP_NAME } from "@/lib/config"
+import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
 import { useState } from "react"
 import { HeaderGoBack } from "../components/header-go-back"

@@ -1,8 +1,8 @@
 "use client"
 
-import { createClient } from "@/app/lib/supabase/client"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
+import { createClient } from "@/lib/supabase/client"
 import { CaretLeft, SealCheck, Spinner } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState } from "react"

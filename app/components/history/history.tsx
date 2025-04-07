@@ -1,7 +1,7 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { createClient } from "@/app/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { useEffect, useState } from "react"
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"

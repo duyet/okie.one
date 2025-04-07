@@ -15,7 +15,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { Info, Question, User } from "@phosphor-icons/react"
-import { APP_NAME } from "../../lib/config"
+import { APP_NAME } from "../../../lib/config"
 import { AppInfo } from "./app-info"
 import { Feedback } from "./feedback"
 import { Settings } from "./settings"

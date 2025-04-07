@@ -1,5 +1,5 @@
-import { createClient } from "@/app/lib/supabase/server"
-import { createGuestServerClient } from "@/app/lib/supabase/server-guest"
+import { createClient } from "@/lib/supabase/server"
+import { createGuestServerClient } from "@/lib/supabase/server-guest"
 
 /**
  * Validates the user's identity

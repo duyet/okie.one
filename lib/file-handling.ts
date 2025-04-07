@@ -1,5 +1,6 @@
 import { toast } from "@/components/ui/toast"
 import { SupabaseClient } from "@supabase/supabase-js"
+import * as fileType from "file-type"
 import { DAILY_FILE_UPLOAD_LIMIT } from "./config"
 import { createClient } from "./supabase/client"
 
@@ -23,7 +24,9 @@ export type Attachment = {
   url: string
 }
 
-export function validateFile(file: File): { isValid: boolean; error?: string } {
+export async function validateFile(
+  file: File
+): Promise<{ isValid: boolean; error?: string }> {
   if (file.size > MAX_FILE_SIZE) {
     return {
       isValid: false,
@@ -31,10 +34,15 @@ export function validateFile(file: File): { isValid: boolean; error?: string } {
     }
   }
 
-  if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+  const buffer = await file.arrayBuffer()
+  const type = await fileType.fileTypeFromBuffer(
+    Buffer.from(buffer.slice(0, 4100))
+  )
+
+  if (!type || !ALLOWED_FILE_TYPES.includes(type.mime)) {
     return {
       isValid: false,
-      error: "File type not supported",
+      error: "File type not supported or doesn't match its extension",
     }
   }
 
@@ -81,7 +89,7 @@ export async function processFiles(
   const attachments: Attachment[] = []
 
   for (const file of files) {
-    const validation = validateFile(file)
+    const validation = await validateFile(file)
     if (!validation.isValid) {
       console.warn(`File ${file.name} validation failed:`, validation.error)
       toast({

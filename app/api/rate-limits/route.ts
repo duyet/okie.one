@@ -1,8 +1,8 @@
 import {
   AUTH_DAILY_MESSAGE_LIMIT,
   NON_AUTH_DAILY_MESSAGE_LIMIT,
-} from "@/app/lib/config"
-import { validateUserIdentity } from "../../lib/server/api"
+} from "@/lib/config"
+import { validateUserIdentity } from "../../../lib/server/api"
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)

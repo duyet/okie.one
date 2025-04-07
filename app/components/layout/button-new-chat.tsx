@@ -8,7 +8,7 @@ import {
 import { NotePencil } from "@phosphor-icons/react/dist/ssr"
 import { useRouter } from "next/navigation"
 import React from "react"
-import { createNewChat } from "../../lib/api"
+import { createNewChat } from "../../../lib/api"
 
 type ButtonNewChatProps = {
   userId: string

@@ -1,7 +1,8 @@
 // /chat/api/chat.ts
-import { checkUsage, incrementUsage } from "@/app/lib/api"
-import { MODELS } from "@/app/lib/config"
-import { validateUserIdentity } from "@/app/lib/server/api"
+import { checkUsage, incrementUsage } from "@/lib/api"
+import { MODELS } from "@/lib/config"
+import { sanitizeUserInput } from "@/lib/sanitize"
+import { validateUserIdentity } from "@/lib/server/api"
 import { Attachment } from "@ai-sdk/ui-utils"
 import { Message, streamText } from "ai"
 
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       const { error: msgError } = await supabase.from("messages").insert({
         chat_id: chatId,
         role: "user",
-        content: userMessage.content,
+        content: sanitizeUserInput(userMessage.content),
         attachments:
           userMessage.experimental_attachments as unknown as Attachment[],
         user_id: userId,

@@ -1,4 +1,4 @@
-import { createGuestServerClient } from "@/app/lib/supabase/server-guest"
+import { createGuestServerClient } from "@/lib/supabase/server-guest"
 
 export async function POST(request: Request) {
   try {

@@ -1,5 +1,5 @@
-import { MODEL_DEFAULT } from "@/app/lib/config"
-import { createClient } from "@/app/lib/supabase/server"
+import { MODEL_DEFAULT } from "@/lib/config"
+import { createClient } from "@/lib/supabase/server"
 import Chat from "./components/chat/chat"
 import LayoutApp from "./components/layout/layout-app"
 

@@ -1,7 +1,7 @@
 // app/providers/user-provider.tsx
 "use client"
 
-import { createClient } from "@/app/lib/supabase/client"
+import { createClient } from "@/lib/supabase/client"
 import { createContext, useContext, useEffect, useState } from "react"
 import { UserProfile } from "../types/user"
 

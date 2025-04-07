@@ -1,7 +1,6 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { createClient } from "@/app/lib/supabase/client"
 import {
   MorphingPopover,
   MorphingPopoverContent,
@@ -9,6 +8,7 @@ import {
 } from "@/components/motion-primitives/morphing-popover"
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
+import { createClient } from "@/lib/supabase/client"
 import {
   CaretLeft,
   QuestionMark,

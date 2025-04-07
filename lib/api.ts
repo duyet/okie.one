@@ -1,9 +1,10 @@
-import { APP_DOMAIN, MODEL_DEFAULT } from "@/app/lib/config"
+import { APP_DOMAIN, MODEL_DEFAULT } from "@/lib/config"
 import { SupabaseClient } from "@supabase/supabase-js"
 import {
   AUTH_DAILY_MESSAGE_LIMIT,
   NON_AUTH_DAILY_MESSAGE_LIMIT,
 } from "./config"
+import { fetchClient } from "./fetch"
 import {
   API_ROUTE_CREATE_CHAT,
   API_ROUTE_CREATE_GUEST,
@@ -21,7 +22,7 @@ export async function createNewChat(
   systemPrompt?: string
 ) {
   try {
-    const res = await fetch(API_ROUTE_CREATE_CHAT, {
+    const res = await fetchClient(API_ROUTE_CREATE_CHAT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -53,7 +54,7 @@ export async function createNewChat(
  */
 export async function createGuestUser(guestId: string) {
   try {
-    const res = await fetch(API_ROUTE_CREATE_GUEST, {
+    const res = await fetchClient(API_ROUTE_CREATE_GUEST, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId: guestId }),
@@ -100,7 +101,7 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
     .maybeSingle()
 
   if (userDataError) {
-    throw new Error("Error fetching user data: " + userDataError.message)
+    throw new Error("Error fetchClienting user data: " + userDataError.message)
   }
   if (!userData) {
     throw new Error("User record not found for id: " + userId)
@@ -151,7 +152,7 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
  *
  * @param supabase - Your Supabase client.
  * @param userId - The ID of the user.
- * @param currentCounts - Current message counts (optional, will be fetched if not provided)
+ * @param currentCounts - Current message counts (optional, will be fetchCliented if not provided)
  * @throws Error if updating fails.
  */
 export async function incrementUsage(
@@ -166,7 +167,7 @@ export async function incrementUsage(
     messageCount = currentCounts.messageCount
     dailyCount = currentCounts.dailyCount
   } else {
-    // If counts weren't provided, fetch them
+    // If counts weren't provided, fetchClient them
     const { data: userData, error: userDataError } = await supabase
       .from("users")
       .select("message_count, daily_message_count")
@@ -175,7 +176,7 @@ export async function incrementUsage(
 
     if (userDataError || !userData) {
       throw new Error(
-        "Error fetching user data: " +
+        "Error fetchClienting user data: " +
           (userDataError?.message || "User not found")
       )
     }
@@ -236,7 +237,7 @@ export async function checkRateLimits(
   isAuthenticated: boolean
 ) {
   try {
-    const res = await fetch(
+    const res = await fetchClient(
       `/api/rate-limits?userId=${userId}&isAuthenticated=${isAuthenticated}`,
       {
         method: "GET",
@@ -262,7 +263,7 @@ export async function checkRateLimits(
  */
 export async function updateChatModel(chatId: string, model: string) {
   try {
-    const res = await fetch(API_ROUTE_UPDATE_CHAT_MODEL, {
+    const res = await fetchClient(API_ROUTE_UPDATE_CHAT_MODEL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ chatId, model }),

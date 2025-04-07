@@ -1,8 +1,6 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/app/lib/config"
-import { createClient } from "@/app/lib/supabase/client"
 import { useUser } from "@/app/providers/user-provider"
 import { ModelSelector } from "@/components/common/model-selector"
 import { Button } from "@/components/ui/button"
@@ -15,6 +13,8 @@ import {
 } from "@/components/ui/dialog"
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/lib/config"
+import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import { SignOut, User, X } from "@phosphor-icons/react"
 import { useTheme } from "next-themes"

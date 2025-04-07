@@ -1,7 +1,6 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { APP_DESCRIPTION, APP_NAME } from "@/app/lib/config"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
+import { APP_DESCRIPTION, APP_NAME } from "@/lib/config"
 import { Info } from "@phosphor-icons/react"
 
 const InfoContent = () => (

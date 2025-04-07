@@ -1,6 +1,5 @@
 "use client"
 
-import { MODELS_OPTIONS, PROVIDERS_OPTIONS } from "@/app/lib/config"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -14,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { MODELS_OPTIONS, PROVIDERS_OPTIONS } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { CaretDown, Image } from "@phosphor-icons/react"
 

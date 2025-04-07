@@ -1,6 +1,6 @@
-import { checkUsage } from "@/app/lib/api"
-import { SYSTEM_PROMPT_DEFAULT } from "@/app/lib/config"
-import { validateUserIdentity } from "@/app/lib/server/api"
+import { checkUsage } from "@/lib/api"
+import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import { validateUserIdentity } from "@/lib/server/api"
 
 export async function POST(request: Request) {
   try {

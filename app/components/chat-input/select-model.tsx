@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { CaretDown } from "@phosphor-icons/react"
-import { MODELS_OPTIONS, PROVIDERS_OPTIONS } from "../../lib/config"
+import { MODELS_OPTIONS, PROVIDERS_OPTIONS } from "../../../lib/config"
 import { PopoverContentAuth } from "./popover-content-auth"
 
 export type SelectModelProps = {

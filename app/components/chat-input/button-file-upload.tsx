@@ -1,4 +1,3 @@
-import { MODELS_OPTIONS } from "@/app/lib/config"
 import {
   FileUpload,
   FileUploadContent,
@@ -15,6 +14,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { MODELS_OPTIONS } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
 import React from "react"

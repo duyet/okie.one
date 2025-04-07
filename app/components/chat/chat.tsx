@@ -2,24 +2,24 @@
 
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
+import { toast } from "@/components/ui/toast"
 import {
   checkRateLimits,
   createGuestUser,
   createNewChat,
   updateChatModel,
-} from "@/app/lib/api"
+} from "@/lib/api"
 import {
   MESSAGE_MAX_LENGTH,
   REMAINING_QUERY_ALERT_THRESHOLD,
   SYSTEM_PROMPT_DEFAULT,
-} from "@/app/lib/config"
+} from "@/lib/config"
 import {
   Attachment,
   checkFileUploadLimit,
   processFiles,
-} from "@/app/lib/file-handling"
-import { API_ROUTE_CHAT } from "@/app/lib/routes"
-import { toast } from "@/components/ui/toast"
+} from "@/lib/file-handling"
+import { API_ROUTE_CHAT } from "@/lib/routes"
 import { cn } from "@/lib/utils"
 import { Message, useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"

@@ -1,4 +1,4 @@
-import { createClient } from "@/app/lib/supabase/server"
+import { createClient } from "@/lib/supabase/server"
 import { Message } from "ai"
 import { redirect } from "next/navigation"
 import Chat from "../../components/chat/chat"

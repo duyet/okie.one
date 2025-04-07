@@ -3,7 +3,7 @@
 import { History } from "@/app/components/history/history"
 import { useUser } from "@/app/providers/user-provider"
 import Link from "next/link"
-import { APP_NAME } from "../../lib/config"
+import { APP_NAME } from "../../../lib/config"
 import { AppInfo } from "./app-info"
 import { ButtonNewChat } from "./button-new-chat"
 import UserMenu from "./user-menu"
