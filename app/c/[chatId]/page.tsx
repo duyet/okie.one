@@ -51,7 +51,6 @@ export default async function PrivatePage({
     <LayoutApp>
       <Chat
         initialMessages={formattedMessages}
-        userId={userData.user.id}
         chatId={chatId}
         preferredModel={chatData.model || ""}
         systemPrompt={chatData.system_prompt || "You are a helpful assistant."}

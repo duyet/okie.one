@@ -2,11 +2,13 @@
 
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
+import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits, createGuestUser, updateChatModel } from "@/lib/api"
 import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
 import {
   MESSAGE_MAX_LENGTH,
+  MODEL_DEFAULT,
   REMAINING_QUERY_ALERT_THRESHOLD,
   SYSTEM_PROMPT_DEFAULT,
 } from "@/lib/config"
@@ -26,25 +28,27 @@ import { FeedbackWidget } from "./feedback-widget"
 type ChatProps = {
   initialMessages?: Message[]
   chatId?: string
-  userId?: string
-  preferredModel: string
+  preferredModel?: string
   systemPrompt?: string
 }
 
 export default function Chat({
   initialMessages,
   chatId: propChatId,
-  userId: propUserId,
   preferredModel,
   systemPrompt: propSystemPrompt,
 }: ChatProps) {
+  const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [chatId, setChatId] = useState<string | null>(propChatId || null)
   const [files, setFiles] = useState<File[]>([])
-  const [selectedModel, setSelectedModel] = useState(preferredModel)
+  const [selectedModel, setSelectedModel] = useState(
+    preferredModel || user?.preferred_model || MODEL_DEFAULT
+  )
   const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt)
   const { createNewChat } = useChatHistory()
+  const isAuthenticated = !!user?.id
 
   const {
     messages,
@@ -83,7 +87,7 @@ export default function Chat({
   }, [error])
 
   const getOrCreateGuestUserId = async (): Promise<string | null> => {
-    if (propUserId) return propUserId
+    if (user?.id) return user.id
 
     const stored = localStorage.getItem("guestId")
     if (stored) return stored
@@ -96,9 +100,9 @@ export default function Chat({
 
   const checkLimitsAndNotify = async (uid: string): Promise<boolean> => {
     try {
-      const rateData = await checkRateLimits(uid, !!propUserId)
+      const rateData = await checkRateLimits(uid, isAuthenticated)
 
-      if (rateData.remaining === 0 && !propUserId) {
+      if (rateData.remaining === 0 && !isAuthenticated) {
         setHasDialogAuth(true)
         return false
       }
@@ -124,12 +128,12 @@ export default function Chat({
           userId,
           input,
           selectedModel,
-          Boolean(propUserId),
+          isAuthenticated,
           systemPrompt
         )
         if (!newChat) return null
         setChatId(newChat.id)
-        if (propUserId) {
+        if (isAuthenticated) {
           window.history.pushState(null, "", `/c/${newChat.id}`)
         }
         return newChat.id
@@ -154,6 +158,7 @@ export default function Chat({
   const handleModelChange = useCallback(
     async (model: string) => {
       if (!chatId) return
+      const oldModel = selectedModel
 
       setSelectedModel(model)
 
@@ -161,6 +166,7 @@ export default function Chat({
         await updateChatModel(chatId, model)
       } catch (err) {
         console.error("Failed to update chat model:", err)
+        setSelectedModel(oldModel)
         toast({
           title: "Failed to update chat model",
           status: "error",
@@ -252,7 +258,7 @@ export default function Chat({
         chatId: currentChatId,
         userId: uid,
         model: selectedModel,
-        isAuthenticated: !!propUserId,
+        isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
       },
       experimental_attachments: attachments || undefined,
@@ -338,7 +344,7 @@ export default function Chat({
           chatId: currentChatId,
           userId: uid,
           model: selectedModel,
-          isAuthenticated: !!propUserId,
+          isAuthenticated,
           systemPrompt: SYSTEM_PROMPT_DEFAULT,
         },
       }
@@ -353,7 +359,7 @@ export default function Chat({
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       setIsSubmitting(false)
     },
-    [ensureChatExists, selectedModel, propUserId, append]
+    [ensureChatExists, selectedModel, user?.id, append]
   )
 
   const handleSelectSystemPrompt = useCallback((newSystemPrompt: string) => {
@@ -371,7 +377,7 @@ export default function Chat({
         chatId,
         userId: uid,
         model: selectedModel,
-        isAuthenticated: !!propUserId,
+        isAuthenticated,
         systemPrompt: systemPrompt || "You are a helpful assistant.",
       },
     }
@@ -442,13 +448,13 @@ export default function Chat({
           onSelectModel={handleModelChange}
           onSelectSystemPrompt={handleSelectSystemPrompt}
           selectedModel={selectedModel}
-          isUserAuthenticated={!!propUserId}
+          isUserAuthenticated={isAuthenticated}
           systemPrompt={systemPrompt}
           stop={stop}
           status={status}
         />
       </motion.div>
-      <FeedbackWidget authUserId={propUserId} />
+      <FeedbackWidget authUserId={user?.id} />
     </div>
   )
 }
