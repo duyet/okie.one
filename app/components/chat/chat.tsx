@@ -174,9 +174,21 @@ export default function Chat({
     }
     setIsSubmitting(true)
 
+    const optimisticId = `optimistic-${Date.now().toString()}`
+    const optimisticMessage = {
+      id: optimisticId,
+      content: input,
+      role: "user" as const,
+      createdAt: new Date(),
+    }
+
+    setMessages((prev) => [...prev, optimisticMessage])
+    setInput("")
+
     const currentChatId = await ensureChatExists()
 
     if (!currentChatId) {
+      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       setIsSubmitting(false)
       return
     }
@@ -186,6 +198,7 @@ export default function Chat({
         title: `The message you submitted was too long, please submit something shorter. (Max ${MESSAGE_MAX_LENGTH} characters)`,
         status: "error",
       })
+      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       setIsSubmitting(false)
       return
     }
@@ -200,8 +213,10 @@ export default function Chat({
         })
       }
     } catch (err) {
+      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       setIsSubmitting(false)
       console.error("Rate limit check failed:", err)
+      return
     }
 
     let newAttachments: Attachment[] = []
@@ -211,19 +226,27 @@ export default function Chat({
       } catch (error: any) {
         if (error.code === "DAILY_FILE_LIMIT_REACHED") {
           toast({ title: error.message, status: "error" })
+          setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
           setIsSubmitting(false)
           return
         }
       }
 
-      const processedAttachments = await processFiles(
-        files,
-        currentChatId,
-        userId
-      )
+      try {
+        const processedAttachments = await processFiles(
+          files,
+          currentChatId,
+          userId
+        )
 
-      newAttachments = processedAttachments
-      setFiles([])
+        newAttachments = processedAttachments
+        setFiles([])
+      } catch (error) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+        toast({ title: "Failed to process files", status: "error" })
+        setIsSubmitting(false)
+        return
+      }
     }
 
     const options = {
@@ -237,9 +260,16 @@ export default function Chat({
       experimental_attachments: newAttachments || undefined,
     }
 
-    handleSubmit(undefined, options)
-    setInput("")
-    setIsSubmitting(false)
+    try {
+      handleSubmit(undefined, options)
+      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+    } catch (error) {
+      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+      toast({ title: "Failed to send message", status: "error" })
+    } finally {
+      setInput("")
+      setIsSubmitting(false)
+    }
   }
 
   const handleDelete = (id: string) => {
@@ -271,7 +301,24 @@ export default function Chat({
 
   const handleSuggestion = useCallback(
     async (suggestion: string) => {
+      setIsSubmitting(true)
+      const optimisticId = `optimistic-${Date.now().toString()}`
+      const optimisticMessage = {
+        id: optimisticId,
+        content: suggestion,
+        role: "user" as const,
+        createdAt: new Date(),
+      }
+
+      setMessages((prev) => [...prev, optimisticMessage])
+
       const currentChatId = await ensureChatExists()
+
+      if (!currentChatId) {
+        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+        setIsSubmitting(false)
+        return
+      }
 
       const options = {
         body: {
@@ -279,7 +326,7 @@ export default function Chat({
           userId,
           model: selectedModel,
           isAuthenticated: !!propUserId,
-          systemPrompt: "You are a helpful assistant.",
+          systemPrompt: SYSTEM_PROMPT_DEFAULT,
         },
       }
 
@@ -290,6 +337,8 @@ export default function Chat({
         },
         options
       )
+      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+      setIsSubmitting(false)
     },
     [ensureChatExists, userId, selectedModel, propUserId, append]
   )
