@@ -5,7 +5,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { Markdown } from "./markdown"
+import dynamic from "next/dynamic"
+
+const Markdown = dynamic(
+  () => import("./markdown").then((mod) => mod.Markdown),
+  { ssr: false }
+)
 
 export type MessageProps = {
   children: React.ReactNode
