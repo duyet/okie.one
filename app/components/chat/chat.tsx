@@ -210,37 +210,60 @@ export default function Chat({
     }
   }
 
+  const createOptimisticAttachments = (files: File[]) => {
+    return files.map((file) => ({
+      name: file.name,
+      contentType: file.type,
+      url: file.type.startsWith("image/") ? URL.createObjectURL(file) : "",
+    }))
+  }
+
+  const cleanupOptimisticAttachments = (attachments?: any[]) => {
+    if (!attachments) return
+    attachments.forEach((attachment) => {
+      if (attachment.url?.startsWith("blob:")) {
+        URL.revokeObjectURL(attachment.url)
+      }
+    })
+  }
+
   const submit = async () => {
     setIsSubmitting(true)
 
     const uid = await getOrCreateGuestUserId()
-
-    if (!uid) {
-      return
-    }
+    if (!uid) return
 
     const optimisticId = `optimistic-${Date.now().toString()}`
+    const optimisticAttachments =
+      files.length > 0 ? createOptimisticAttachments(files) : []
+
     const optimisticMessage = {
       id: optimisticId,
       content: input,
       role: "user" as const,
       createdAt: new Date(),
+      experimental_attachments:
+        optimisticAttachments.length > 0 ? optimisticAttachments : undefined,
     }
 
     setMessages((prev) => [...prev, optimisticMessage])
     setInput("")
 
+    const submittedFiles = [...files]
+    setFiles([])
+
     const allowed = await checkLimitsAndNotify(uid)
     if (!allowed) {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       setIsSubmitting(false)
       return
     }
 
     const currentChatId = await ensureChatExists(uid)
-
     if (!currentChatId) {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       setIsSubmitting(false)
       return
     }
@@ -251,15 +274,20 @@ export default function Chat({
         status: "error",
       })
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       setIsSubmitting(false)
       return
     }
 
-    const attachments = await handleFileUploads(uid, currentChatId)
-    if (attachments === null) {
-      setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-      setIsSubmitting(false)
-      return
+    let attachments: Attachment[] | null = []
+    if (submittedFiles.length > 0) {
+      attachments = await handleFileUploads(uid, currentChatId)
+      if (attachments === null) {
+        setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+        setIsSubmitting(false)
+        return
+      }
     }
 
     const options = {
@@ -276,11 +304,12 @@ export default function Chat({
     try {
       handleSubmit(undefined, options)
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
     } catch (error) {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       toast({ title: "Failed to send message", status: "error" })
     } finally {
-      setInput("")
       setIsSubmitting(false)
     }
   }
