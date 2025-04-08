@@ -115,7 +115,6 @@ export function MessagesProvider({
 
   const resetMessages = async () => {
     setMessages([])
-    await clearAllIndexedDBStores()
   }
 
   return (

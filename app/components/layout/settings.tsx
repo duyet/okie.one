@@ -16,6 +16,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { toast } from "@/components/ui/toast"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
+import { clearAllIndexedDBStores } from "@/lib/chat-store/persist"
 import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { SignOut, User, X } from "@phosphor-icons/react"
@@ -102,6 +103,7 @@ function SettingsContent({
       await resetMessages()
       await resetChats()
       await signOut()
+      await clearAllIndexedDBStores()
       router.push("/")
     } catch (e) {
       console.error("Sign out failed:", e)

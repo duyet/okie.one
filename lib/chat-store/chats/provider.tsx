@@ -144,7 +144,6 @@ export function ChatsProvider({
 
   const resetChats = async () => {
     setChats([])
-    await clearAllIndexedDBStores()
   }
 
   const getChatById = (id: string) => {
