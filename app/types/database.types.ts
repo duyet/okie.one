@@ -96,7 +96,7 @@ export type Database = {
       }
       messages: {
         Row: {
-          attachments: Attachment[]
+          experimental_attachments: Attachment[]
           chat_id: string
           content: string
           created_at: string | null
@@ -104,7 +104,7 @@ export type Database = {
           role: "system" | "user" | "assistant" | "data"
         }
         Insert: {
-          attachments?: Attachment[]
+          experimental_attachments?: Attachment[]
           chat_id: string
           content: string
           created_at?: string | null
@@ -112,7 +112,7 @@ export type Database = {
           role: "system" | "user" | "assistant" | "data"
         }
         Update: {
-          attachments?: Attachment[]
+          experimental_attachments?: Attachment[]
           chat_id?: string
           content?: string
           created_at?: string | null

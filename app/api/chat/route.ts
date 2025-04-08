@@ -4,13 +4,13 @@ import { MODELS } from "@/lib/config"
 import { sanitizeUserInput } from "@/lib/sanitize"
 import { validateUserIdentity } from "@/lib/server/api"
 import { Attachment } from "@ai-sdk/ui-utils"
-import { Message, streamText } from "ai"
+import { Message as MessageAISDK, streamText } from "ai"
 
 // Maximum allowed duration for streaming (in seconds)
 export const maxDuration = 30
 
 type ChatRequest = {
-  messages: Message[]
+  messages: MessageAISDK[]
   chatId: string
   userId: string
   model: string
@@ -41,7 +41,7 @@ export async function POST(req: Request) {
         chat_id: chatId,
         role: "user",
         content: sanitizeUserInput(userMessage.content),
-        attachments:
+        experimental_attachments:
           userMessage.experimental_attachments as unknown as Attachment[],
         user_id: userId,
       })
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
       model: MODELS.find((m) => m.id === model)?.api_sdk!,
       system: systemPrompt || "You are a helpful assistant.",
       messages,
-      // When the response finishes, insert the assistant messages.
+      // When the response finishes, insert the assistant messages to supabase
       async onFinish({ response }) {
         try {
           for (const msg of response.messages) {

@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { ChatHistory } from "@/lib/chat-store/types"
+import { Chats } from "@/lib/chat-store/types"
 import {
   Check,
   ListMagnifyingGlass,
@@ -20,7 +20,7 @@ import Link from "next/link"
 import { useState } from "react"
 
 type DrawerHistoryProps = {
-  chatHistory: ChatHistory[]
+  chatHistory: Chats[]
   onSaveEdit: (id: string, newTitle: string) => Promise<void>
   onConfirmDelete: (id: string) => Promise<void>
 }
@@ -46,7 +46,7 @@ export function DrawerHistory({
     }
   }
 
-  const handleEdit = (chat: ChatHistory) => {
+  const handleEdit = (chat: Chats) => {
     setEditingId(chat.id)
     setEditTitle(chat.title || "")
   }

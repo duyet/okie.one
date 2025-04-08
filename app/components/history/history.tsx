@@ -1,7 +1,7 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
+import { useChats } from "@/lib/chat-store/chats/provider"
 import dynamic from "next/dynamic"
 import { useParams, useRouter } from "next/navigation"
 
@@ -19,7 +19,7 @@ export function History() {
   const isMobile = useBreakpoint(768)
   const params = useParams<{ chatId: string }>()
   const router = useRouter()
-  const { chats, updateTitle, deleteChat } = useChatHistory()
+  const { chats, updateTitle, deleteChat } = useChats()
 
   const handleSaveEdit = async (id: string, newTitle: string) => {
     await updateTitle(id, newTitle)

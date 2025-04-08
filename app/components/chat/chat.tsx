@@ -4,8 +4,9 @@ import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
-import { checkRateLimits, createGuestUser, updateChatModel } from "@/lib/api"
-import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
+import { checkRateLimits, createGuestUser } from "@/lib/api"
+import { useChats } from "@/lib/chat-store/chats/provider"
+import { useMessages } from "@/lib/chat-store/messages/provider"
 import {
   MESSAGE_MAX_LENGTH,
   MODEL_DEFAULT,
@@ -19,9 +20,10 @@ import {
 } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
 import { cn } from "@/lib/utils"
-import { Message, useChat } from "@ai-sdk/react"
+import { useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
+import { redirect } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 const FeedbackWidget = dynamic(
@@ -35,30 +37,26 @@ const DialogAuth = dynamic(
 )
 
 type ChatProps = {
-  initialMessages?: Message[]
   chatId?: string
-  preferredModel?: string
-  systemPrompt?: string
 }
 
-export default function Chat({
-  initialMessages,
-  chatId: propChatId,
-  preferredModel,
-  systemPrompt: propSystemPrompt,
-}: ChatProps) {
+export default function Chat({ chatId: propChatId }: ChatProps) {
+  const { createNewChat, getChatById, updateChatModel } = useChats()
+  const currentChat = propChatId ? getChatById(propChatId) : null
+  const { messages: initialMessages, cacheAndAddMessage } = useMessages()
   const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [chatId, setChatId] = useState<string | null>(propChatId || null)
   const [files, setFiles] = useState<File[]>([])
   const [selectedModel, setSelectedModel] = useState(
-    preferredModel || user?.preferred_model || MODEL_DEFAULT
+    currentChat?.model || user?.preferred_model || MODEL_DEFAULT
   )
-  const [systemPrompt, setSystemPrompt] = useState(propSystemPrompt)
-  const { createNewChat } = useChatHistory()
-  const isAuthenticated = !!user?.id
+  const [systemPrompt, setSystemPrompt] = useState(
+    currentChat?.system_prompt || SYSTEM_PROMPT_DEFAULT
+  )
 
+  const isAuthenticated = !!user?.id
   const {
     messages,
     input,
@@ -73,6 +71,11 @@ export default function Chat({
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages,
+    // save assistant to messages data layer
+    onFinish: async (message) => {
+      if (!chatId) return
+      await cacheAndAddMessage(message)
+    },
   })
 
   const isFirstMessage = useMemo(() => {
@@ -166,13 +169,21 @@ export default function Chat({
 
   const handleModelChange = useCallback(
     async (model: string) => {
-      if (!chatId) return
+      if (!user?.id) {
+        return
+      }
+
+      if (!chatId && user?.id) {
+        setSelectedModel(model)
+        return
+      }
+
       const oldModel = selectedModel
 
       setSelectedModel(model)
 
       try {
-        await updateChatModel(chatId, model)
+        await updateChatModel(chatId!, model)
       } catch (err) {
         console.error("Failed to update chat model:", err)
         setSelectedModel(oldModel)
@@ -305,6 +316,7 @@ export default function Chat({
       handleSubmit(undefined, options)
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+      cacheAndAddMessage(optimisticMessage)
     } catch (error) {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
@@ -416,11 +428,16 @@ export default function Chat({
         userId: uid,
         model: selectedModel,
         isAuthenticated,
-        systemPrompt: systemPrompt || "You are a helpful assistant.",
+        systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
       },
     }
 
     reload(options)
+  }
+
+  // not user chatId and no messages
+  if (propChatId && !currentChat && messages.length === 0) {
+    return redirect("/")
   }
 
   return (
@@ -431,7 +448,7 @@ export default function Chat({
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
       <AnimatePresence initial={false} mode="popLayout">
-        {isFirstMessage ? (
+        {!propChatId && messages.length === 0 ? (
           <motion.div
             key="onboarding"
             className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"

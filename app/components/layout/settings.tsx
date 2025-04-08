@@ -14,7 +14,8 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { toast } from "@/components/ui/toast"
-import { useChatHistory } from "@/lib/chat-store/chat-history-provider"
+import { useChats } from "@/lib/chat-store/chats/provider"
+import { useMessages } from "@/lib/chat-store/messages/provider"
 import { AUTH_DAILY_MESSAGE_LIMIT, MODEL_DEFAULT } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { SignOut, User, X } from "@phosphor-icons/react"
@@ -76,7 +77,8 @@ function SettingsContent({
   isDrawer?: boolean
 }) {
   const { user, updateUser, signOut } = useUser()
-  const { resetHistory } = useChatHistory()
+  const { resetChats } = useChats()
+  const { resetMessages } = useMessages()
   const { theme, setTheme } = useTheme()
   const [selectedTheme, setSelectedTheme] = useState(theme || "system")
   const [selectedModelId, setSelectedModelId] = useState<string>(
@@ -97,7 +99,8 @@ function SettingsContent({
 
   const handleSignOut = async () => {
     try {
-      await resetHistory()
+      await resetMessages()
+      await resetChats()
       await signOut()
       router.push("/")
     } catch (e) {

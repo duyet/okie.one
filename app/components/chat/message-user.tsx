@@ -175,7 +175,8 @@ export function MessageUser({
             )}
           </button>
         </MessageAction>
-        <MessageAction
+        {/* @todo: add when ready */}
+        {/* <MessageAction
           tooltip={isEditing ? "Save" : "Edit"}
           side="bottom"
           delayDuration={0}
@@ -188,7 +189,7 @@ export function MessageUser({
           >
             <PencilSimple className="size-4" />
           </button>
-        </MessageAction>
+        </MessageAction> */}
         <MessageAction tooltip="Delete" side="bottom" delayDuration={0}>
           <button
             className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent transition"

@@ -24,6 +24,9 @@ export function Conversation({
   const scrollRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  if (!messages || messages.length === 0)
+    return <div className="h-full w-full"></div>
+
   return (
     <div className="relative flex h-full w-full flex-col items-center overflow-x-hidden overflow-y-auto">
       <ChatContainer
