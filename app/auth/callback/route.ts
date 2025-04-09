@@ -43,8 +43,6 @@ export async function GET(request: Request) {
       preferred_model: MODEL_DEFAULT,
     })
 
-    console.log("inserted")
-
     if (insertError && insertError.code !== "23505") {
       console.error("Error inserting user:", insertError)
     }

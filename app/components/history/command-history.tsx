@@ -85,6 +85,14 @@ export function CommandHistory({
     (chat.title || "").toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  // will add pagination later
+  useEffect(() => {
+    if (!isOpen) return
+    chatHistory.forEach((chat) => {
+      router.prefetch(`/c/${chat.id}`)
+    })
+  }, [isOpen, chatHistory])
+
   return (
     <>
       <Tooltip>
