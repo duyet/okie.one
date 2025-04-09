@@ -16,15 +16,9 @@ import {
 } from "@/components/ui/tooltip"
 import type { Chats } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
-import {
-  Check,
-  ListMagnifyingGlass,
-  PencilSimple,
-  TrashSimple,
-  X,
-} from "@phosphor-icons/react"
+import { Check, PencilSimple, TrashSimple, X } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 type CommandHistoryProps = {
   chatHistory: Chats[]
@@ -212,7 +206,7 @@ export function CommandHistory({
                       key={chat.id}
                       onSelect={() => {
                         if (!editingId && !deletingId) {
-                          router.push(`/c/${chat.id}`)
+                          router.prefetch(`/c/${chat.id}`)
                         }
                       }}
                       className={cn(

@@ -6,6 +6,7 @@ export function HeaderGoBack({ href = "/" }: { href?: string }) {
     <header className="p-4">
       <Link
         href={href}
+        prefetch
         className="text-foreground hover:bg-muted inline-flex items-center gap-1 rounded-md px-2 py-1"
       >
         <ArrowLeft className="text-foreground size-5" />

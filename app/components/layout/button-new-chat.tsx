@@ -21,6 +21,7 @@ export function ButtonNewChat() {
         <Link
           href="/"
           className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1.5 transition-colors"
+          prefetch
         >
           <NotePencil size={24} />
         </Link>

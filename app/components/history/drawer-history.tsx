@@ -196,6 +196,7 @@ export function DrawerHistory({
                           href={`/c/${chat.id}`}
                           key={chat.id}
                           className="flex flex-1 flex-col items-start"
+                          prefetch
                         >
                           <span className="line-clamp-1 text-base font-normal">
                             {chat.title}
