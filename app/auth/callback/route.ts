@@ -32,8 +32,6 @@ export async function GET(request: Request) {
     )
   }
 
-  console.log("user", user)
-
   try {
     // Try to insert user only if not exists
     const { error: insertError } = await supabaseAdmin.from("users").insert({

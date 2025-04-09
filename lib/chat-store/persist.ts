@@ -54,18 +54,40 @@ function initDatabase() {
   })
 }
 
-// Initialize only on client side
+// Initialize only on client side, only Version 1
+// clean up indexedDB database
 if (isClient) {
-  dbInitPromise = initDatabase()
+  const checkRequest = indexedDB.open(DB_NAME)
 
-  // Define stores AFTER DB is initialized
-  dbInitPromise.then(() => {
-    stores = {
-      chats: createStore("zola-db", "chats"),
-      messages: createStore("zola-db", "messages"),
-      sync: createStore("zola-db", "sync"),
+  checkRequest.onsuccess = () => {
+    const db = checkRequest.result
+
+    if (db.version > DB_VERSION) {
+      db.close()
+      indexedDB.deleteDatabase(DB_NAME).onsuccess = () => {
+        init()
+      }
+    } else {
+      db.close()
+      init()
     }
-  })
+  }
+
+  checkRequest.onerror = () => {
+    // fallback if open fails (possibly first time)
+    init()
+  }
+
+  function init() {
+    dbInitPromise = initDatabase()
+    dbInitPromise.then(() => {
+      stores = {
+        chats: createStore(DB_NAME, "chats"),
+        messages: createStore(DB_NAME, "messages"),
+        sync: createStore(DB_NAME, "sync"),
+      }
+    })
+  }
 }
 
 // Ensure DB is ready before operations (client-side only)
