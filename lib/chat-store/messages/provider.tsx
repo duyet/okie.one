@@ -3,7 +3,7 @@
 import { toast } from "@/components/ui/toast"
 import type { Message as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
-import { clearAllIndexedDBStores, writeToIndexedDB } from "../persist"
+import { writeToIndexedDB } from "../persist"
 import {
   addMessage,
   cacheMessages,

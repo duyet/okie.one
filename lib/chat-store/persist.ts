@@ -16,6 +16,9 @@ let stores: Record<string, any> = {}
 // Only run on client side
 const isClient = typeof window !== "undefined"
 
+const DB_NAME = "zola-db"
+const DB_VERSION = 1
+
 // Initialize the database with proper versioning
 function initDatabase() {
   if (!isClient) {
@@ -23,46 +26,30 @@ function initDatabase() {
   }
 
   return new Promise<void>((resolve, reject) => {
-    // Check current version first
-    const checkRequest = indexedDB.open("zola-db")
-    let newVersion = 1
+    const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-    checkRequest.onsuccess = () => {
-      const db = checkRequest.result
-      newVersion = db.version + 1
-      db.close()
+    request.onupgradeneeded = (event) => {
+      const db = request.result
 
-      // Open with a proper version upgrade
-      const request = indexedDB.open("zola-db", newVersion)
-
-      request.onupgradeneeded = (event) => {
-        const db = request.result
-
-        // Create missing stores only if they don't exist
-        if (!db.objectStoreNames.contains("chats")) {
-          db.createObjectStore("chats")
-        }
-        if (!db.objectStoreNames.contains("messages")) {
-          db.createObjectStore("messages")
-        }
-        if (!db.objectStoreNames.contains("sync")) {
-          db.createObjectStore("sync")
-        }
+      if (!db.objectStoreNames.contains("chats")) {
+        db.createObjectStore("chats")
       }
-
-      request.onsuccess = () => {
-        dbReady = true
-        request.result.close()
-        resolve()
+      if (!db.objectStoreNames.contains("messages")) {
+        db.createObjectStore("messages")
       }
-
-      request.onerror = () => {
-        reject(request.error)
+      if (!db.objectStoreNames.contains("sync")) {
+        db.createObjectStore("sync")
       }
     }
 
-    checkRequest.onerror = () => {
-      reject(checkRequest.error)
+    request.onsuccess = () => {
+      dbReady = true
+      request.result.close()
+      resolve()
+    }
+
+    request.onerror = () => {
+      reject(request.error)
     }
   })
 }
