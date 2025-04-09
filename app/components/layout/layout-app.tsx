@@ -1,4 +1,4 @@
-import { Header } from "./header"
+import { Header } from "@/app/components/layout/header"
 
 export default async function LayoutApp({
   children,

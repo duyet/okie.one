@@ -1,12 +1,14 @@
 "use client"
 
-import { History } from "@/app/components/history/history"
+import { HistoryTrigger } from "@/app/components/history/history-trigger"
+import { AppInfoTrigger } from "@/app/components/layout/app-info/app-info-trigger"
+import { ButtonNewChat } from "@/app/components/layout/button-new-chat"
+import { UserMenu } from "@/app/components/layout/user-menu"
 import { useUser } from "@/app/providers/user-provider"
+import { Button } from "@/components/ui/button"
+import { APP_NAME } from "@/lib/config"
+import { Info } from "@phosphor-icons/react"
 import Link from "next/link"
-import { APP_NAME } from "../../../lib/config"
-import { AppInfo } from "./app-info"
-import { ButtonNewChat } from "./button-new-chat"
-import { UserMenu } from "./user-menu"
 
 export function Header() {
   const { user } = useUser()
@@ -21,7 +23,18 @@ export function Header() {
         </Link>
         {!isLoggedIn ? (
           <div className="flex items-center gap-4">
-            <AppInfo />
+            <AppInfoTrigger
+              trigger={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="bg-background/80 hover:bg-muted text-muted-foreground h-8 w-8 rounded-full"
+                  aria-label={`About ${APP_NAME}`}
+                >
+                  <Info className="size-4" />
+                </Button>
+              }
+            />
             <Link
               href="/auth"
               className="font-base text-muted-foreground hover:text-foreground text-base transition-colors"
@@ -32,8 +45,8 @@ export function Header() {
         ) : (
           <div className="flex items-center gap-4">
             <ButtonNewChat />
-            <History />
-            <UserMenu user={user} />
+            <HistoryTrigger />
+            <UserMenu />
           </div>
         )}
       </div>

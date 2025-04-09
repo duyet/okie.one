@@ -18,62 +18,30 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer"
-import { APP_DESCRIPTION, APP_NAME } from "@/lib/config"
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
+import { APP_NAME } from "@/lib/config"
 import { Info } from "@phosphor-icons/react"
+import { AppInfoContent } from "./app-info-content"
 
-const InfoContent = () => (
-  <div className="space-y-4">
-    <p className="text-foreground leading-relaxed">
-      {APP_DESCRIPTION} Built with Vercel's AI SDK, Supabase, and prompt-kit
-      components.
-    </p>
-    <p className="text-foreground leading-relaxed">
-      The code is available on{" "}
-      <a
-        href="https://github.com/ibelick/zola"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline"
-      >
-        GitHub
-      </a>
-      . Made by{" "}
-      <a
-        href="https://twitter.com/ibelick"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="underline"
-      >
-        @ibelick
-      </a>
-      .
-    </p>
-  </div>
-)
-
-const defaultTrigger = (
-  <Button
-    variant="ghost"
-    size="icon"
-    className="bg-background/80 hover:bg-muted text-muted-foreground h-8 w-8 rounded-full"
-    aria-label={`About ${APP_NAME}`}
-  >
-    <Info className="size-4" />
-  </Button>
-)
-
-type AppInfoProps = {
+type AppInfoTriggerProps = {
   trigger?: React.ReactNode
 }
 
-export function AppInfo({ trigger = defaultTrigger }: AppInfoProps) {
+export function AppInfoTrigger({ trigger }: AppInfoTriggerProps) {
   const isMobile = useBreakpoint(768)
+
+  const defaultTrigger = (
+    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+      <Info className="size-4" />
+      About {APP_NAME}
+    </DropdownMenuItem>
+  )
 
   if (isMobile) {
     return (
       <>
         <Drawer>
-          <DrawerTrigger asChild>{trigger}</DrawerTrigger>
+          <DrawerTrigger asChild>{defaultTrigger || trigger}</DrawerTrigger>
           <DrawerContent className="bg-background border-border">
             <DrawerHeader>
               <img
@@ -87,7 +55,7 @@ export function AppInfo({ trigger = defaultTrigger }: AppInfoProps) {
               </DrawerDescription>
             </DrawerHeader>
             <div className="px-4 pb-6">
-              <InfoContent />
+              <AppInfoContent />
             </div>
           </DrawerContent>
         </Drawer>
@@ -98,7 +66,7 @@ export function AppInfo({ trigger = defaultTrigger }: AppInfoProps) {
   return (
     <>
       <Dialog>
-        <DialogTrigger asChild>{trigger}</DialogTrigger>
+        <DialogTrigger asChild>{defaultTrigger || trigger}</DialogTrigger>
         <DialogContent className="[&>button:last-child]:bg-background gap-0 overflow-hidden rounded-3xl p-0 shadow-xs sm:max-w-md [&>button:last-child]:rounded-full [&>button:last-child]:p-1">
           <DialogHeader className="p-0">
             <img
@@ -112,7 +80,7 @@ export function AppInfo({ trigger = defaultTrigger }: AppInfoProps) {
             </DialogDescription>
           </DialogHeader>
           <div className="p-4">
-            <InfoContent />
+            <AppInfoContent />
           </div>
         </DialogContent>
       </Dialog>

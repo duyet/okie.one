@@ -1,18 +1,8 @@
 "use client"
 
-import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useUser } from "@/app/providers/user-provider"
 import { ModelSelector } from "@/components/common/model-selector"
 import { Button } from "@/components/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
-import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { toast } from "@/components/ui/toast"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
@@ -25,58 +15,15 @@ import { useRouter } from "next/navigation"
 import type React from "react"
 import { useEffect, useState } from "react"
 
-interface SettingsProps {
-  trigger?: React.ReactNode
-}
-
-export function Settings({ trigger }: SettingsProps) {
-  const { user } = useUser()
-  const [open, setOpen] = useState(false)
-  const isMobile = useBreakpoint(768)
-
-  if (!user) return null
-
-  const defaultTrigger = (
-    <DropdownMenuItem
-      onSelect={(e) => e.preventDefault()}
-      onClick={() => setOpen(true)}
-    >
-      <User className="size-4" />
-      <span>Settings</span>
-    </DropdownMenuItem>
-  )
-
-  if (isMobile) {
-    return (
-      <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
-        <DrawerContent>
-          <SettingsContent isDrawer onClose={() => setOpen(false)} />
-        </DrawerContent>
-      </Drawer>
-    )
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
-      <DialogContent className="gap-0 p-0 sm:max-w-xl">
-        <DialogHeader className="border-border border-b px-6 py-4">
-          <DialogTitle>Settings</DialogTitle>
-        </DialogHeader>
-        <SettingsContent onClose={() => setOpen(false)} />
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function SettingsContent({
-  onClose,
-  isDrawer = false,
-}: {
+type SettingsContentProps = {
   onClose: () => void
   isDrawer?: boolean
-}) {
+}
+
+export function SettingsContent({
+  onClose,
+  isDrawer = false,
+}: SettingsContentProps) {
   const { user, updateUser, signOut } = useUser()
   const { resetChats } = useChats()
   const { resetMessages } = useMessages()
@@ -265,31 +212,31 @@ function SettingsContent({
       </div>
       {/* Delete Account, not ready yet */}
       {/* <div className="border-border border-t">
-        <div className="px-6 py-4">
-          <div
-            className={`flex ${
-              isDrawer ? "flex-col space-y-3" : "items-center justify-between"
-            }`}
-          >
-            <div>
-              <h3 className="text-sm font-medium">Delete Account</h3>
-              <p className="text-muted-foreground max-w-xs text-xs">
-                Permanently delete your account and associated data. Deletions
-                are immediate and cannot be undone.
-              </p>
-            </div>
-            <Button
-              variant="destructive"
-              size="sm"
-              className={`${
-                isDrawer ? "mt-3 self-start" : "whitespace-nowrap"
+          <div className="px-6 py-4">
+            <div
+              className={`flex ${
+                isDrawer ? "flex-col space-y-3" : "items-center justify-between"
               }`}
             >
-              Delete Account
-            </Button>
+              <div>
+                <h3 className="text-sm font-medium">Delete Account</h3>
+                <p className="text-muted-foreground max-w-xs text-xs">
+                  Permanently delete your account and associated data. Deletions
+                  are immediate and cannot be undone.
+                </p>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                className={`${
+                  isDrawer ? "mt-3 self-start" : "whitespace-nowrap"
+                }`}
+              >
+                Delete Account
+              </Button>
+            </div>
           </div>
-        </div>
-      </div> */}
+        </div> */}
     </div>
   )
 }

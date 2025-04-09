@@ -30,22 +30,27 @@ type CommandHistoryProps = {
   chatHistory: Chats[]
   onSaveEdit: (id: string, newTitle: string) => Promise<void>
   onConfirmDelete: (id: string) => Promise<void>
+  trigger: React.ReactNode
+  isOpen: boolean
+  setIsOpen: (open: boolean) => void
 }
 
 export function CommandHistory({
   chatHistory,
   onSaveEdit,
   onConfirmDelete,
+  trigger,
+  isOpen,
+  setIsOpen,
 }: CommandHistoryProps) {
   const router = useRouter()
-  const [open, setOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenChange = (open: boolean) => {
-    setOpen(open)
+    setIsOpen(open)
     if (!open) {
       setSearchQuery("")
       setEditingId(null)
@@ -89,20 +94,11 @@ export function CommandHistory({
   return (
     <>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <button
-            onClick={() => setOpen(true)}
-            className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1.5 transition-colors"
-            type="button"
-          >
-            <ListMagnifyingGlass size={24} />
-          </button>
-        </TooltipTrigger>
+        <TooltipTrigger asChild>{trigger}</TooltipTrigger>
         <TooltipContent>History</TooltipContent>
       </Tooltip>
-
       <CommandDialog
-        open={open}
+        open={isOpen}
         onOpenChange={handleOpenChange}
         title="Chat History"
         description="Search through your past conversations"
