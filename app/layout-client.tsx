@@ -5,7 +5,11 @@ import { useEffect } from "react"
 
 export function LayoutClient() {
   useEffect(() => {
-    fetch(API_ROUTE_CSRF)
+    const init = async () => {
+      fetch(API_ROUTE_CSRF)
+    }
+
+    init()
   }, [])
   return null
 }
