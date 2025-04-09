@@ -152,6 +152,7 @@ export async function incrementUsage(
     .update({
       message_count: newOverallCount,
       daily_message_count: newDailyCount,
+      last_active_at: new Date().toISOString(),
     })
     .eq("id", userId)
 

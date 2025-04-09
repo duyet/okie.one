@@ -134,6 +134,7 @@ export type Database = {
           preferred_model: string | null
           premium: boolean | null
           profile_image: string | null
+          last_active_at: string | null
         }
         Insert: {
           anonymous?: boolean | null
@@ -147,6 +148,7 @@ export type Database = {
           preferred_model?: string | null
           premium?: boolean | null
           profile_image?: string | null
+          last_active_at?: string | null
         }
         Update: {
           anonymous?: boolean | null
@@ -160,6 +162,7 @@ export type Database = {
           preferred_model?: string | null
           premium?: boolean | null
           profile_image?: string | null
+          last_active_at?: string | null
         }
         Relationships: []
       }

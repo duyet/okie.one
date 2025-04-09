@@ -119,6 +119,7 @@ CREATE TABLE users (
   premium BOOLEAN DEFAULT false,
   profile_image TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
+  last_active_at: TIMESTAMPTZ DEFAULT NOW()
 );
 
 -- Chats table
