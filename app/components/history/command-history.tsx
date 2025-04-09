@@ -214,7 +214,7 @@ export function CommandHistory({
                       key={chat.id}
                       onSelect={() => {
                         if (!editingId && !deletingId) {
-                          router.prefetch(`/c/${chat.id}`)
+                          router.push(`/c/${chat.id}`)
                         }
                       }}
                       className={cn(
