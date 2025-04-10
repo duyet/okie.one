@@ -39,7 +39,12 @@ const DialogAuth = dynamic(
 
 export default function Chat() {
   const { chatId } = useChatSession()
-  const { createNewChat, getChatById, updateChatModel } = useChats()
+  const {
+    createNewChat,
+    getChatById,
+    updateChatModel,
+    isLoading: isChatsLoading,
+  } = useChats()
   const currentChat = chatId ? getChatById(chatId) : null
   const { messages: initialMessages, cacheAndAddMessage } = useMessages()
   const { user } = useUser()
@@ -52,6 +57,7 @@ export default function Chat() {
   const [systemPrompt, setSystemPrompt] = useState(
     currentChat?.system_prompt || SYSTEM_PROMPT_DEFAULT
   )
+  const [hydrated, setHydrated] = useState(false)
 
   const isAuthenticated = !!user?.id
   const {
@@ -85,6 +91,10 @@ export default function Chat() {
       setMessages([])
     }
   }, [chatId])
+
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
 
   useEffect(() => {
     if (error) {
@@ -439,7 +449,13 @@ export default function Chat() {
   }
 
   // not user chatId and no messages
-  if (chatId && !currentChat && messages.length === 0) {
+  if (
+    hydrated &&
+    chatId &&
+    !isChatsLoading &&
+    !currentChat &&
+    messages.length === 0
+  ) {
     return redirect("/")
   }
 
