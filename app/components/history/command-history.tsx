@@ -1,5 +1,6 @@
 "use client"
 
+import { useChatSession } from "@/app/providers/chat-session-provider"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -52,9 +53,6 @@ type CommandItemRowProps = {
   onDelete: (id: string) => void
   editingId: string | null
   deletingId: string | null
-  router: ReturnType<typeof useRouter>
-  isCurrentChat: boolean
-  closeDialog: () => void
 }
 
 // Component for editing a chat item
@@ -66,47 +64,45 @@ function CommandItemEdit({
   onCancel,
 }: CommandItemEditProps) {
   return (
-    <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
-      <form
-        className="flex w-full items-center justify-between"
-        onSubmit={(e) => {
-          e.preventDefault()
-          onSave(chat.id)
+    <form
+      className="flex w-full items-center justify-between"
+      onSubmit={(e) => {
+        e.preventDefault()
+        onSave(chat.id)
+      }}
+    >
+      <Input
+        value={editTitle}
+        onChange={(e) => setEditTitle(e.target.value)}
+        className="border-input h-8 flex-1 rounded border bg-transparent px-3 py-1 text-sm"
+        autoFocus
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault()
+            onSave(chat.id)
+          }
         }}
-      >
-        <Input
-          value={editTitle}
-          onChange={(e) => setEditTitle(e.target.value)}
-          className="border-input h-8 flex-1 rounded border bg-transparent px-3 py-1 text-sm"
-          autoFocus
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault()
-              onSave(chat.id)
-            }
-          }}
-        />
-        <div className="ml-2 flex gap-1">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground size-8"
-            type="submit"
-          >
-            <Check className="size-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground size-8"
-            type="button"
-            onClick={onCancel}
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-      </form>
-    </div>
+      />
+      <div className="ml-2 flex gap-1">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground size-8"
+          type="submit"
+        >
+          <Check className="size-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground size-8"
+          type="button"
+          onClick={onCancel}
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
+    </form>
   )
 }
 
@@ -117,54 +113,50 @@ function CommandItemDelete({
   onCancel,
 }: CommandItemDeleteProps) {
   return (
-    <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          onConfirm(chat.id)
-        }}
-        className="flex w-full items-center justify-between"
-      >
-        <div className="flex flex-1 items-center">
-          <span className="line-clamp-1 text-base font-normal">
-            {chat.title}
-          </span>
-          <input
-            type="text"
-            className="sr-only hidden"
-            autoFocus
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                e.preventDefault()
-                onCancel()
-              } else if (e.key === "Enter") {
-                e.preventDefault()
-                onConfirm(chat.id)
-              }
-            }}
-          />
-        </div>
-        <div className="ml-2 flex gap-1">
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive-foreground/10 size-8"
-            type="submit"
-          >
-            <Check className="size-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground size-8"
-            onClick={onCancel}
-            type="button"
-          >
-            <X className="size-4" />
-          </Button>
-        </div>
-      </form>
-    </div>
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        onConfirm(chat.id)
+      }}
+      className="flex w-full items-center justify-between"
+    >
+      <div className="flex flex-1 items-center">
+        <span className="line-clamp-1 text-base font-normal">{chat.title}</span>
+        <input
+          type="text"
+          className="sr-only hidden"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault()
+              onCancel()
+            } else if (e.key === "Enter") {
+              e.preventDefault()
+              onConfirm(chat.id)
+            }
+          }}
+        />
+      </div>
+      <div className="ml-2 flex gap-1">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive-foreground/10 size-8"
+          type="submit"
+        >
+          <Check className="size-4" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-muted-foreground hover:text-foreground size-8"
+          onClick={onCancel}
+          type="button"
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
+    </form>
   )
 }
 
@@ -175,29 +167,9 @@ function CommandItemRow({
   onDelete,
   editingId,
   deletingId,
-  router,
-  isCurrentChat,
-  closeDialog,
 }: CommandItemRowProps) {
   return (
-    <CommandItem
-      onSelect={() => {
-        if (isCurrentChat) {
-          closeDialog()
-          return
-        }
-        if (!editingId && !deletingId) {
-          router.push(`/c/${chat.id}`)
-        }
-      }}
-      className={cn(
-        "group group data-[selected=true]:bg-accent flex w-full items-center justify-between rounded-md",
-        Boolean(editingId || deletingId) &&
-          "data-[selected=true]:bg-transparent"
-      )}
-      value={chat.id}
-      data-value-id={chat.id}
-    >
+    <>
       <div className="min-w-0 flex-1">
         <span className="line-clamp-1 text-base font-normal">
           {chat?.title || "Untitled Chat"}
@@ -253,7 +225,7 @@ function CommandItemRow({
           </Button>
         </div>
       </div>
-    </CommandItem>
+    </>
   )
 }
 
@@ -265,12 +237,12 @@ export function CommandHistory({
   isOpen,
   setIsOpen,
 }: CommandHistoryProps) {
+  const { chatId } = useChatSession()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const params = useParams<{ chatId: string }>()
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
@@ -332,36 +304,62 @@ export function CommandHistory({
   )
 
   const renderChatItem = useCallback(
-    (chat: Chats) => (
-      <div key={chat.id} className="px-0 py-0">
-        {editingId === chat.id ? (
-          <CommandItemEdit
-            chat={chat}
-            editTitle={editTitle}
-            setEditTitle={setEditTitle}
-            onSave={handleSaveEdit}
-            onCancel={handleCancelEdit}
-          />
-        ) : deletingId === chat.id ? (
-          <CommandItemDelete
-            chat={chat}
-            onConfirm={handleConfirmDelete}
-            onCancel={handleCancelDelete}
-          />
-        ) : (
-          <CommandItemRow
-            chat={chat}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            editingId={editingId}
-            deletingId={deletingId}
-            router={router}
-            isCurrentChat={params.chatId === chat.id}
-            closeDialog={() => handleOpenChange(false)}
-          />
-        )}
-      </div>
-    ),
+    (chat: Chats) => {
+      const isCurrentChatSession = chat.id === chatId
+      const isCurrentChatEditOrDelete =
+        chat.id === editingId || chat.id === deletingId
+      const isEditOrDeleteMode = editingId || deletingId
+
+      return (
+        <CommandItem
+          key={chat.id}
+          onSelect={() => {
+            if (isCurrentChatSession) {
+              setIsOpen(false)
+              return
+            }
+            if (!editingId && !deletingId) {
+              router.push(`/c/${chat.id}`)
+            }
+          }}
+          className={cn(
+            "group group data-[selected=true]:bg-accent flex w-full items-center justify-between rounded-md",
+            isCurrentChatEditOrDelete ? "!py-2" : "py-2",
+            isCurrentChatEditOrDelete &&
+              "bg-accent data-[selected=true]:bg-accent",
+            !isCurrentChatEditOrDelete &&
+              isEditOrDeleteMode &&
+              "data-[selected=true]:bg-transparent"
+          )}
+          value={chat.id}
+          data-value-id={chat.id}
+        >
+          {editingId === chat.id ? (
+            <CommandItemEdit
+              chat={chat}
+              editTitle={editTitle}
+              setEditTitle={setEditTitle}
+              onSave={handleSaveEdit}
+              onCancel={handleCancelEdit}
+            />
+          ) : deletingId === chat.id ? (
+            <CommandItemDelete
+              chat={chat}
+              onConfirm={handleConfirmDelete}
+              onCancel={handleCancelDelete}
+            />
+          ) : (
+            <CommandItemRow
+              chat={chat}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              editingId={editingId}
+              deletingId={deletingId}
+            />
+          )}
+        </CommandItem>
+      )
+    },
     [
       editingId,
       deletingId,
@@ -372,7 +370,6 @@ export function CommandHistory({
       handleCancelDelete,
       handleEdit,
       handleDelete,
-      router,
     ]
   )
 

@@ -10,7 +10,6 @@ import { useState } from "react"
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"
 
-// use chat seesion here
 export function HistoryTrigger() {
   const isMobile = useBreakpoint(768)
   const router = useRouter()

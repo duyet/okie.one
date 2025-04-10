@@ -17,7 +17,7 @@ export const Suggestions = memo(function Suggestions({
   onSuggestion,
   value,
 }: SuggestionsProps) {
-  const MotionPromptSuggestion = motion(PromptSuggestion)
+  const MotionPromptSuggestion = motion.create(PromptSuggestion)
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
 
   const activeCategoryData = SUGGESTIONS_CONFIG.find(
