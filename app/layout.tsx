@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes"
 import Script from "next/script"
 import { createClient } from "../lib/supabase/server"
 import { LayoutClient } from "./layout-client"
+import { ChatSessionProvider } from "./providers/chat-session-provider"
 import { UserProvider } from "./providers/user-provider"
 import { UserProfile } from "./types/user"
 
@@ -65,15 +66,17 @@ export default async function RootLayout({
         <LayoutClient />
         <UserProvider initialUser={userProfile}>
           <ChatsProvider userId={userProfile?.id}>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <Toaster position="top-center" />
-              {children}
-            </ThemeProvider>
+            <ChatSessionProvider>
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="light"
+                enableSystem
+                disableTransitionOnChange
+              >
+                <Toaster position="top-center" />
+                {children}
+              </ThemeProvider>
+            </ChatSessionProvider>
           </ChatsProvider>
         </UserProvider>
       </body>

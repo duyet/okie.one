@@ -1,26 +1,34 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { useChatSession } from "@/app/providers/chat-session-provider"
 import { useChats } from "@/lib/chat-store/chats/provider"
+import { useMessages } from "@/lib/chat-store/messages/provider"
 import { ListMagnifyingGlass } from "@phosphor-icons/react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"
 
+// use chat seesion here
 export function HistoryTrigger() {
   const isMobile = useBreakpoint(768)
-  const params = useParams<{ chatId: string }>()
   const router = useRouter()
   const { chats, updateTitle, deleteChat } = useChats()
+  const { deleteMessages } = useMessages()
   const [isOpen, setIsOpen] = useState(false)
+  const { chatId } = useChatSession()
 
   const handleSaveEdit = async (id: string, newTitle: string) => {
     await updateTitle(id, newTitle)
   }
 
   const handleConfirmDelete = async (id: string) => {
-    await deleteChat(id, params.chatId, () => router.push("/"))
+    if (id === chatId) {
+      setIsOpen(false)
+    }
+    await deleteMessages()
+    await deleteChat(id, chatId!, () => router.push("/"))
   }
 
   const trigger = (

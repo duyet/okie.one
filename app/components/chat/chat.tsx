@@ -2,6 +2,7 @@
 
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
+import { useChatSession } from "@/app/providers/chat-session-provider"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits, createGuestUser } from "@/lib/api"
@@ -36,18 +37,14 @@ const DialogAuth = dynamic(
   { ssr: false }
 )
 
-type ChatProps = {
-  chatId?: string
-}
-
-export default function Chat({ chatId: propChatId }: ChatProps) {
+export default function Chat() {
+  const { chatId } = useChatSession()
   const { createNewChat, getChatById, updateChatModel } = useChats()
-  const currentChat = propChatId ? getChatById(propChatId) : null
+  const currentChat = chatId ? getChatById(chatId) : null
   const { messages: initialMessages, cacheAndAddMessage } = useMessages()
   const { user } = useUser()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
-  const [chatId, setChatId] = useState<string | null>(propChatId || null)
   const [files, setFiles] = useState<File[]>([])
   const [selectedModel, setSelectedModel] = useState(
     currentChat?.model || user?.preferred_model || MODEL_DEFAULT
@@ -81,6 +78,13 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
   const isFirstMessage = useMemo(() => {
     return messages.length === 0
   }, [messages])
+
+  // when chatId is null, set messages to an empty array
+  useEffect(() => {
+    if (chatId === null) {
+      setMessages([])
+    }
+  }, [chatId])
 
   useEffect(() => {
     if (error) {
@@ -144,7 +148,6 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
           systemPrompt
         )
         if (!newChat) return null
-        setChatId(newChat.id)
         if (isAuthenticated) {
           window.history.pushState(null, "", `/c/${newChat.id}`)
         }
@@ -436,7 +439,7 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
   }
 
   // not user chatId and no messages
-  if (propChatId && !currentChat && messages.length === 0) {
+  if (chatId && !currentChat && messages.length === 0) {
     return redirect("/")
   }
 
@@ -448,7 +451,7 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
     >
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
       <AnimatePresence initial={false} mode="popLayout">
-        {!propChatId && messages.length === 0 ? (
+        {!chatId && messages.length === 0 ? (
           <motion.div
             key="onboarding"
             className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"
@@ -499,7 +502,7 @@ export default function Chat({ chatId: propChatId }: ChatProps) {
           files={files}
           onFileUpload={handleFileUpload}
           onFileRemove={handleFileRemove}
-          hasSuggestions={isFirstMessage}
+          hasSuggestions={!chatId && messages.length === 0}
           onSelectModel={handleModelChange}
           onSelectSystemPrompt={handleSelectSystemPrompt}
           selectedModel={selectedModel}

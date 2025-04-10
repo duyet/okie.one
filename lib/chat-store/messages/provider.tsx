@@ -1,5 +1,6 @@
 "use client"
 
+import { useChatSession } from "@/app/providers/chat-session-provider"
 import { toast } from "@/components/ui/toast"
 import type { Message as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
@@ -17,11 +18,11 @@ interface MessagesContextType {
   messages: MessageAISDK[]
   setMessages: React.Dispatch<React.SetStateAction<MessageAISDK[]>>
   refresh: () => Promise<void>
-  reset: () => Promise<void>
   addMessage: (message: MessageAISDK) => Promise<void>
   saveAllMessages: (messages: MessageAISDK[]) => Promise<void>
   cacheAndAddMessage: (message: MessageAISDK) => Promise<void>
   resetMessages: () => Promise<void>
+  deleteMessages: () => Promise<void>
 }
 
 const MessagesContext = createContext<MessagesContextType | null>(null)
@@ -33,14 +34,15 @@ export function useMessages() {
   return context
 }
 
-export function MessagesProvider({
-  chatId,
-  children,
-}: {
-  chatId?: string
-  children: React.ReactNode
-}) {
+export function MessagesProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<MessageAISDK[]>([])
+  const { chatId } = useChatSession()
+
+  useEffect(() => {
+    if (chatId === null) {
+      setMessages([])
+    }
+  }, [chatId])
 
   useEffect(() => {
     if (!chatId) return
@@ -70,13 +72,6 @@ export function MessagesProvider({
     } catch (e) {
       toast({ title: "Failed to refresh messages", status: "error" })
     }
-  }
-
-  const reset = async () => {
-    if (!chatId) return
-
-    setMessages([])
-    await clearMessagesForChat(chatId)
   }
 
   const addSingleMessage = async (message: MessageAISDK) => {
@@ -113,6 +108,13 @@ export function MessagesProvider({
     }
   }
 
+  const deleteMessages = async () => {
+    if (!chatId) return
+
+    setMessages([])
+    await clearMessagesForChat(chatId)
+  }
+
   const resetMessages = async () => {
     setMessages([])
   }
@@ -123,11 +125,11 @@ export function MessagesProvider({
         messages,
         setMessages,
         refresh,
-        reset,
         addMessage: addSingleMessage,
         saveAllMessages,
         cacheAndAddMessage,
         resetMessages,
+        deleteMessages,
       }}
     >
       {children}

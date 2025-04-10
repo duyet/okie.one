@@ -19,8 +19,9 @@ import {
 import type { Chats } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
 import { Check, PencilSimple, TrashSimple, X } from "@phosphor-icons/react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useParams, useRouter } from "next/navigation"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { formatDate, groupChatsByDate } from "./utils"
 
 type CommandHistoryProps = {
   chatHistory: Chats[]
@@ -29,6 +30,231 @@ type CommandHistoryProps = {
   trigger: React.ReactNode
   isOpen: boolean
   setIsOpen: (open: boolean) => void
+}
+
+type CommandItemEditProps = {
+  chat: Chats
+  editTitle: string
+  setEditTitle: (title: string) => void
+  onSave: (id: string) => void
+  onCancel: () => void
+}
+
+type CommandItemDeleteProps = {
+  chat: Chats
+  onConfirm: (id: string) => void
+  onCancel: () => void
+}
+
+type CommandItemRowProps = {
+  chat: Chats
+  onEdit: (chat: Chats) => void
+  onDelete: (id: string) => void
+  editingId: string | null
+  deletingId: string | null
+  router: ReturnType<typeof useRouter>
+  isCurrentChat: boolean
+  closeDialog: () => void
+}
+
+// Component for editing a chat item
+function CommandItemEdit({
+  chat,
+  editTitle,
+  setEditTitle,
+  onSave,
+  onCancel,
+}: CommandItemEditProps) {
+  return (
+    <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
+      <form
+        className="flex w-full items-center justify-between"
+        onSubmit={(e) => {
+          e.preventDefault()
+          onSave(chat.id)
+        }}
+      >
+        <Input
+          value={editTitle}
+          onChange={(e) => setEditTitle(e.target.value)}
+          className="border-input h-8 flex-1 rounded border bg-transparent px-3 py-1 text-sm"
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault()
+              onSave(chat.id)
+            }
+          }}
+        />
+        <div className="ml-2 flex gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground size-8"
+            type="submit"
+          >
+            <Check className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground size-8"
+            type="button"
+            onClick={onCancel}
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+// Component for deleting a chat item
+function CommandItemDelete({
+  chat,
+  onConfirm,
+  onCancel,
+}: CommandItemDeleteProps) {
+  return (
+    <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault()
+          onConfirm(chat.id)
+        }}
+        className="flex w-full items-center justify-between"
+      >
+        <div className="flex flex-1 items-center">
+          <span className="line-clamp-1 text-base font-normal">
+            {chat.title}
+          </span>
+          <input
+            type="text"
+            className="sr-only hidden"
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.preventDefault()
+                onCancel()
+              } else if (e.key === "Enter") {
+                e.preventDefault()
+                onConfirm(chat.id)
+              }
+            }}
+          />
+        </div>
+        <div className="ml-2 flex gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive-foreground/10 size-8"
+            type="submit"
+          >
+            <Check className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground size-8"
+            onClick={onCancel}
+            type="button"
+          >
+            <X className="size-4" />
+          </Button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+// Component for displaying a normal chat row
+function CommandItemRow({
+  chat,
+  onEdit,
+  onDelete,
+  editingId,
+  deletingId,
+  router,
+  isCurrentChat,
+  closeDialog,
+}: CommandItemRowProps) {
+  return (
+    <CommandItem
+      onSelect={() => {
+        if (isCurrentChat) {
+          closeDialog()
+          return
+        }
+        if (!editingId && !deletingId) {
+          router.push(`/c/${chat.id}`)
+        }
+      }}
+      className={cn(
+        "group group data-[selected=true]:bg-accent flex w-full items-center justify-between rounded-md",
+        Boolean(editingId || deletingId) &&
+          "data-[selected=true]:bg-transparent"
+      )}
+      value={chat.id}
+      data-value-id={chat.id}
+    >
+      <div className="min-w-0 flex-1">
+        <span className="line-clamp-1 text-base font-normal">
+          {chat?.title || "Untitled Chat"}
+        </span>
+      </div>
+
+      {/* Date and actions container */}
+      <div className="relative flex min-w-[120px] flex-shrink-0 justify-end">
+        {/* Date that shows by default but hides on selection */}
+        <span
+          className={cn(
+            "text-muted-foreground text-sm font-normal opacity-100 transition-opacity duration-0",
+            "group-data-[selected=true]:opacity-0",
+            Boolean(editingId || deletingId) &&
+              "group-data-[selected=true]:opacity-100"
+          )}
+        >
+          {formatDate(chat?.created_at)}
+        </span>
+
+        {/* Action buttons that appear on selection, positioned over the date */}
+        <div
+          className={cn(
+            "absolute inset-0 flex items-center justify-end gap-1 opacity-0 transition-opacity duration-0",
+            "group-data-[selected=true]:opacity-100",
+            Boolean(editingId || deletingId) &&
+              "group-data-[selected=true]:opacity-0"
+          )}
+        >
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:text-foreground size-8"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (chat) onEdit(chat)
+            }}
+            type="button"
+          >
+            <PencilSimple className="size-4" />
+          </Button>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="text-muted-foreground hover:text-destructive size-8"
+            onClick={(e) => {
+              e.stopPropagation()
+              if (chat?.id) onDelete(chat.id)
+            }}
+            type="button"
+          >
+            <TrashSimple className="size-4" />
+          </Button>
+        </div>
+      </div>
+    </CommandItem>
+  )
 }
 
 export function CommandHistory({
@@ -44,6 +270,7 @@ export function CommandHistory({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const params = useParams<{ chatId: string }>()
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
@@ -55,45 +282,109 @@ export function CommandHistory({
     }
   }
 
-  const handleEdit = (chat: Chats) => {
+  const handleEdit = useCallback((chat: Chats) => {
     setEditingId(chat.id)
     setEditTitle(chat.title || "")
-  }
+  }, [])
 
-  const handleSaveEdit = async (id: string) => {
-    setEditingId(null)
-    await onSaveEdit(id, editTitle)
-  }
-
-  const handleCancelEdit = () => {
-    setEditingId(null)
-    setEditTitle("")
-  }
-
-  const handleDelete = (id: string) => {
-    setDeletingId(id)
-  }
-
-  const handleConfirmDelete = async (id: string) => {
-    setDeletingId(null)
-    await onConfirmDelete(id)
-  }
-
-  const handleCancelDelete = () => {
-    setDeletingId(null)
-  }
-
-  const filteredChat = chatHistory.filter((chat) =>
-    (chat.title || "").toLowerCase().includes(searchQuery.toLowerCase())
+  const handleSaveEdit = useCallback(
+    async (id: string) => {
+      setEditingId(null)
+      await onSaveEdit(id, editTitle)
+    },
+    [editTitle, onSaveEdit]
   )
 
-  // will add pagination later
+  const handleCancelEdit = useCallback(() => {
+    setEditingId(null)
+    setEditTitle("")
+  }, [])
+
+  const handleDelete = useCallback((id: string) => {
+    setDeletingId(id)
+  }, [])
+
+  const handleConfirmDelete = useCallback(
+    async (id: string) => {
+      setDeletingId(null)
+      await onConfirmDelete(id)
+    },
+    [onConfirmDelete]
+  )
+
+  const handleCancelDelete = useCallback(() => {
+    setDeletingId(null)
+  }, [])
+
+  const filteredChat = useMemo(() => {
+    const query = searchQuery.toLowerCase()
+    return query
+      ? chatHistory.filter((chat) =>
+          (chat.title || "").toLowerCase().includes(query)
+        )
+      : chatHistory
+  }, [chatHistory, searchQuery])
+
+  // Group chats by time periods
+  const groupedChats = useMemo(
+    () => groupChatsByDate(chatHistory, searchQuery),
+    [chatHistory, searchQuery]
+  )
+
+  const renderChatItem = useCallback(
+    (chat: Chats) => (
+      <div key={chat.id} className="px-0 py-0">
+        {editingId === chat.id ? (
+          <CommandItemEdit
+            chat={chat}
+            editTitle={editTitle}
+            setEditTitle={setEditTitle}
+            onSave={handleSaveEdit}
+            onCancel={handleCancelEdit}
+          />
+        ) : deletingId === chat.id ? (
+          <CommandItemDelete
+            chat={chat}
+            onConfirm={handleConfirmDelete}
+            onCancel={handleCancelDelete}
+          />
+        ) : (
+          <CommandItemRow
+            chat={chat}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            editingId={editingId}
+            deletingId={deletingId}
+            router={router}
+            isCurrentChat={params.chatId === chat.id}
+            closeDialog={() => handleOpenChange(false)}
+          />
+        )}
+      </div>
+    ),
+    [
+      editingId,
+      deletingId,
+      editTitle,
+      handleSaveEdit,
+      handleCancelEdit,
+      handleConfirmDelete,
+      handleCancelDelete,
+      handleEdit,
+      handleDelete,
+      router,
+    ]
+  )
+
+  // Prefetch chat pages, later we will do pagination + infinite scroll
   useEffect(() => {
     if (!isOpen) return
+
+    // Simply prefetch all the chat routes when dialog opens
     chatHistory.forEach((chat) => {
       router.prefetch(`/c/${chat.id}`)
     })
-  }, [isOpen, chatHistory])
+  }, [isOpen, chatHistory, router])
 
   return (
     <>
@@ -113,179 +404,28 @@ export function CommandHistory({
             value={searchQuery}
             onValueChange={(value) => setSearchQuery(value)}
           />
-          <CommandList className="max-h-[480px] min-h-[480px] flex-1">
+          <CommandList className="max-h-[480px] min-h-[480px] flex-1 [&>[cmdk-list-sizer]]:space-y-6 [&>[cmdk-list-sizer]]:py-2">
             {filteredChat.length === 0 && (
               <CommandEmpty>No chat history found.</CommandEmpty>
             )}
-            <CommandGroup className="p-1.5">
-              {filteredChat.map((chat) => (
-                <div key={chat.id} className="px-0 py-1">
-                  {editingId === chat.id ? (
-                    <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
-                      <form
-                        className="flex w-full items-center justify-between"
-                        onSubmit={(e) => {
-                          e.preventDefault()
-                          handleSaveEdit(chat.id)
-                        }}
-                      >
-                        <Input
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          className="border-input h-8 flex-1 rounded border bg-transparent px-3 py-1 text-sm"
-                          autoFocus
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault()
-                              handleSaveEdit(chat.id)
-                            }
-                          }}
-                        />
-                        <div className="ml-2 flex gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-foreground size-8"
-                            type="submit"
-                          >
-                            <Check className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-foreground size-8"
-                            type="button"
-                            onClick={handleCancelEdit}
-                          >
-                            <X className="size-4" />
-                          </Button>
-                        </div>
-                      </form>
-                    </div>
-                  ) : deletingId === chat.id ? (
-                    <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2">
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault()
-                          handleConfirmDelete(chat.id)
-                        }}
-                        className="flex w-full items-center justify-between"
-                      >
-                        <div className="flex flex-1 items-center">
-                          <span className="line-clamp-1 text-base font-normal">
-                            {chat.title}
-                          </span>
-                          <input
-                            type="text"
-                            className="sr-only"
-                            autoFocus
-                            onKeyDown={(e) => {
-                              if (e.key === "Escape") {
-                                e.preventDefault()
-                                handleCancelDelete()
-                              } else if (e.key === "Enter") {
-                                e.preventDefault()
-                                handleConfirmDelete(chat.id)
-                              }
-                            }}
-                          />
-                        </div>
-                        <div className="ml-2 flex gap-1">
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive-foreground/10 size-8"
-                            type="submit"
-                          >
-                            <Check className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-foreground size-8"
-                            onClick={handleCancelDelete}
-                            type="button"
-                          >
-                            <X className="size-4" />
-                          </Button>
-                        </div>
-                      </form>
-                    </div>
-                  ) : (
-                    <CommandItem
-                      key={chat.id}
-                      onSelect={() => {
-                        if (!editingId && !deletingId) {
-                          router.push(`/c/${chat.id}`)
-                        }
-                      }}
-                      className={cn(
-                        "group hover:bg-accent! flex w-full items-center justify-between rounded-md data-[selected=true]:bg-transparent",
-                        Boolean(editingId || deletingId) &&
-                          "hover:bg-transparent! data-[selected=true]:bg-transparent"
-                      )}
-                      value={chat.title || "Untitled Chat"}
-                    >
-                      <div className="min-w-0 flex-1">
-                        <span className="line-clamp-1 text-base font-normal">
-                          {chat?.title || "Untitled Chat"}
-                        </span>
-                      </div>
 
-                      {/* Date and actions container with fixed width */}
-                      <div className="relative flex min-w-[120px] flex-shrink-0 justify-end">
-                        {/* Date that shows by default but hides on hover */}
-                        <span
-                          className={cn(
-                            "text-muted-foreground text-base font-normal transition-opacity duration-0 group-hover:opacity-0",
-                            Boolean(editingId || deletingId) &&
-                              "group-hover:opacity-100"
-                          )}
-                        >
-                          {chat?.created_at
-                            ? new Date(chat.created_at).toLocaleDateString()
-                            : "No date"}
-                        </span>
-
-                        {/* Action buttons that appear on hover, positioned over the date */}
-                        <div
-                          className={cn(
-                            "absolute inset-0 flex items-center justify-end gap-1 opacity-0 transition-opacity duration-0 group-hover:opacity-100",
-                            Boolean(editingId || deletingId) &&
-                              "group-hover:opacity-0"
-                          )}
-                        >
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-foreground size-8"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              if (chat) handleEdit(chat)
-                            }}
-                            type="button"
-                          >
-                            <PencilSimple className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            className="text-muted-foreground hover:text-destructive size-8"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              if (chat?.id) handleDelete(chat.id)
-                            }}
-                            type="button"
-                          >
-                            <TrashSimple className="size-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </CommandItem>
-                  )}
-                </div>
-              ))}
-            </CommandGroup>
+            {searchQuery ? (
+              // When searching, display a flat list without grouping
+              <CommandGroup className="p-1.5">
+                {filteredChat.map((chat) => renderChatItem(chat))}
+              </CommandGroup>
+            ) : (
+              // When not searching, display grouped by date
+              groupedChats?.map((group) => (
+                <CommandGroup
+                  key={group.name}
+                  heading={group.name}
+                  className="space-y-0 px-1.5"
+                >
+                  {group.chats.map((chat) => renderChatItem(chat))}
+                </CommandGroup>
+              ))
+            )}
           </CommandList>
         </Command>
       </CommandDialog>
