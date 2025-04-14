@@ -37,6 +37,7 @@ export type Model = {
     id: string
     enabled: boolean
   }[]
+  description?: string
 }
 
 export const MODELS_NOT_AVAILABLE = [
@@ -135,8 +136,8 @@ export const MODELS_NOT_AVAILABLE = [
 
 export const MODELS = [
   {
-    id: "gpt-4o",
-    name: "GPT-4o",
+    id: "gpt-4.1",
+    name: "GPT-4.1",
     provider: "openai",
     features: [
       {
@@ -144,12 +145,14 @@ export const MODELS = [
         enabled: true,
       },
     ],
-    api_sdk: openai("gpt-4o"),
+    api_sdk: openai("gpt-4.1"),
     icon: OpenAI,
+    description:
+      "OpenAI’s most powerful model. Excellent at coding, writing, and complex tasks.",
   },
   {
-    id: "gpt-4o-mini",
-    name: "GPT-4o Mini",
+    id: "gpt-4.1-mini",
+    name: "GPT-4.1 Mini",
     provider: "openai",
     features: [
       {
@@ -157,7 +160,25 @@ export const MODELS = [
         enabled: true,
       },
     ],
-    api_sdk: openai("gpt-4o-mini"),
+    api_sdk: openai("gpt-4.1-mini"),
+    icon: OpenAI,
+    description:
+      "Fast and smart — a great balance for most tasks. Outperforms GPT‑4o mini.",
+  },
+  {
+    id: "gpt-4.1-nano",
+    name: "GPT-4.1 Nano",
+    provider: "openai",
+    features: [
+      {
+        id: "file-upload",
+        enabled: true,
+      },
+    ],
+    api_sdk: openai("gpt-4.1-nano"),
+    icon: OpenAI,
+    description:
+      "Ultra fast and cheap. Ideal for simple tasks, summaries, or classification.",
   },
   {
     id: "pixtral-large-latest",
@@ -170,6 +191,8 @@ export const MODELS = [
       },
     ],
     api_sdk: mistral("pixtral-large-latest"),
+    description:
+      "Mistral’s flagship model. Great for reasoning, writing, and advanced tasks.",
   },
   {
     id: "mistral-large-latest",
@@ -182,6 +205,8 @@ export const MODELS = [
       },
     ],
     api_sdk: mistral("mistral-large-latest"),
+    description:
+      "Fine-tuned for chat. A lighter, faster option for everyday use.",
   },
 ] as Model[]
 
