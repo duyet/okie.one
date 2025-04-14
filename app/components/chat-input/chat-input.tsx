@@ -55,10 +55,17 @@ export function ChatInput({
 }: ChatInputProps) {
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (isSubmitting) return
+      if (isSubmitting) {
+        e.preventDefault()
+        return
+      }
+
+      if (e.key === "Enter" && status === "streaming") {
+        e.preventDefault()
+        return
+      }
 
       if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault()
         onSend()
       }
     },
@@ -66,7 +73,7 @@ export function ChatInput({
   )
 
   const handleMainClick = () => {
-    if (isSubmitting && status !== "streaming") {
+    if (isSubmitting) {
       return
     }
 
@@ -116,7 +123,7 @@ export function ChatInput({
               />
             </div>
             <PromptInputAction
-              tooltip={status !== "streaming" ? "Stop" : "Send"}
+              tooltip={status === "streaming" ? "Stop" : "Send"}
             >
               <Button
                 size="sm"
@@ -127,7 +134,7 @@ export function ChatInput({
                 aria-label={status === "streaming" ? "Stop" : "Send message"}
               >
                 {status === "streaming" ? (
-                  <Stop className="size-4 fill-black" />
+                  <Stop className="size-4" />
                 ) : (
                   <ArrowUp className="size-4" />
                 )}
