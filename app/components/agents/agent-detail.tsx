@@ -17,7 +17,7 @@ type AgentDetailProps = {
   description: string
   example_inputs: string[]
   creator_id: string
-  avatar_url: string
+  avatar_url?: string | null
   agents: AgentSummary[]
   onAgentClick?: (agentId: string) => void
   randomAgents: AgentSummary[]
@@ -38,15 +38,14 @@ export function AgentDetail({
   const { createNewChat } = useChats()
 
   const createNewChatWithAgent = async (prompt?: string) => {
-    const uid = await getOrCreateGuestUserId(user)
-    if (!uid) return
+    if (!user) return
 
     try {
       const newChat = await createNewChat(
-        uid,
+        user?.id,
         `Conversation with ${name}`,
         user?.preferred_model || MODEL_DEFAULT,
-        true,
+        !!user.id,
         undefined, // No need to specify system prompt as it will be fetched from the agent
         id
       )
