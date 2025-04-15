@@ -1,9 +1,12 @@
 "use client"
 
+import type { AgentsSuggestions } from "@/app/types/agent"
+import { ZOLA_AGENT_SLUGS } from "@/lib/config"
+import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
 import { AnimatePresence, motion } from "motion/react"
-import React, { memo, useMemo, useState } from "react"
-import { Personas } from "./personas"
+import React, { memo, useEffect, useMemo, useState } from "react"
+import { Agents } from "./agents"
 import { Suggestions } from "./suggestions"
 
 type PromptSystemProps = {
@@ -11,7 +14,8 @@ type PromptSystemProps = {
   onSuggestion: (suggestion: string) => void
   onSelectSystemPrompt: (systemPrompt: string) => void
   value: string
-  systemPrompt?: string
+  setSelectedAgentId: (agentId: string | null) => void
+  selectedAgentId: string | null
 }
 
 export const PromptSystem = memo(function PromptSystem({
@@ -19,42 +23,70 @@ export const PromptSystem = memo(function PromptSystem({
   onSuggestion,
   onSelectSystemPrompt,
   value,
-  systemPrompt,
+  setSelectedAgentId,
+  selectedAgentId,
 }: PromptSystemProps) {
-  const [isPersonaMode, setIsPersonaMode] = useState(false)
+  const [isAgentMode, setIsAgentMode] = useState(false)
+  const [sugestedAgents, setSugestedAgents] = useState<
+    AgentsSuggestions[] | null
+  >(null)
+
+  useEffect(() => {
+    const fetchAgents = async () => {
+      const supabase = createClient()
+      const { data, error } = await supabase
+        .from("agents")
+        .select("id, name, description, avatar_url")
+        .in("slug", ZOLA_AGENT_SLUGS)
+
+      if (error) {
+        throw new Error("Error fetching agents: " + error.message)
+      }
+
+      const randomAgents = data
+        ?.sort(() => Math.random() - 0.5)
+        .slice(0, 8) as AgentsSuggestions[]
+
+      setSugestedAgents(randomAgents)
+    }
+    fetchAgents()
+  }, [])
 
   const tabs = useMemo(
     () => [
       {
-        id: "personas",
-        label: "Personas",
-        isActive: isPersonaMode,
+        id: "agents",
+        label: "Agents",
+        isActive: isAgentMode,
         onClick: () => {
-          setIsPersonaMode(true)
+          setIsAgentMode(true)
           onSelectSystemPrompt("")
+          setSelectedAgentId(null)
         },
       },
       {
         id: "suggestions",
         label: "Suggestions",
-        isActive: !isPersonaMode,
+        isActive: !isAgentMode,
         onClick: () => {
-          setIsPersonaMode(false)
+          setIsAgentMode(false)
           onSelectSystemPrompt("")
+          setSelectedAgentId(null)
         },
       },
     ],
-    [isPersonaMode]
+    [isAgentMode]
   )
 
   return (
     <>
       <div className="relative order-1 w-full md:absolute md:bottom-[-70px] md:order-2 md:h-[70px]">
         <AnimatePresence mode="popLayout">
-          {isPersonaMode ? (
-            <Personas
-              onSelectSystemPrompt={onSelectSystemPrompt}
-              systemPrompt={systemPrompt}
+          {isAgentMode ? (
+            <Agents
+              setSelectedAgentId={setSelectedAgentId}
+              selectedAgentId={selectedAgentId}
+              sugestedAgents={sugestedAgents || []}
             />
           ) : (
             <Suggestions

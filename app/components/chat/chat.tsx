@@ -5,7 +5,7 @@ import { Conversation } from "@/app/components/chat/conversation"
 import { useChatSession } from "@/app/providers/chat-session-provider"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
-import { checkRateLimits, createGuestUser } from "@/lib/api"
+import { checkRateLimits, getOrCreateGuestUserId } from "@/lib/api"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
 import {
@@ -24,8 +24,8 @@ import { cn } from "@/lib/utils"
 import { useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
-import { redirect } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { redirect, useRouter, useSearchParams } from "next/navigation"
+import { useCallback, useEffect, useState } from "react"
 
 const FeedbackWidget = dynamic(
   () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
@@ -37,7 +37,7 @@ const DialogAuth = dynamic(
   { ssr: false }
 )
 
-export default function Chat() {
+export function Chat() {
   const { chatId } = useChatSession()
   const {
     createNewChat,
@@ -57,7 +57,12 @@ export default function Chat() {
   const [systemPrompt, setSystemPrompt] = useState(
     currentChat?.system_prompt || SYSTEM_PROMPT_DEFAULT
   )
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(
+    currentChat?.agent_id || null
+  )
   const [hydrated, setHydrated] = useState(false)
+  const searchParams = useSearchParams()
+  const router = useRouter()
 
   const isAuthenticated = !!user?.id
   const {
@@ -81,16 +86,18 @@ export default function Chat() {
     },
   })
 
-  const isFirstMessage = useMemo(() => {
-    return messages.length === 0
-  }, [messages])
-
   // when chatId is null, set messages to an empty array
   useEffect(() => {
     if (chatId === null) {
       setMessages([])
     }
   }, [chatId])
+
+  useEffect(() => {
+    if (currentChat?.system_prompt) {
+      setSystemPrompt(currentChat?.system_prompt)
+    }
+  }, [currentChat])
 
   useEffect(() => {
     setHydrated(true)
@@ -112,16 +119,44 @@ export default function Chat() {
     }
   }, [error])
 
-  const getOrCreateGuestUserId = async (): Promise<string | null> => {
-    if (user?.id) return user.id
+  useEffect(() => {
+    const prompt = searchParams.get("prompt")
 
-    const stored = localStorage.getItem("guestId")
-    if (stored) return stored
+    if (!prompt || !chatId || messages.length > 0) return
 
-    const guestId = crypto.randomUUID()
-    localStorage.setItem("guestId", guestId)
-    await createGuestUser(guestId)
-    return guestId
+    sendInitialPrompt(prompt)
+  }, [chatId, searchParams])
+
+  const sendInitialPrompt = async (prompt: string) => {
+    setIsSubmitting(true)
+
+    const uid = await getOrCreateGuestUserId(user)
+    if (!uid) return
+
+    const allowed = await checkLimitsAndNotify(uid)
+    if (!allowed) {
+      setIsSubmitting(false)
+      return
+    }
+
+    const options = {
+      body: {
+        chatId,
+        userId: uid,
+        model: selectedModel,
+        isAuthenticated,
+        systemPrompt,
+      },
+    }
+
+    try {
+      append({ role: "user", content: prompt }, options)
+    } catch (err) {
+      toast({ title: "Failed to send prompt", status: "error" })
+    } finally {
+      setIsSubmitting(false)
+      router.replace(`/c/${chatId}`)
+    }
   }
 
   const checkLimitsAndNotify = async (uid: string): Promise<boolean> => {
@@ -153,17 +188,18 @@ export default function Chat() {
       if (storedGuestChatId) return storedGuestChatId
     }
 
-    if (isFirstMessage) {
+    if (messages.length === 0) {
       try {
         const newChat = await createNewChat(
           userId,
           input,
           selectedModel,
           isAuthenticated,
-          systemPrompt
+          selectedAgentId ? undefined : systemPrompt, // if agentId is set, systemPrompt is not used
+          selectedAgentId || undefined
         )
-        if (!newChat) return null
 
+        if (!newChat) return null
         if (isAuthenticated) {
           window.history.pushState(null, "", `/c/${newChat.id}`)
         } else {
@@ -264,7 +300,7 @@ export default function Chat() {
   const submit = async () => {
     setIsSubmitting(true)
 
-    const uid = await getOrCreateGuestUserId()
+    const uid = await getOrCreateGuestUserId(user)
     if (!uid) return
 
     const optimisticId = `optimistic-${Date.now().toString()}`
@@ -331,6 +367,7 @@ export default function Chat() {
         model: selectedModel,
         isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+        agentId: selectedAgentId || undefined,
       },
       experimental_attachments: attachments || undefined,
     }
@@ -389,7 +426,7 @@ export default function Chat() {
 
       setMessages((prev) => [...prev, optimisticMessage])
 
-      const uid = await getOrCreateGuestUserId()
+      const uid = await getOrCreateGuestUserId(user)
 
       if (!uid) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
@@ -440,7 +477,7 @@ export default function Chat() {
   }, [])
 
   const handleReload = async () => {
-    const uid = await getOrCreateGuestUserId()
+    const uid = await getOrCreateGuestUserId(user)
     if (!uid) {
       return
     }
@@ -459,13 +496,7 @@ export default function Chat() {
   }
 
   // not user chatId and no messages
-  if (
-    hydrated &&
-    chatId &&
-    !isChatsLoading &&
-    !currentChat &&
-    messages.length === 0
-  ) {
+  if (hydrated && chatId && !isChatsLoading && !currentChat) {
     return redirect("/")
   }
 
@@ -536,6 +567,8 @@ export default function Chat() {
           systemPrompt={systemPrompt}
           stop={stop}
           status={status}
+          setSelectedAgentId={setSelectedAgentId}
+          selectedAgentId={selectedAgentId}
         />
       </motion.div>
       <FeedbackWidget authUserId={user?.id} />

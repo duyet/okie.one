@@ -422,3 +422,106 @@ export const SUGGESTIONS = [
 export const SYSTEM_PROMPT_DEFAULT = `You are Zola, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don’t try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.`
 
 export const MESSAGE_MAX_LENGTH = 4000
+
+export const ZOLA_AGENT_SLUGS = [
+  "tweet-vibe-checker",
+  "clear-ux-copywriter",
+  "0-to-1-advisor",
+  "pull-check",
+  "blog-draft",
+  "inbox-fix",
+  "name-vibe-check",
+  "tiny-essay",
+  "solene",
+  "eloi",
+]
+
+export const ZOLA_COMING_SOON_AGENTS = [
+  {
+    name: "GitHub Agent",
+    slug: "github-agent",
+    description:
+      "Summarizes PRs, reviews diffs, and writes release notes using the GitHub API.",
+    avatar_url: "/GitHub_Invertocat_Dark.png",
+    system_prompt: "",
+    model_preference: "gpt-4o-mini",
+    is_public: false,
+    remixable: false,
+    tools_enabled: true,
+    example_inputs: [
+      "Summarize this PR: [paste PR link]",
+      "Generate release notes from these commits",
+    ],
+    tags: ["dev", "github", "tools"],
+    category: "dev",
+    id: "github-agent",
+    creator_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    name: "Linear Agent",
+    slug: "linear-agent",
+    description: "Create, search, and prioritize issues using the Linear API.",
+    system_prompt: "",
+    model_preference: "gpt-4o-mini",
+    avatar_url: "/GitHub_Invertocat_Dark.png",
+    is_public: false,
+    remixable: false,
+    tools_enabled: true,
+    example_inputs: [
+      "Create a bug in project X: login form fails on mobile",
+      "List urgent issues in roadmap",
+    ],
+    tags: ["product", "tools", "linear"],
+    category: "b2b",
+    id: "linear-agent",
+    creator_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    name: "Changelog Writer",
+    slug: "changelog-writer",
+    description:
+      "Turns PRs or issue lists into structured changelogs and release notes.",
+    system_prompt: "",
+    model_preference: "gpt-4o-mini",
+    avatar_url: "/GitHub_Invertocat_Dark.png",
+    is_public: false,
+    remixable: false,
+    tools_enabled: true,
+    example_inputs: [
+      "Generate a changelog from these PR titles",
+      "Write release notes for version 2.3",
+    ],
+    tags: ["dev", "pm", "changelog"],
+    category: "dev",
+    id: "changelog-writer",
+    creator_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    name: "Growth Analyst",
+    slug: "growth-analyst",
+    description:
+      "Answers product and growth questions by analyzing metrics and user behavior.",
+    system_prompt: "",
+    model_preference: "gpt-4o-mini",
+    avatar_url: "/GitHub_Invertocat_Dark.png",
+    is_public: false,
+    remixable: false,
+    tools_enabled: true,
+    example_inputs: [
+      "What changed after the onboarding redesign?",
+      "How are weekly active users trending?",
+    ],
+    tags: ["analytics", "product", "b2b"],
+    category: "analytics",
+    id: "growth-analyst",
+    creator_id: null,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+]
