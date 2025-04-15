@@ -1,0 +1,166 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    tags: ['v*']
+  pull_request:
+    branches: [main, develop]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NEXT_PUBLIC_VERCEL_URL: ${{ vars.NEXT_PUBLIC_VERCEL_URL }}
+
+jobs:
+  validate:
+    name: Lint and Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint
+        run: npm run lint
+      
+      - name: Run TypeScript checks
+        run: npm run type-check
+      
+      - name: Run Tests
+        run: npm test
+
+  build:
+    name: Build Application
+    needs: validate
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.build-cache.outputs.key }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate build cache key
+        id: build-cache
+        run: echo "key=build-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', 'package-lock.json') }}" >> $GITHUB_OUTPUT
+      
+      - name: Check build cache
+        id: check-build-cache
+        uses: actions/cache@v3
+        with:
+          path: .next
+          key: ${{ steps.build-cache.outputs.key }}
+      
+      - name: Build application
+        if: steps.check-build-cache.outputs.cache-hit != 'true'
+        run: npm run build
+      
+      - name: Cache build output
+        if: steps.check-build-cache.outputs.cache-hit != 'true'
+        uses: actions/cache@v3
+        with:
+          path: .next
+          key: ${{ steps.build-cache.outputs.key }}
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-output
+          path: |
+            .next
+            public
+            package.json
+            next.config.ts
+            postcss.config.mjs
+            tailwind.config.js
+
+  docker:
+    name: Build and Push Docker Image
+    needs: [validate, build]
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-output
+          path: .
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      
+      - name: Login to Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=sha,format=short
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_VERCEL_URL=${{ env.NEXT_PUBLIC_VERCEL_URL }}
+
+  # deploy:
+  #   name: Deploy Application
+  #   needs: docker
+  #   if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
+  #   runs-on: ubuntu-latest
+  #   environment:
+  #     name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+  #   steps:
+  #     - name: Deploy to Environment
+  #       run: |
+  #         echo "Deploying to ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
+  #         # Add your deployment commands here
+  #         # Example for a docker-compose deployment:
+  #         # ssh user@server "cd /path/to/app && docker-compose pull && docker-compose up -d"
+  #       env:
+  #         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+  #         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+  #         SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
+  #         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  #         MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
+  #         CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
