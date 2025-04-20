@@ -13,6 +13,7 @@ type MessageProps = {
   onEdit: (id: string, newText: string) => void
   onReload: () => void
   hasScrollAnchor?: boolean
+  parts?: MessageType["parts"]
 }
 
 export function Message({
@@ -25,6 +26,7 @@ export function Message({
   onEdit,
   onReload,
   hasScrollAnchor,
+  parts,
 }: MessageProps) {
   const [copied, setCopied] = useState(false)
 
@@ -59,6 +61,7 @@ export function Message({
         onReload={onReload}
         isLast={isLast}
         hasScrollAnchor={hasScrollAnchor}
+        parts={parts}
       />
     )
   }

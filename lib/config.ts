@@ -26,6 +26,7 @@ export const NON_AUTH_DAILY_MESSAGE_LIMIT = 5
 export const AUTH_DAILY_MESSAGE_LIMIT = 100
 export const REMAINING_QUERY_ALERT_THRESHOLD = 2
 export const DAILY_FILE_UPLOAD_LIMIT = 10
+export const DAILY_SPECIAL_AGENT_LIMIT = 2
 
 export type Model = {
   id: string
@@ -423,7 +424,7 @@ export const SYSTEM_PROMPT_DEFAULT = `You are Zola, a thoughtful and clear assis
 
 export const MESSAGE_MAX_LENGTH = 4000
 
-export const ZOLA_AGENT_SLUGS = [
+export const ZOLA_AGENTS_SLUGS = [
   "tweet-vibe-checker",
   "clear-ux-copywriter",
   "0-to-1-advisor",
@@ -435,6 +436,9 @@ export const ZOLA_AGENT_SLUGS = [
   "solene",
   "eloi",
 ]
+
+export const ZOLA_SPECIAL_AGENTS_SLUGS = ["zola-research"]
+export const ZOLA_SPECIAL_AGENTS_IDS = ["321c68a2-6c1a-4bd4-948c-9d20e4aeb10c"]
 
 export const ZOLA_COMING_SOON_AGENTS = [
   {

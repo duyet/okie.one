@@ -13,19 +13,21 @@ import {
   MODEL_DEFAULT,
   REMAINING_QUERY_ALERT_THRESHOLD,
   SYSTEM_PROMPT_DEFAULT,
+  ZOLA_SPECIAL_AGENTS_IDS,
 } from "@/lib/config"
+import { fetchClient } from "@/lib/fetch"
 import {
   Attachment,
   checkFileUploadLimit,
   processFiles,
 } from "@/lib/file-handling"
-import { API_ROUTE_CHAT } from "@/lib/routes"
+import { API_ROUTE_CHAT, API_ROUTE_RESEARCH } from "@/lib/routes"
 import { cn } from "@/lib/utils"
-import { useChat } from "@ai-sdk/react"
+import { Message, useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
 import { redirect, useRouter, useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 const FeedbackWidget = dynamic(
   () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
@@ -63,6 +65,17 @@ export function Chat() {
   const [hydrated, setHydrated] = useState(false)
   const searchParams = useSearchParams()
   const router = useRouter()
+  const hasSentInitialPromptRef = useRef(false)
+  const hasSentFirstMessageRef = useRef(false)
+  // @todo: will move to agent layer
+  const [researchStatus, setResearchStatus] = useState<"idle" | "loading">(
+    "idle"
+  )
+
+  // TODO: Remove this once we have a proper agent layer
+  const isZolaResearch = ZOLA_SPECIAL_AGENTS_IDS.includes(
+    currentChat?.agent_id || ""
+  )
 
   const isAuthenticated = !!user?.id
   const {
@@ -103,6 +116,7 @@ export function Chat() {
     setHydrated(true)
   }, [])
 
+  // handle errors
   useEffect(() => {
     if (error) {
       let errorMsg = "Something went wrong."
@@ -122,10 +136,68 @@ export function Chat() {
   useEffect(() => {
     const prompt = searchParams.get("prompt")
 
-    if (!prompt || !chatId || messages.length > 0) return
+    if (
+      !prompt ||
+      !chatId ||
+      messages.length > 0 ||
+      hasSentInitialPromptRef.current
+    ) {
+      return
+    }
 
+    hasSentInitialPromptRef.current = true
     sendInitialPrompt(prompt)
-  }, [chatId, searchParams])
+  }, [chatId, messages.length, searchParams])
+
+  const handleZolaResearch = async (
+    prompt: string,
+    uid: string,
+    chatId: string
+  ) => {
+    try {
+      setResearchStatus("loading")
+
+      const res = await fetchClient(API_ROUTE_RESEARCH, {
+        method: "POST",
+        body: JSON.stringify({
+          prompt,
+          chatId,
+          userId: uid,
+          isAuthenticated,
+        }),
+        headers: { "Content-Type": "application/json" },
+      })
+
+      if (!res.ok) {
+        const errorText = (await res.json()) as { error: string }
+        throw new Error(errorText.error || "Failed to fetch research response.")
+      }
+
+      const { markdown, parts } = await res.json()
+
+      const researchMessage = {
+        role: "assistant",
+        content: markdown,
+        parts,
+        id: `research-${Date.now()}`,
+      } as Message
+
+      setMessages((prev) => [...prev, researchMessage])
+
+      await cacheAndAddMessage(researchMessage)
+
+      setResearchStatus("idle")
+    } catch (err: any) {
+      console.error("Zola Research Error:", err)
+      toast({
+        title: "Zola Research failed",
+        description: err.message || "Something went wrong.",
+        status: "error",
+      })
+
+      setResearchStatus("idle")
+    }
+  }
 
   const sendInitialPrompt = async (prompt: string) => {
     setIsSubmitting(true)
@@ -147,6 +219,12 @@ export function Chat() {
         isAuthenticated,
         systemPrompt,
       },
+    }
+
+    if (isZolaResearch && messages.length === 0 && chatId) {
+      await handleZolaResearch(prompt, uid, chatId)
+      setIsSubmitting(false)
+      return
     }
 
     try {
@@ -186,6 +264,11 @@ export function Chat() {
     if (!isAuthenticated) {
       const storedGuestChatId = localStorage.getItem("guestChatId")
       if (storedGuestChatId) return storedGuestChatId
+    }
+
+    // @todo: remove this once we have a proper agent layer
+    if (selectedAgentId && messages.length === 0) {
+      return chatId
     }
 
     if (messages.length === 0) {
@@ -372,11 +455,22 @@ export function Chat() {
       experimental_attachments: attachments || undefined,
     }
 
+    // START OF RESEARCH AGENT
+    // @todo: This is temporary solution
+    if (isZolaResearch && messages.length === 0) {
+      await handleZolaResearch(input, uid, currentChatId)
+      setIsSubmitting(false)
+      return
+    }
+    // END OF RESEARCH AGENT
+
     try {
       handleSubmit(undefined, options)
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       cacheAndAddMessage(optimisticMessage)
+
+      hasSentFirstMessageRef.current = true
     } catch (error) {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
@@ -535,6 +629,7 @@ export function Chat() {
             onDelete={handleDelete}
             onEdit={handleEdit}
             onReload={handleReload}
+            researchStatus={researchStatus}
           />
         )}
       </AnimatePresence>
@@ -569,6 +664,11 @@ export function Chat() {
           status={status}
           setSelectedAgentId={setSelectedAgentId}
           selectedAgentId={selectedAgentId}
+          placeholder={
+            isZolaResearch && messages.length === 0
+              ? "Describe what you want to research in detail, e.g. a specific company, trend, or question. Add context like audience, angle, goals, or examples to help me create a focused and useful report."
+              : "Ask Zola anything"
+          }
         />
       </motion.div>
       <FeedbackWidget authUserId={user?.id} />
