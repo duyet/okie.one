@@ -9,13 +9,13 @@ import { useChatSession } from "@/app/providers/chat-session-provider"
 import { useUser } from "@/app/providers/user-provider"
 import type { Agent } from "@/app/types/agent"
 import { Button } from "@/components/ui/button"
+import { useAgent } from "@/lib/agent-store/hooks"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { APP_NAME } from "@/lib/config"
-import { createClient } from "@/lib/supabase/client"
 import { Info } from "@phosphor-icons/react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import { AgentLink } from "./agent-link"
 import { DialogPublish } from "./dialog-publish"
 import { HeaderAgent } from "./header-agent"
@@ -26,40 +26,9 @@ export type AgentHeader = Pick<
 >
 
 export function Header() {
-  const pathname = usePathname()
   const isMobile = useBreakpoint(768)
   const { user } = useUser()
-  const { getChatById } = useChats()
-  const { chatId } = useChatSession()
-  const currentChat = chatId ? getChatById(chatId) : null
-  const [agent, setAgent] = useState<AgentHeader | null>(null)
-
-  useEffect(() => {
-    // reset agent when pathname changes
-    setAgent(null)
-  }, [pathname])
-
-  useEffect(() => {
-    if (!currentChat?.agent_id) return
-
-    const supabase = createClient()
-
-    const fetchAgent = async () => {
-      const { data, error } = await supabase
-        .from("agents")
-        .select("name, description, avatar_url, slug")
-        .eq("id", currentChat?.agent_id || "")
-        .single()
-
-      if (error || !data) {
-        console.error("Error fetching agent:", error)
-        return
-      }
-
-      setAgent(data)
-    }
-    fetchAgent()
-  }, [currentChat?.agent_id, pathname])
+  const { agent } = useAgent()
 
   const isLoggedIn = !!user
 
@@ -79,6 +48,7 @@ export function Header() {
             avatarUrl={agent?.avatar_url || ""}
             name={agent?.name || "Tiny Essay"}
             info={agent?.description || ""}
+            key={agent?.slug}
           />
         )}
         {!isLoggedIn ? (
