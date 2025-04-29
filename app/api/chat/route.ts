@@ -1,3 +1,5 @@
+import { loadAgent } from "@/lib/agents/load-agent"
+import { checkSpecialAgentUsage, incrementSpecialAgentUsage } from "@/lib/api"
 import { MODELS_OPTIONS, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { sanitizeUserInput } from "@/lib/sanitize"
 import { validateUserIdentity } from "@/lib/server/api"
@@ -5,6 +7,7 @@ import { checkUsageByModel, incrementUsageByModel } from "@/lib/usage"
 import { Attachment } from "@ai-sdk/ui-utils"
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import { LanguageModelV1, Message as MessageAISDK, streamText } from "ai"
+import { saveFinalAssistantMessage } from "./db"
 
 export const maxDuration = 60
 
@@ -59,20 +62,10 @@ export async function POST(req: Request) {
       }
     }
 
-    let effectiveSystemPrompt = systemPrompt || SYSTEM_PROMPT_DEFAULT
+    let agentConfig = null
 
     if (agentId) {
-      const { data: agent, error } = await supabase
-        .from("agents")
-        .select("system_prompt")
-        .eq("id", agentId)
-        .single()
-
-      if (error || !agent) {
-        console.warn("Failed to fetch agent prompt, using fallback.")
-      } else {
-        effectiveSystemPrompt = agent.system_prompt || effectiveSystemPrompt
-      }
+      agentConfig = await loadAgent(agentId)
     }
 
     const modelConfig = MODELS_OPTIONS.find((m) => m.id === model)
@@ -90,49 +83,28 @@ export async function POST(req: Request) {
       modelInstance = modelConfig.api_sdk
     }
 
+    let effectiveSystemPrompt =
+      agentConfig?.systemPrompt || systemPrompt || SYSTEM_PROMPT_DEFAULT
+    let effectiveTools = agentConfig?.tools || undefined
+    let effectiveMaxSteps = agentConfig?.maxSteps || 1
+
+    if (effectiveTools && Object.keys(effectiveTools).length > 0) {
+      await checkSpecialAgentUsage(supabase, userId)
+      await incrementSpecialAgentUsage(supabase, userId)
+    }
+
     const result = streamText({
       model: modelInstance as LanguageModelV1,
       system: effectiveSystemPrompt,
       messages,
+      tools: effectiveTools,
+      maxSteps: effectiveMaxSteps,
       onError: (err) => {
         console.error("🛑 streamText error:", err)
       },
-      // When the response finishes, insert the assistant messages to supabase
       async onFinish({ response }) {
         try {
-          for (const msg of response.messages) {
-            console.log("Response message role:", msg.role)
-            if (msg.content) {
-              let plainText = msg.content
-              try {
-                const parsed = msg.content
-                if (Array.isArray(parsed)) {
-                  // Join all parts of type "text"
-                  plainText = parsed
-                    .filter((part) => part.type === "text")
-                    .map((part) => part.text)
-                    .join(" ")
-                }
-              } catch (err) {
-                console.warn(
-                  "Could not parse message content as JSON, using raw content"
-                )
-              }
-
-              const { error: assistantError } = await supabase
-                .from("messages")
-                .insert({
-                  chat_id: chatId,
-                  role: "assistant",
-                  content: plainText.toString(),
-                })
-              if (assistantError) {
-                console.error("Error saving assistant message:", assistantError)
-              } else {
-                console.log("Assistant message saved successfully.")
-              }
-            }
-          }
+          await saveFinalAssistantMessage(supabase, chatId, response.messages)
         } catch (err) {
           console.error(
             "Error in onFinish while saving assistant messages:",

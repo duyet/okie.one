@@ -1,7 +1,7 @@
 "use client"
 
 import { useChatSession } from "@/app/providers/chat-session-provider"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { usePathname, useSearchParams } from "next/navigation"
 import {
   createContext,
   useCallback,

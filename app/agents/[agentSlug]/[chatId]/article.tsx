@@ -1,3 +1,4 @@
+import { getSources } from "@/app/components/chat/get-sources"
 import { SourcesList } from "@/app/components/chat/sources-list"
 import type { Tables } from "@/app/types/database.types"
 import { Message, MessageContent } from "@/components/prompt-kit/message"
@@ -12,23 +13,20 @@ type MessageType = Tables<"messages">
 
 type ArticleProps = {
   date: string
-  category: string
   title: string
   subtitle: string
-  cta: {
-    text: string
-    href: string
-  }
   messages: MessageType[]
+  agentSlug: string
+  agentName: string
 }
 
 export default function Article({
   date,
-  category,
   title,
   subtitle,
-  cta,
   messages,
+  agentSlug,
+  agentName,
 }: ArticleProps) {
   return (
     <>
@@ -47,7 +45,7 @@ export default function Article({
           </time>
           <span className="mx-2">·</span>
           <span className="text-muted-foreground hover:text-foreground transition-colors">
-            <Link href={`/agents/${category}`}>{category}</Link>
+            <Link href={`/agents/${agentSlug}`}>{agentName}</Link>
           </span>
         </div>
 
@@ -73,9 +71,7 @@ export default function Article({
         <div className="mt-20 w-full">
           {messages.map((message) => {
             const parts = message?.parts as MessageAISDK["parts"]
-            const sources = parts
-              ?.filter((part) => part?.type === "source")
-              .map((part) => part?.source)
+            const sources = getSources(parts)
 
             return (
               <div key={message.id}>
@@ -96,10 +92,12 @@ export default function Article({
                       "prose-h1:scroll-m-20 prose-h1:text-2xl prose-h1:font-semibold prose-h2:mt-8 prose-h2:scroll-m-20 prose-h2:text-xl prose-h2:mb-3 prose-h2:font-medium prose-h3:scroll-m-20 prose-h3:text-base prose-h3:font-medium prose-h4:scroll-m-20 prose-h5:scroll-m-20 prose-h6:scroll-m-20 prose-strong:font-medium prose-table:block prose-table:overflow-y-auto"
                     )}
                   >
-                    {message.content}
+                    {message.content!}
                   </MessageContent>
                 </Message>
-                {sources && <SourcesList sources={sources} />}
+                {sources && sources.length > 0 && (
+                  <SourcesList sources={sources} />
+                )}
               </div>
             )
           })}

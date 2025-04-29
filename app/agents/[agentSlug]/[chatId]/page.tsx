@@ -89,13 +89,10 @@ export default async function AgentChat({
     <Article
       messages={messagesData}
       date={chatData.created_at || ""}
-      category={agentData.name}
+      agentSlug={agentSlug}
+      agentName={agentData.name}
       title={chatData.title || ""}
       subtitle={`A conversation with ${agentData.name}, an AI agent built in Zola`}
-      cta={{
-        text: "Read more",
-        href: "/agents",
-      }}
     />
   )
 }

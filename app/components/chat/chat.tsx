@@ -68,7 +68,7 @@ export function Chat() {
   const [hydrated, setHydrated] = useState(false)
   const searchParams = useSearchParams()
   const hasSentFirstMessageRef = useRef(false)
-  const { callAgent, isTooling, statusCall, agent } = useAgent()
+  const { isTooling, agent } = useAgent()
 
   const isAuthenticated = !!user?.id
   const {
@@ -85,11 +85,6 @@ export function Chat() {
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages,
-    // save assistant to messages data layer
-    onFinish: async (message) => {
-      if (!chatId) return
-      await cacheAndAddMessage(message)
-    },
   })
 
   // Use the custom hook for chat utilities
@@ -173,34 +168,6 @@ export function Chat() {
     }
   }, [searchParams])
 
-  const handleAgent = async (prompt: string, uid: string, chatId: string) => {
-    try {
-      const { markdown, parts } = await callAgent({
-        prompt,
-        chatId,
-        userId: uid,
-      })
-
-      const agentMessage = {
-        role: "assistant",
-        content: markdown,
-        parts,
-        id: `agent-${Date.now()}`,
-      } as Message
-
-      setMessages((prev) => [...prev, agentMessage])
-
-      await cacheAndAddMessage(agentMessage)
-    } catch (err: any) {
-      console.error("Zola Agent Error:", err)
-      toast({
-        title: "Zola Agent failed",
-        description: err.message || "Something went wrong.",
-        status: "error",
-      })
-    }
-  }
-
   const submit = async () => {
     setIsSubmitting(true)
 
@@ -274,15 +241,6 @@ export function Chat() {
         ...(agent?.id && { agentId: agent.id }),
       },
       experimental_attachments: attachments || undefined,
-    }
-
-    // if its an agent with tooling and first message
-    // we need to handle the agent call differently
-    if (isTooling && messages.length === 0) {
-      // appendReasoning({ role: "user", content: input })
-      await handleAgent(input, uid, currentChatId)
-      setIsSubmitting(false)
-      return
     }
 
     try {
@@ -419,7 +377,6 @@ export function Chat() {
             onDelete={handleDelete}
             onEdit={handleEdit}
             onReload={handleReload}
-            agentStatus={statusCall}
             reasoning={
               reasoningMessages?.find((m) => m.role === "assistant")?.content
             }
@@ -455,11 +412,7 @@ export function Chat() {
           systemPrompt={systemPrompt}
           stop={stop}
           status={status}
-          placeholder={
-            isTooling && messages.length === 0
-              ? "Describe what you want to research in detail, e.g. a specific company, trend, or question. Add context like audience, angle, goals, or examples to help me create a focused and useful report."
-              : "Ask Zola anything"
-          }
+          placeholder={"Ask Zola anything"}
         />
       </motion.div>
       <FeedbackWidget authUserId={user?.id} />

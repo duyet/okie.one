@@ -7,6 +7,7 @@ import {
 import { cn } from "@/lib/utils"
 import type { Message as MessageAISDK } from "@ai-sdk/react"
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
+import { getSources } from "./get-sources"
 import { SourcesList } from "./sources-list"
 
 type MessageAssistantProps = {
@@ -28,9 +29,7 @@ export function MessageAssistant({
   onReload,
   parts,
 }: MessageAssistantProps) {
-  const sources = parts
-    ?.filter((part) => part.type === "source")
-    .map((part) => part.source)
+  const sources = getSources(parts)
 
   return (
     <Message
