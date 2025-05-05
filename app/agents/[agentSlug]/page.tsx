@@ -18,8 +18,7 @@ export default async function AgentIdPage({
     .single()
 
   if (error) {
-    console.error("Error fetching agent", error)
-    return <div>Error: {error.message}</div>
+    throw new Error(error.message)
   }
 
   const { data: agents, error: agentsError } = await supabase
@@ -29,7 +28,7 @@ export default async function AgentIdPage({
     .limit(4)
 
   if (agentsError) {
-    console.error("Error fetching agents", agentsError)
+    throw new Error(agentsError.message)
   }
 
   return (
@@ -42,7 +41,7 @@ export default async function AgentIdPage({
             name={agent.name}
             description={agent.description}
             example_inputs={agent.example_inputs || []}
-            creator_id={agent.creator_id || "Zola"}
+            creator_id={agent.creator_id}
             avatar_url={agent.avatar_url}
             randomAgents={agents || []}
             isFullPage

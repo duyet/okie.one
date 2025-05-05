@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/app/providers/user-provider"
 import { AgentSummary } from "@/app/types/agent"
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -9,8 +8,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useChats } from "@/lib/chat-store/chats/provider"
-import { MODEL_DEFAULT } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import { ChatCircle, Check, CopySimple, User } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
@@ -22,7 +19,7 @@ type AgentDetailProps = {
   name: string
   description: string
   example_inputs: string[]
-  creator_id: string
+  creator_id?: string | null
   avatar_url?: string | null
   onAgentClick?: (agentId: string) => void
   randomAgents: AgentSummary[]
@@ -88,10 +85,12 @@ export function AgentDetail({
         </div>
         <div>
           <h1 className="text-2xl font-medium">{name}</h1>
-          <div className="text-muted-foreground mt-1 flex items-center text-sm">
-            <User className="mr-1 size-3" />
-            <span>Created by {creator_id}</span>
-          </div>
+          {creator_id && (
+            <div className="text-muted-foreground mt-1 flex items-center text-sm">
+              <User className="mr-1 size-3" />
+              <span>Created by {creator_id}</span>
+            </div>
+          )}
         </div>
       </div>
 

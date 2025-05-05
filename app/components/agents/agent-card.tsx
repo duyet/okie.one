@@ -9,7 +9,7 @@ type AgentCardProps = {
   name: string
   description: string
   avatar_url?: string | null
-  creator_id: string
+  creator_id?: string
   className?: string
   isAvailable: boolean
   onClick?: () => void
@@ -56,11 +56,15 @@ export function AgentCard({
             {name}
           </h3>
 
-          <p className="text-foreground mt-1 line-clamp-3 text-sm md:line-clamp-2">
+          <p className="text-foreground line-clamp-3 text-sm md:line-clamp-2">
             {description}
           </p>
 
-          <p className="text-muted-foreground mt-2 text-xs">By {creator_id}</p>
+          {creator_id && (
+            <p className="text-muted-foreground mt-2 text-xs">
+              By {creator_id}
+            </p>
+          )}
         </div>
       </div>
     </button>

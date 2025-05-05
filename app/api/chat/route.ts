@@ -1,6 +1,7 @@
 import { loadAgent } from "@/lib/agents/load-agent"
 import { checkSpecialAgentUsage, incrementSpecialAgentUsage } from "@/lib/api"
 import { MODELS_OPTIONS, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import { loadMCPToolsFromURL } from "@/lib/mcp/load-mcp-from-url"
 import { sanitizeUserInput } from "@/lib/sanitize"
 import { validateUserIdentity } from "@/lib/server/api"
 import { checkUsageByModel, incrementUsageByModel } from "@/lib/usage"
@@ -85,10 +86,15 @@ export async function POST(req: Request) {
 
     let effectiveSystemPrompt =
       agentConfig?.systemPrompt || systemPrompt || SYSTEM_PROMPT_DEFAULT
-    let effectiveTools = agentConfig?.tools || undefined
-    let effectiveMaxSteps = agentConfig?.maxSteps || 1
 
-    if (effectiveTools && Object.keys(effectiveTools).length > 0) {
+    let toolsToUse = undefined
+    let effectiveMaxSteps = agentConfig?.maxSteps || 3
+
+    if (agentConfig?.mcpConfig) {
+      const { tools } = await loadMCPToolsFromURL(agentConfig.mcpConfig.server)
+      toolsToUse = tools
+    } else if (agentConfig?.tools) {
+      toolsToUse = agentConfig.tools
       await checkSpecialAgentUsage(supabase, userId)
       await incrementSpecialAgentUsage(supabase, userId)
     }
@@ -97,7 +103,7 @@ export async function POST(req: Request) {
       model: modelInstance as LanguageModelV1,
       system: effectiveSystemPrompt,
       messages,
-      tools: effectiveTools,
+      tools: toolsToUse,
       maxSteps: effectiveMaxSteps,
       onError: (err) => {
         console.error("🛑 streamText error:", err)
