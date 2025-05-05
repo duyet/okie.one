@@ -12,7 +12,6 @@ INSERT INTO public.agents (
   example_inputs,
   tags,
   category,
-  creator_id,
   created_at,
   updated_at
 ) VALUES
@@ -29,7 +28,6 @@ INSERT INTO public.agents (
     ARRAY['Is this tweet too aggressive?', 'How can I make this tweet more engaging?', 'Check the tone of this thread'],
     ARRAY['social', 'writing', 'analysis'],
     'social',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -46,7 +44,6 @@ INSERT INTO public.agents (
     ARRAY['Write error message for failed payment', 'Improve this onboarding flow copy', 'Make this button text clearer'],
     ARRAY['ux', 'writing', 'product'],
     'product',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -63,7 +60,6 @@ INSERT INTO public.agents (
     ARRAY['Validate my product idea', 'What should I build first?', 'How to find early adopters?'],
     ARRAY['startup', 'product', 'strategy'],
     'business',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -80,7 +76,6 @@ INSERT INTO public.agents (
     ARRAY['Review this PR for security issues', 'Check code style and best practices', 'Suggest performance improvements'],
     ARRAY['dev', 'code', 'review'],
     'dev',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -97,7 +92,6 @@ INSERT INTO public.agents (
     ARRAY['Create an outline for my post', 'Help me write an intro', 'Review my draft for clarity'],
     ARRAY['writing', 'content', 'blog'],
     'content',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -114,7 +108,6 @@ INSERT INTO public.agents (
     ARRAY['Make this email more professional', 'Help me say no politely', 'Draft a follow-up email'],
     ARRAY['writing', 'communication', 'email'],
     'communication',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -131,7 +124,6 @@ INSERT INTO public.agents (
     ARRAY['Suggest names for my app', 'Is this name too similar to competitors?', 'Check if this name works internationally'],
     ARRAY['branding', 'product', 'naming'],
     'branding',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -148,7 +140,6 @@ INSERT INTO public.agents (
     ARRAY['Write a tiny essay about creativity', 'Help me structure my thoughts', 'Make this explanation clearer'],
     ARRAY['writing', 'essay', 'content'],
     'content',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -165,7 +156,6 @@ INSERT INTO public.agents (
     ARRAY['Let''s talk about personal growth', 'Help me reflect on this situation', 'Explore this idea with me'],
     ARRAY['companion', 'reflection', 'conversation'],
     'personal',
-    'zola',
     NOW(),
     NOW()
   ),
@@ -182,14 +172,13 @@ INSERT INTO public.agents (
     ARRAY['Brainstorm creative solutions', 'Help me think differently about this', 'Explore this concept further'],
     ARRAY['creativity', 'ideation', 'innovation'],
     'creative',
-    'zola',
     NOW(),
     NOW()
   );
 
 -- Insert special agents
 INSERT INTO public.agents (
-  name, slug, description, avatar_url, system_prompt, model_preference, is_public, remixable, tools_enabled, example_inputs, tags, category, creator_id, created_at, updated_at, tools, max_steps, mcp_config
+  name, slug, description, avatar_url, system_prompt, model_preference, is_public, remixable, tools_enabled, example_inputs, tags, category, created_at, updated_at, tools, max_steps, mcp_config
 ) VALUES (
   'Research Agent',
   'research',
@@ -203,7 +192,6 @@ INSERT INTO public.agents (
   ARRAY['What are the latest developments in AI?', 'Find studies on climate change impacts.', 'Summarize the history of the internet.'],
   ARRAY['research', 'web', 'information'],
   'research', -- Assuming a 'research' category
-  'zola', -- Assuming 'zola' as creator
   NOW(),
   NOW(),
   ARRAY['web_search'], -- Assuming web_search tool
@@ -213,7 +201,7 @@ INSERT INTO public.agents (
 
 -- Insert GitHub agents
 INSERT INTO public.agents (
-  name, slug, description, avatar_url, system_prompt, model_preference, is_public, remixable, tools_enabled, example_inputs, tags, category, creator_id, created_at, updated_at, tools, max_steps, mcp_config
+  name, slug, description, avatar_url, system_prompt, model_preference, is_public, remixable, tools_enabled, example_inputs, tags, category, created_at, updated_at, tools, max_steps, mcp_config
 ) VALUES
   (
     'Prompt Kit Repo Agent',
@@ -228,7 +216,6 @@ INSERT INTO public.agents (
     ARRAY['How do I use the main function?', 'What are the dependencies?', 'Explain the purpose of this file.'],
     ARRAY['github', 'repository', 'code', 'prompt-kit'],
     'dev', -- Assuming 'dev' category
-    'zola', -- Assuming 'zola' as creator
     NOW(),
     NOW(),
     NULL, -- Defaulting tools
@@ -248,7 +235,6 @@ INSERT INTO public.agents (
     ARRAY['How is the chat state managed?', 'Where is the Supabase client initialized?', 'Explain the agent creation flow.'],
     ARRAY['github', 'repository', 'code', 'zola-chat'],
     'dev', -- Assuming 'dev' category
-    'zola', -- Assuming 'zola' as creator
     NOW(),
     NOW(),
     NULL, -- Defaulting tools
@@ -268,7 +254,6 @@ INSERT INTO public.agents (
     ARRAY['How do I stream responses?', 'What models are supported?', 'Explain the use of hooks.'],
     ARRAY['github', 'repository', 'code', 'vercel-ai', 'ai-sdk'],
     'dev', -- Assuming 'dev' category
-    'zola', -- Assuming 'zola' as creator
     NOW(),
     NOW(),
     NULL, -- Defaulting tools
@@ -288,7 +273,6 @@ INSERT INTO public.agents (
     ARRAY['How do I customize a component?', 'What is the difference between the Button variants?', 'Explain the installation process.'],
     ARRAY['github', 'repository', 'code', 'shadcn-ui', 'react', 'ui'],
     'dev', -- Assuming 'dev' category
-    'zola', -- Assuming 'zola' as creator
     NOW(),
     NOW(),
     NULL, -- Defaulting tools

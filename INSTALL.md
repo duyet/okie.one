@@ -207,17 +207,15 @@ CREATE TABLE feedback (
 
 ### Seeding Initial Data
 
-After creating the tables, you need to seed the database with initial data, particularly for the `agents` table.
+After creating the tables, you can seed the database with the default agents provided by Zola.
 
-1.  **Prerequisite:** Ensure you have manually created a user in the `auth.users` table (e.g., through Supabase UI or your application's signup) and that a corresponding entry exists in the `public.users` table with the `id` set to `zola`. The seed script currently assumes this user exists to set the `creator_id` for the initial agents.
-2.  **Run the Seed Script:**
-    - Navigate to the SQL Editor in your Supabase project dashboard.
-    - Open the `supabase/seed.sql` file from the Zola project codebase.
-    - Copy the entire content of `seed.sql`.
-    - Paste the content into the Supabase SQL Editor.
-    - Click the "Run" button.
+To run the seed script:
 
-This will insert the default agents provided by Zola.
+- Navigate to the SQL Editor in your Supabase project dashboard.
+- Open the `supabase/seed.sql` file from the Zola project codebase.
+- Copy the entire content of `seed.sql`.
+- Paste the content into the Supabase SQL Editor.
+- Click the "Run" button.
 
 ### Storage Setup
 
