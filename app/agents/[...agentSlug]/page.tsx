@@ -38,7 +38,6 @@ export default async function AgentIdPage({
       <LayoutApp>
         <div className="bg-background mx-auto max-w-3xl pt-20">
           <AgentDetail
-            id={agent.id}
             slug={agent.slug}
             name={agent.name}
             description={agent.description}
@@ -47,6 +46,9 @@ export default async function AgentIdPage({
             avatar_url={agent.avatar_url}
             randomAgents={agents || []}
             isFullPage
+            system_prompt={agent.system_prompt}
+            tools={agent.tools || []}
+            mcp_config={agent.mcp_config}
           />
         </div>
       </LayoutApp>

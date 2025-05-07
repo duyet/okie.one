@@ -63,6 +63,7 @@ export function ClientGitHubCategory({
                 isOpen={openAgentId === repo.id}
                 onOpenChange={(open) => setOpenAgentId(open ? repo.id : null)}
                 randomAgents={otherGithubAgents}
+                isCardLight={true}
               />
             ))}
           </div>

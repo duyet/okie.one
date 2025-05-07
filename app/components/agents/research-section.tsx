@@ -4,7 +4,6 @@ import { DialogAgent } from "./dialog-agent"
 
 type ResearchSectionProps = {
   researchAgent: AgentSummary
-  agents: AgentSummary[]
   handleAgentClick: (agentId: string) => void
   openAgentId: string | null
   setOpenAgentId: (agentId: string | null) => void
@@ -12,7 +11,6 @@ type ResearchSectionProps = {
 }
 export function ResearchSection({
   researchAgent,
-  agents,
   handleAgentClick,
   openAgentId,
   setOpenAgentId,
@@ -32,12 +30,14 @@ export function ResearchSection({
         description={researchAgent.description}
         avatar_url={researchAgent.avatar_url}
         example_inputs={researchAgent.example_inputs || []}
-        creator_id={researchAgent.creator_id || "Zola"}
         isAvailable={true}
         onAgentClick={handleAgentClick}
         isOpen={openAgentId === researchAgent.id}
         onOpenChange={(open) => setOpenAgentId(open ? researchAgent.id : null)}
         randomAgents={randomAgents}
+        system_prompt={researchAgent.system_prompt}
+        tools={researchAgent.tools || []}
+        mcp_config={researchAgent.mcp_config}
         trigger={
           <button
             className="group w-full items-end justify-start"

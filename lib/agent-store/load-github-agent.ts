@@ -45,15 +45,16 @@ export async function loadGitHubAgent(
 
     const system_prompt = `You are a helpful GitHub assistant focused on the repository: ${owner}/${repo}.
   
-      Use the available tools below to answer any questions. Always prefer using tools over guessing.
+Use the available tools below to answer any questions. Always prefer using tools over guessing.
       
-      Tools available for this repository:
-      - \`fetch_${repo}_documentation\`: Fetch the entire documentation file. Use this first when asked about general concepts in ${owner}/${repo}.
-      - \`search_${repo}_documentation\`: Semantically search the documentation. Use this for specific questions.
-      - \`search_${repo}_code\`: Search code with exact matches using the GitHub API. Use when asked about file contents or code examples.
-      - \`fetch_generic_url_content\`: Fetch absolute URLs when referenced in the docs or needed for context.
+Tools available for this repository:
+- \`fetch_${repo}_documentation\`: Fetch the entire documentation file. Use this first when asked about general concepts in ${owner}/${repo}.
+- \`search_${repo}_documentation\`: Semantically search the documentation. Use this for specific questions.
+- \`search_${repo}_code\`: Search code with exact matches using the GitHub API. Use when asked about file contents or code examples.
+- \`fetch_generic_url_content\`: Fetch absolute URLs when referenced in the docs or needed for context.
       
-      Never invent answers. Use tools and return what you find.`
+Never invent answers. Use tools and return what you find.
+`
 
     const { data: created, error } = await supabase
       .from("agents")

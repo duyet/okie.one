@@ -104,6 +104,9 @@ export function AgentsPage({ agents }: AgentsPageProps) {
                     setOpenAgentId(open ? agent.id : null)
                   }
                   randomAgents={otherGithubAgents}
+                  tools={agent.tools || []}
+                  mcp_config={agent.mcp_config}
+                  system_prompt={agent.system_prompt}
                 />
               ))}
             </div>
@@ -113,7 +116,6 @@ export function AgentsPage({ agents }: AgentsPageProps) {
         {researchAgent && (
           <ResearchSection
             researchAgent={researchAgent}
-            agents={agents}
             handleAgentClick={handleAgentClick}
             openAgentId={openAgentId}
             setOpenAgentId={setOpenAgentId}
@@ -135,13 +137,15 @@ export function AgentsPage({ agents }: AgentsPageProps) {
                 name={agent.name}
                 description={agent.description}
                 avatar_url={agent.avatar_url}
-                creator_id="Zola"
                 example_inputs={agent.example_inputs || []}
                 isAvailable={true}
                 onAgentClick={handleAgentClick}
                 isOpen={openAgentId === agent.id}
                 onOpenChange={(open) => setOpenAgentId(open ? agent.id : null)}
                 randomAgents={randomAgents}
+                system_prompt={agent.system_prompt}
+                tools={agent.tools || []}
+                mcp_config={agent.mcp_config}
               />
             ))}
           </div>
@@ -160,7 +164,6 @@ export function AgentsPage({ agents }: AgentsPageProps) {
                 description={agent.description}
                 avatar_url={agent?.avatar_url}
                 example_inputs={agent.example_inputs || []}
-                creator_id="Zola"
                 slug={agent.slug}
                 isAvailable={false}
                 className="pointer-events-none opacity-50 select-none"
