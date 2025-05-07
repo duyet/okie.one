@@ -5,6 +5,7 @@ import Grok from "@/components/icons/grok"
 import Mistral from "@/components/icons/mistral"
 import OpenAI from "@/components/icons/openai"
 import OpenRouter from "@/components/icons/openrouter"
+import Xai from "@/components/icons/xai"
 import {
   BookOpenText,
   Brain,
@@ -273,24 +274,70 @@ export const MODELS_PRO = [
       "Anthropic’s most powerful model for highly complex reasoning and generation tasks.",
     icon: Claude,
   },
+  {
+    id: "grok-3",
+    name: "Grok 3",
+    provider: "xai",
+    features: [
+      {
+        id: "file-upload",
+        enabled: false,
+      },
+      {
+        id: "tool-use",
+        enabled: true,
+      },
+    ],
+    creator: "xai",
+    api_sdk: openproviders("grok-3"),
+    description:
+      "Flagship model excelling at enterprise use cases with deep domain knowledge in finance, healthcare, law, and science.",
+    icon: Grok,
+  },
+  {
+    id: "grok-3-mini",
+    name: "Grok 3 Mini",
+    provider: "xai",
+    features: [
+      {
+        id: "file-upload",
+        enabled: false,
+      },
+      {
+        id: "tool-use",
+        enabled: true,
+      },
+      {
+        id: "reasoning",
+        enabled: true,
+      },
+    ],
+    creator: "xai",
+    api_sdk: openproviders("grok-3-mini"),
+    description:
+      "Lightweight model that thinks before responding, fast and smart for logic-based tasks without requiring deep domain knowledge",
+    icon: Grok,
+  },
+  {
+    id: "grok-3-fast",
+    name: "Grok 3 Fast",
+    provider: "xai",
+    features: [
+      {
+        id: "file-upload",
+        enabled: false,
+      },
+      {
+        id: "tool-use",
+        enabled: true,
+      },
+    ],
+    creator: "xai",
+    api_sdk: openproviders("grok-3-fast"),
+    description: "Increased speed at a higher cost per output token.",
+    icon: Grok,
+  },
 ]
-
-// export const MODELS_NOT_AVAILABLE = [
-// {
-//     id: "grok-2",
-//     name: "Grok 2",
-//     provider: "grok",
-//     available: false,
-//     api_sdk: false,
-//     features: [
-//       {
-//         id: "file-upload",
-//         enabled: true,
-//       },
-//     ],
-//     icon: Grok,
-//   },
-// ] as Model[]
 
 export const MODELS_OPTIONS = [...MODELS_FREE, ...MODELS_PRO] as Model[]
 
@@ -336,6 +383,11 @@ export const PROVIDERS = [
     id: "grok",
     name: "Grok",
     icon: Grok,
+  },
+  {
+    id: "xai",
+    name: "XAI",
+    icon: Xai,
   },
 ] as Provider[]
 
