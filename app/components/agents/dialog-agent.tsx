@@ -1,11 +1,8 @@
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { useUser } from "@/app/providers/user-provider"
 import { AgentSummary } from "@/app/types/agent"
 import type { Tables } from "@/app/types/database.types"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
-import { Popover, PopoverTrigger } from "@/components/ui/popover"
-import { PopoverContentAuth } from "../chat-input/popover-content-auth"
 import { AgentCard } from "./agent-card"
 import { AgentDetail } from "./agent-detail"
 
