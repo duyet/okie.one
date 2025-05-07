@@ -16,11 +16,14 @@ type ContentPart = {
     args?: any
     result?: any
   }
+  reasoning?: string
+  details?: any[]
 }
 
 type Message = {
   role: "user" | "assistant" | "system" | "data" | "tool" | "tool-call"
   content: string | null | ContentPart[]
+  reasoning?: string
 }
 
 const DEFAULT_STEP = 0
@@ -52,6 +55,19 @@ export async function saveFinalAssistantMessage(
                 args: part.args,
               },
             })
+          } else if (part.type === "reasoning") {
+            parts.push({
+              type: "reasoning",
+              reasoning: part.text || "",
+              details: [
+                {
+                  type: "text",
+                  text: part.text || "",
+                },
+              ],
+            })
+          } else if (part.type === "step-start") {
+            parts.push(part)
           }
         }
       }
