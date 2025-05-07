@@ -220,7 +220,7 @@ INSERT INTO public.agents (
     NOW(),
     NULL, -- Defaulting tools
     NULL, -- Defaulting max_steps
-    NULL -- Defaulting mcp_config
+    '{"server": "https://gitmcp.io/{repo}", "variables": ["repo"]}'::jsonb -- Adding mcp_config
   ),
   (
     'Zola Repo Agent',
@@ -239,7 +239,7 @@ INSERT INTO public.agents (
     NOW(),
     NULL, -- Defaulting tools
     NULL, -- Defaulting max_steps
-    NULL -- Defaulting mcp_config
+    '{"server": "https://gitmcp.io/{repo}", "variables": ["repo"]}'::jsonb -- Adding mcp_config
   ),
   (
     'Vercel AI SDK Repo Agent',
@@ -258,7 +258,7 @@ INSERT INTO public.agents (
     NOW(),
     NULL, -- Defaulting tools
     NULL, -- Defaulting max_steps
-    NULL -- Defaulting mcp_config
+    '{"server": "https://gitmcp.io/{repo}", "variables": ["repo"]}'::jsonb -- Adding mcp_config
   ),
   (
     'shadcn/ui Repo Agent',
@@ -277,5 +277,5 @@ INSERT INTO public.agents (
     NOW(),
     NULL, -- Defaulting tools
     NULL, -- Defaulting max_steps
-    NULL -- Defaulting mcp_config
+    '{"server": "https://gitmcp.io/{repo}", "variables": ["repo"]}'::jsonb -- Adding mcp_config
   ); 

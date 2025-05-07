@@ -14,7 +14,7 @@ Zola is a free, open-source AI chat app with multi-model support. This guide cov
 
 ## Environment Setup
 
-First, you'll need to set up your environment variables. Create a `.env.local` file in the root of the project with the following variables:
+First, you'll need to set up your environment variables. Create a `.env.local` file in the root of the project with the variables from `.env.example`
 
 ```bash
 # Supabase
@@ -33,6 +33,20 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 
 # CSRF Protection
 CSRF_SECRET=your_csrf_secret_key
+
+
+# Exa
+EXA_API_KEY=your_exa_api_key
+
+# Gemini
+GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key
+
+# Anthropic
+ANTHROPIC_API_KEY=your_anthropic_api_key
+
+# Xai
+XAI_API_KEY=your_xai_api_key
+
 
 # Optional: Set the URL for production
 # NEXT_PUBLIC_VERCEL_URL=your_production_url
@@ -219,7 +233,30 @@ To run the seed script:
 
 ### Storage Setup
 
-Create the buckets `chat-attachments` and `avatars`.
+Create the buckets `chat-attachments` and `avatars` in your Supabase dashboard:
+
+1. Go to Storage in your Supabase dashboard
+2. Click "New bucket" and create two buckets: `chat-attachments` and `avatars`
+3. Configure public access permissions for both buckets
+
+#### Agent Avatar Configuration
+
+For agent profile pictures to work properly:
+
+1. Create an `agents` folder inside your `avatars` bucket:
+
+   - Navigate to the `avatars` bucket
+   - Click "Create folder" and name it `agents`
+
+2. Upload agent avatar images
+
+3. Set up public access for the avatars bucket:
+   - Go to "Configuration" tab for the `avatars` bucket
+   - Under "Row Level Security (RLS)" ensure it's disabled or create a policy:
+   ```sql
+   CREATE POLICY "Public Read Access" ON storage.objects
+   FOR SELECT USING (bucket_id = 'avatars');
+   ```
 
 ## Local Installation
 
@@ -338,6 +375,118 @@ CMD ["node", "server.js"]
 
 Build and run the Docker container:
 
+```bash
+# Build the Docker image
+docker build -t zola .
+
+# Run the container
+docker run -p 3000:3000 \
+  -e NEXT_PUBLIC_SUPABASE_URL=your_supabase_url \
+  -e NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key \
+  -e SUPABASE_SERVICE_ROLE=your_supabase_service_role_key \
+  -e OPENAI_API_KEY=your_openai_api_key \
+  -e MISTRAL_API_KEY=your_mistral_api_key \
+  zola
 ```
 
+### Option 2: Docker Compose
+
+Create a `docker-compose.yml` file in the root of your project:
+
+```yaml
+version: "3"
+
+services:
+  zola:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE=${SUPABASE_SERVICE_ROLE}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - MISTRAL_API_KEY=${MISTRAL_API_KEY}
+    restart: unless-stopped
 ```
+
+Run with Docker Compose:
+
+```bash
+# Start the services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the services
+docker-compose down
+```
+
+## Production Deployment
+
+### Deploy to Vercel
+
+The easiest way to deploy Zola is using Vercel:
+
+1. Push your code to a Git repository (GitHub, GitLab, etc.)
+2. Import the project into Vercel
+3. Configure your environment variables
+4. Deploy
+
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Deploy
+vercel
+```
+
+### Self-Hosted Production
+
+For a self-hosted production environment, you'll need to build the application and run it:
+
+```bash
+# Build the application
+npm run build
+
+# Start the production server
+npm start
+```
+
+## Configuration Options
+
+You can customize various aspects of Zola by modifying the configuration files:
+
+- `app/lib/config.ts`: Configure AI models, daily message limits, etc.
+- `.env.local`: Set environment variables and API keys
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Connection to Supabase fails**
+
+   - Check your Supabase URL and API keys
+   - Ensure your IP address is allowed in Supabase
+
+2. **AI models not responding**
+
+   - Verify your API keys for OpenAI/Mistral
+   - Check that the models specified in config are available
+
+3. **Docker container exits immediately**
+   - Check logs using `docker logs <container_id>`
+   - Ensure all required environment variables are set
+
+## Community and Support
+
+- GitHub Issues: Report bugs or request features
+- GitHub Discussions: Ask questions and share ideas
+
+## License
+
+Apache License 2.0
