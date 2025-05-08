@@ -1,6 +1,7 @@
 "use client"
 
 import { useChatSession } from "@/app/providers/chat-session-provider"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -20,7 +21,7 @@ import {
 import type { Chats } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
 import { Check, PencilSimple, TrashSimple, X } from "@phosphor-icons/react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { formatDate, groupChatsByDate } from "./utils"
 
@@ -84,23 +85,35 @@ function CommandItemEdit({
         }}
       />
       <div className="ml-2 flex gap-1">
-        <Button
-          size="icon"
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground size-8"
-          type="submit"
-        >
-          <Check className="size-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground size-8"
-          type="button"
-          onClick={onCancel}
-        >
-          <X className="size-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="group/edit-confirm text-muted-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              type="submit"
+              aria-label="Confirm"
+            >
+              <Check className="group-hover/edit-confirm:text-primary size-4 transition-colors duration-150" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Confirm</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="group/edit-cancel text-muted-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              type="button"
+              onClick={onCancel}
+              aria-label="Cancel"
+            >
+              <X className="group-hover/edit-cancel:text-primary size-4 transition-colors duration-150" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Cancel</TooltipContent>
+        </Tooltip>
       </div>
     </form>
   )
@@ -138,23 +151,35 @@ function CommandItemDelete({
         />
       </div>
       <div className="ml-2 flex gap-1">
-        <Button
-          size="icon"
-          variant="ghost"
-          className="text-muted-foreground hover:text-destructive-foreground hover:bg-destructive-foreground/10 size-8"
-          type="submit"
-        >
-          <Check className="size-4" />
-        </Button>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="text-muted-foreground hover:text-foreground size-8"
-          onClick={onCancel}
-          type="button"
-        >
-          <X className="size-4" />
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="group/delete-confirm text-muted-foreground hover:text-destructive-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              type="submit"
+              aria-label="Confirm"
+            >
+              <Check className="group-hover/delete-confirm:text-primary size-4 transition-colors duration-150" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Confirm</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="group/delete-cancel text-muted-foreground hover:text-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              onClick={onCancel}
+              type="button"
+              aria-label="Cancel"
+            >
+              <X className="group-hover/delete-cancel:text-primary size-4 transition-colors duration-150" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Cancel</TooltipContent>
+        </Tooltip>
       </div>
     </form>
   )
@@ -168,12 +193,16 @@ function CommandItemRow({
   editingId,
   deletingId,
 }: CommandItemRowProps) {
+  const { chatId } = useChatSession()
+  const isCurrentChat = chat.id === chatId
+
   return (
     <>
-      <div className="min-w-0 flex-1">
+      <div className="flex min-w-0 flex-1 items-center gap-2">
         <span className="line-clamp-1 text-base font-normal">
           {chat?.title || "Untitled Chat"}
         </span>
+        {isCurrentChat && <Badge variant="outline">current</Badge>}
       </div>
 
       {/* Date and actions container */}
@@ -199,30 +228,38 @@ function CommandItemRow({
               "group-data-[selected=true]:opacity-0"
           )}
         >
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-muted-foreground hover:text-foreground size-8"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (chat) onEdit(chat)
-            }}
-            type="button"
-          >
-            <PencilSimple className="size-4" />
-          </Button>
-          <Button
-            size="icon"
-            variant="ghost"
-            className="text-muted-foreground hover:text-destructive size-8"
-            onClick={(e) => {
-              e.stopPropagation()
-              if (chat?.id) onDelete(chat.id)
-            }}
-            type="button"
-          >
-            <TrashSimple className="size-4" />
-          </Button>
+          <Tooltip>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="group/edit hover:bg-primary/10 size-8 transition-colors duration-150"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (chat) onEdit(chat)
+              }}
+              type="button"
+              aria-label="Edit"
+            >
+              <PencilSimple className="text-muted-foreground group-hover/edit:text-primary size-4 transition-colors duration-150" />
+            </Button>
+            <TooltipContent>Edit</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="group/delete text-muted-foreground hover:text-destructive hover:bg-destructive-foreground/10 size-8 transition-colors duration-150"
+              onClick={(e) => {
+                e.stopPropagation()
+                if (chat?.id) onDelete(chat.id)
+              }}
+              type="button"
+              aria-label="Delete"
+            >
+              <TrashSimple className="text-muted-foreground group-hover/delete:text-destructive size-4 transition-colors duration-150" />
+            </Button>
+            <TooltipContent>Delete</TooltipContent>
+          </Tooltip>
         </div>
       </div>
     </>
@@ -383,11 +420,24 @@ export function CommandHistory({
     })
   }, [isOpen, chatHistory, router])
 
+  // Add keyboard shortcut to open dialog with Command+K
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setIsOpen(!isOpen)
+      }
+    }
+
+    document.addEventListener("keydown", down)
+    return () => document.removeEventListener("keydown", down)
+  }, [isOpen, setIsOpen])
+
   return (
     <>
       <Tooltip>
         <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-        <TooltipContent>History</TooltipContent>
+        <TooltipContent>History ⌘+K</TooltipContent>
       </Tooltip>
       <CommandDialog
         open={isOpen}
@@ -395,7 +445,7 @@ export function CommandHistory({
         title="Chat History"
         description="Search through your past conversations"
       >
-        <Command shouldFilter={false}>
+        <Command shouldFilter={false} className="border-none">
           <CommandInput
             placeholder="Search history..."
             value={searchQuery}
@@ -424,6 +474,50 @@ export function CommandHistory({
               ))
             )}
           </CommandList>
+
+          {/* indicator command bar */}
+          <div className="bg-card border-input right-0 bottom-0 left-0 flex items-center justify-between border-t px-4 py-3">
+            <div className="text-muted-foreground flex w-full items-center gap-2 text-xs">
+              <div className="flex w-full flex-row items-center justify-between gap-1">
+                <div className="flex w-full flex-1 flex-row items-center gap-4">
+                  <div className="flex flex-row items-center gap-1.5">
+                    <div className="flex flex-row items-center gap-0.5">
+                      <span className="border-border bg-muted inline-flex size-5 items-center justify-center rounded-sm border">
+                        ↑
+                      </span>
+                      <span className="border-border bg-muted inline-flex size-5 items-center justify-center rounded-sm border">
+                        ↓
+                      </span>
+                    </div>
+                    <span>Navigate</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="border-border bg-muted inline-flex size-5 items-center justify-center rounded-sm border">
+                      ⏎
+                    </span>
+                    <span>Go to chat</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="flex flex-row items-center gap-0.5">
+                      <span className="border-border bg-muted inline-flex size-5 items-center justify-center rounded-sm border">
+                        ⌘
+                      </span>
+                      <span className="border-border bg-muted inline-flex size-5 items-center justify-center rounded-sm border">
+                        K
+                      </span>
+                    </div>
+                    <span>Toggle</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="border-border bg-muted inline-flex h-5 items-center justify-center rounded-sm border px-1">
+                  Esc
+                </span>
+                <span>Close</span>
+              </div>
+            </div>
+          </div>
         </Command>
       </CommandDialog>
     </>
