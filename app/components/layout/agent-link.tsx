@@ -14,6 +14,7 @@ export function AgentLink() {
           href="/agents"
           className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1.5 transition-colors"
           prefetch
+          aria-label="Agents"
         >
           <UsersThree size={24} />
         </Link>

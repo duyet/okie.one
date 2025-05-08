@@ -89,33 +89,40 @@ export function ChatInput({
 
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
-      if (!isUserAuthenticated) {
+      const items = e.clipboardData?.items
+      if (!items) return
+
+      const hasImageContent = Array.from(items).some((item) =>
+        item.type.startsWith("image/")
+      )
+
+      if (!isUserAuthenticated && hasImageContent) {
         e.preventDefault()
         return
       }
 
-      const items = e.clipboardData?.items
-      if (!items) return
+      if (isUserAuthenticated && hasImageContent) {
+        const imageFiles: File[] = []
 
-      const imageFiles: File[] = []
-
-      for (const item of Array.from(items)) {
-        if (item.type.startsWith("image/")) {
-          const file = item.getAsFile()
-          if (file) {
-            const newFile = new File(
-              [file],
-              `pasted-image-${Date.now()}.${file.type.split("/")[1]}`,
-              { type: file.type }
-            )
-            imageFiles.push(newFile)
+        for (const item of Array.from(items)) {
+          if (item.type.startsWith("image/")) {
+            const file = item.getAsFile()
+            if (file) {
+              const newFile = new File(
+                [file],
+                `pasted-image-${Date.now()}.${file.type.split("/")[1]}`,
+                { type: file.type }
+              )
+              imageFiles.push(newFile)
+            }
           }
         }
-      }
 
-      if (imageFiles.length > 0) {
-        onFileUpload(imageFiles)
+        if (imageFiles.length > 0) {
+          onFileUpload(imageFiles)
+        }
       }
+      // Text pasting will work by default for everyone
     },
     [isUserAuthenticated, onFileUpload]
   )
