@@ -7,7 +7,9 @@ import {
   PromptInputTextarea,
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
-import { ArrowUp, Stop } from "@phosphor-icons/react"
+import { useAgent } from "@/lib/agent-store/hooks"
+import { MODELS_OPTIONS } from "@/lib/config"
+import { ArrowUp, Stop, Warning } from "@phosphor-icons/react"
 import React, { useCallback, useEffect, useRef } from "react"
 import { ButtonFileUpload } from "./button-file-upload"
 import { FileList } from "./file-list"
@@ -53,7 +55,15 @@ export function ChatInput({
   status,
   placeholder,
 }: ChatInputProps) {
+  const { agent } = useAgent()
   const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+
+  const selectModelConfig = MODELS_OPTIONS.find(
+    (model) => model.id === selectedModel
+  )
+  const noToolSupport = selectModelConfig?.features?.some(
+    (feature) => feature.id === "tool-use" && !feature.enabled
+  )
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -170,6 +180,15 @@ export function ChatInput({
                 onSelectModel={onSelectModel}
                 isUserAuthenticated={isUserAuthenticated}
               />
+              {agent && noToolSupport && (
+                <div className="flex items-center gap-1">
+                  <Warning className="size-4" />
+                  <p className="line-clamp-2 text-xs">
+                    {selectedModel} does not support tools. Agents may not work
+                    as expected.
+                  </p>
+                </div>
+              )}
             </div>
             <PromptInputAction
               tooltip={status === "streaming" ? "Stop" : "Send"}
