@@ -20,6 +20,7 @@ type MessageAssistantProps = {
   copyToClipboard?: () => void
   onReload?: () => void
   parts?: MessageAISDK["parts"]
+  status?: "streaming" | "ready" | "submitted" | "error"
 }
 
 export function MessageAssistant({
@@ -30,6 +31,7 @@ export function MessageAssistant({
   copyToClipboard,
   onReload,
   parts,
+  status,
 }: MessageAssistantProps) {
   const sources = getSources(parts)
 
@@ -39,6 +41,8 @@ export function MessageAssistant({
   const reasoningParts = parts?.find((part) => part.type === "reasoning")
 
   const contentNullOrEmpty = children === null || children === ""
+
+  const isLastStreaming = status === "streaming" && isLast
 
   return (
     <Message
@@ -70,19 +74,18 @@ export function MessageAssistant({
 
         {sources && sources.length > 0 && <SourcesList sources={sources} />}
 
-        {contentNullOrEmpty ? null : (
+        {Boolean(isLastStreaming || contentNullOrEmpty) ? null : (
           <MessageActions
             className={cn(
-              "flex gap-0 opacity-0 transition-opacity group-hover:opacity-100"
+              "-ml-2 flex gap-0 opacity-0 transition-opacity group-hover:opacity-100"
             )}
           >
             <MessageAction
               tooltip={copied ? "Copied!" : "Copy text"}
               side="bottom"
-              delayDuration={0}
             >
               <button
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent transition"
+                className="hover:bg-accent/60 text-muted-foreground hover:text-foreground flex size-7.5 items-center justify-center rounded-full bg-transparent transition"
                 aria-label="Copy text"
                 onClick={copyToClipboard}
                 type="button"
@@ -96,7 +99,7 @@ export function MessageAssistant({
             </MessageAction>
             <MessageAction tooltip="Regenerate" side="bottom" delayDuration={0}>
               <button
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-transparent transition"
+                className="hover:bg-accent/60 text-muted-foreground hover:text-foreground flex size-7.5 items-center justify-center rounded-full bg-transparent transition"
                 aria-label="Regenerate"
                 onClick={onReload}
                 type="button"
