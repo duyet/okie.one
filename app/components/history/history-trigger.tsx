@@ -4,13 +4,24 @@ import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useChatSession } from "@/app/providers/chat-session-provider"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
+import { cn } from "@/lib/utils"
 import { ListMagnifyingGlass } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"
 
-export function HistoryTrigger() {
+type HistoryTriggerProps = {
+  hasSidebar: boolean
+  classNameTrigger?: string
+  icon?: React.ReactNode
+}
+
+export function HistoryTrigger({
+  hasSidebar,
+  classNameTrigger,
+  icon,
+}: HistoryTriggerProps) {
   const isMobile = useBreakpoint(768)
   const router = useRouter()
   const { chats, updateTitle, deleteChat } = useChats()
@@ -30,13 +41,19 @@ export function HistoryTrigger() {
     await deleteChat(id, chatId!, () => router.push("/"))
   }
 
-  const trigger = (
+  const defaultTrigger = (
     <button
-      className="text-muted-foreground hover:text-foreground hover:bg-muted rounded-full p-1.5 transition-colors"
+      className={cn(
+        "text-muted-foreground hover:text-foreground hover:bg-muted bg-background pointer-events-auto rounded-full p-1.5 transition-colors",
+        hasSidebar ? "hidden" : "block",
+        classNameTrigger
+      )}
       type="button"
       onClick={() => setIsOpen(true)}
+      aria-label="Search"
+      tabIndex={isMobile ? -1 : 0}
     >
-      <ListMagnifyingGlass size={24} />
+      {icon || <ListMagnifyingGlass size={24} />}
     </button>
   )
 
@@ -46,7 +63,7 @@ export function HistoryTrigger() {
         chatHistory={chats}
         onSaveEdit={handleSaveEdit}
         onConfirmDelete={handleConfirmDelete}
-        trigger={trigger}
+        trigger={defaultTrigger}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
       />
@@ -58,7 +75,7 @@ export function HistoryTrigger() {
       chatHistory={chats}
       onSaveEdit={handleSaveEdit}
       onConfirmDelete={handleConfirmDelete}
-      trigger={trigger}
+      trigger={defaultTrigger}
       isOpen={isOpen}
       setIsOpen={setIsOpen}
     />

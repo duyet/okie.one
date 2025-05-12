@@ -2,6 +2,7 @@
 
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
+import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useChatSession } from "@/app/providers/chat-session-provider"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
@@ -22,6 +23,7 @@ import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
 import { redirect, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
+import { HeaderAgent } from "../layout/header-agent"
 import { useChatHandlers } from "./use-chat-handlers"
 import { useChatUtils } from "./use-chat-utils"
 import { useFileUpload } from "./use-file-upload"
@@ -67,7 +69,9 @@ export function Chat() {
   const [hydrated, setHydrated] = useState(false)
   const searchParams = useSearchParams()
   const hasSentFirstMessageRef = useRef(false)
-  const { isTooling, agent } = useAgent()
+  const { agent } = useAgent()
+  const isMobile = useBreakpoint(768)
+  const [isAgentMode, setIsAgentMode] = useState(false)
 
   const isAuthenticated = !!user?.id
   const {
@@ -338,6 +342,11 @@ export function Chat() {
         "@container/main relative flex h-full flex-col items-center justify-end md:justify-center"
       )}
     >
+      {!isMobile && (
+        <div className="pointer-events-none absolute top-0 right-0 left-0 z-50 mx-auto flex w-full justify-center">
+          <HeaderAgent agent={agent} />
+        </div>
+      )}
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
       <AnimatePresence initial={false} mode="popLayout">
         {!chatId && messages.length === 0 ? (
@@ -393,15 +402,16 @@ export function Chat() {
           onFileRemove={handleFileRemove}
           hasSuggestions={!chatId && messages.length === 0}
           onSelectModel={handleModelChange}
-          onSelectSystemPrompt={handleSelectSystemPrompt}
           selectedModel={selectedModel}
           isUserAuthenticated={isAuthenticated}
           systemPrompt={systemPrompt}
           stop={stop}
           status={status}
           placeholder={"Ask Zola anything"}
+          isAgentMode={isAgentMode}
         />
       </motion.div>
+
       <FeedbackWidget authUserId={user?.id} />
     </div>
   )

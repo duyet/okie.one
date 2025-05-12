@@ -50,14 +50,10 @@ export async function GET(request: Request) {
     console.error("Unexpected user insert error:", err)
   }
 
-  const forwardedHost = request.headers.get("x-forwarded-host")
-  const isLocal = process.env.NODE_ENV === "development"
+  const host = request.headers.get("host")
+  const protocol = host?.includes("localhost") ? "http" : "https"
 
-  const redirectUrl = isLocal
-    ? `${origin}${next}`
-    : forwardedHost
-      ? `https://${forwardedHost}${next}`
-      : `${origin}${next}`
+  const redirectUrl = `${protocol}://${host}${next}`
 
   return NextResponse.redirect(redirectUrl)
 }
