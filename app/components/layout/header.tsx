@@ -28,8 +28,6 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
   const { agent } = useAgent()
   const { open: isSidebarOpen } = useSidebar()
 
-  console.log("open", open)
-
   const isLoggedIn = !!user
 
   return (
