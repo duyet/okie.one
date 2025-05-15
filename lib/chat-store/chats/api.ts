@@ -1,11 +1,12 @@
 import { readFromIndexedDB, writeToIndexedDB } from "@/lib/chat-store/persist"
 import type { Chat, Chats } from "@/lib/chat-store/types"
 import { createClient } from "@/lib/supabase/client"
-import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../../config"
+import { MODEL_DEFAULT } from "../../config"
 import { fetchClient } from "../../fetch"
 import {
   API_ROUTE_CREATE_CHAT,
   API_ROUTE_CREATE_CHAT_WITH_AGENT,
+  API_ROUTE_UPDATE_CHAT_AGENT,
   API_ROUTE_UPDATE_CHAT_MODEL,
 } from "../../routes"
 
@@ -21,7 +22,7 @@ export async function fetchAndCacheChats(userId: string): Promise<Chats[]> {
 
   const { data, error } = await supabase
     .from("chats")
-    .select("id, title, created_at, model, system_prompt, agent_id")
+    .select("id, title, created_at, model, agent_id")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
 
@@ -141,10 +142,10 @@ export async function createNewChat(
   title?: string,
   model?: string,
   isAuthenticated?: boolean,
-  systemPrompt?: string,
   agentId?: string
 ): Promise<Chats> {
   try {
+    // @todo: can keep only one route for create chat
     const apiRoute = agentId
       ? API_ROUTE_CREATE_CHAT_WITH_AGENT
       : API_ROUTE_CREATE_CHAT
@@ -162,7 +163,6 @@ export async function createNewChat(
           title,
           model: model || MODEL_DEFAULT,
           isAuthenticated,
-          systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
         }
 
     const res = await fetchClient(apiRoute, {
@@ -182,7 +182,6 @@ export async function createNewChat(
       title: responseData.chat.title,
       created_at: responseData.chat.created_at,
       model: responseData.chat.model,
-      system_prompt: responseData.chat.system_prompt,
       agent_id: responseData.chat.agent_id,
     }
 
@@ -190,6 +189,40 @@ export async function createNewChat(
     return chat
   } catch (error) {
     console.error("Error creating new chat:", error)
+    throw error
+  }
+}
+
+export async function updateChatAgent(
+  userId: string,
+  chatId: string,
+  agentId: string | null,
+  isAuthenticated: boolean
+) {
+  try {
+    const res = await fetchClient(API_ROUTE_UPDATE_CHAT_AGENT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, chatId, agentId, isAuthenticated }),
+    })
+    const responseData = await res.json()
+
+    if (!res.ok) {
+      throw new Error(
+        responseData.error ||
+          `Failed to update chat agent: ${res.status} ${res.statusText}`
+      )
+    }
+
+    const all = await getCachedChats()
+    const updated = (all as Chats[]).map((c) =>
+      c.id === chatId ? { ...c, agent_id: agentId } : c
+    )
+    await writeToIndexedDB("chats", updated)
+
+    return responseData
+  } catch (error) {
+    console.error("Error updating chat agent:", error)
     throw error
   }
 }

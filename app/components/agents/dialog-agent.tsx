@@ -20,9 +20,9 @@ type DialogAgentProps = {
   onOpenChange: (open: boolean) => void
   randomAgents: AgentSummary[]
   trigger?: React.ReactNode
-  system_prompt?: string
-  tools?: string[]
-  mcp_config?: Tables<"agents">["mcp_config"]
+  system_prompt?: string | null
+  tools?: string[] | null
+  mcp_config?: Tables<"agents">["mcp_config"] | null
   isCardLight?: boolean
 }
 
@@ -64,7 +64,6 @@ export function DialogAgent({
       avatar_url={avatar_url}
       className={className}
       isAvailable={isAvailable}
-      system_prompt={system_prompt}
       onClick={() => handleOpenChange(true)}
       tools={tools}
       mcp_config={mcp_config}
@@ -72,7 +71,7 @@ export function DialogAgent({
     />
   )
 
-  const renderContent = (isMobile?: boolean) => (
+  const renderContent = () => (
     <AgentDetail
       slug={slug}
       name={name}
@@ -92,7 +91,7 @@ export function DialogAgent({
       <Drawer open={isOpen} onOpenChange={handleOpenChange}>
         <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
         <DrawerContent className="bg-background border-border">
-          {renderContent(isMobile)}
+          {renderContent()}
         </DrawerContent>
       </Drawer>
     )

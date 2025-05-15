@@ -2,11 +2,10 @@
 
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
-import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useChatSession } from "@/app/providers/chat-session-provider"
 import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
-import { useAgent } from "@/lib/agent-store/hooks"
+import { useAgent } from "@/lib/agent-store/provider"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
@@ -23,7 +22,6 @@ import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
 import { redirect, useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { HeaderAgent } from "../layout/header-agent"
 import { useChatHandlers } from "./use-chat-handlers"
 import { useChatUtils } from "./use-chat-utils"
 import { useFileUpload } from "./use-file-upload"
@@ -63,14 +61,13 @@ export function Chat() {
   const [selectedModel, setSelectedModel] = useState(
     currentChat?.model || user?.preferred_model || MODEL_DEFAULT
   )
-  const [systemPrompt, setSystemPrompt] = useState(
-    currentChat?.system_prompt || user?.system_prompt || SYSTEM_PROMPT_DEFAULT
-  )
+  const { currentAgent } = useAgent()
+  const systemPrompt =
+    currentAgent?.system_prompt || user?.system_prompt || SYSTEM_PROMPT_DEFAULT
+
   const [hydrated, setHydrated] = useState(false)
   const searchParams = useSearchParams()
   const hasSentFirstMessageRef = useRef(false)
-  const { agent } = useAgent()
-  const isMobile = useBreakpoint(768)
 
   const isAuthenticated = !!user?.id
   const {
@@ -97,7 +94,7 @@ export function Chat() {
     input,
     selectedModel,
     systemPrompt,
-    selectedAgentId: agent?.id || null,
+    selectedAgentId: currentAgent?.id || null,
     createNewChat,
     setHasDialogAuth,
   })
@@ -120,12 +117,6 @@ export function Chat() {
       setMessages([])
     }
   }, [chatId])
-
-  useEffect(() => {
-    if (currentChat?.system_prompt) {
-      setSystemPrompt(currentChat?.system_prompt)
-    }
-  }, [currentChat])
 
   useEffect(() => {
     setHydrated(true)
@@ -225,7 +216,7 @@ export function Chat() {
         model: selectedModel,
         isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
-        ...(agent?.id && { agentId: agent.id }),
+        ...(currentAgent?.id && { agentId: currentAgent.id }),
       },
       experimental_attachments: attachments || undefined,
     }
@@ -335,11 +326,6 @@ export function Chat() {
         "@container/main relative flex h-full flex-col items-center justify-end md:justify-center"
       )}
     >
-      {!isMobile && (
-        <div className="pointer-events-none absolute top-0 right-0 left-0 z-50 mx-auto flex w-full justify-center">
-          <HeaderAgent agent={agent} />
-        </div>
-      )}
       <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
       <AnimatePresence initial={false} mode="popLayout">
         {!chatId && messages.length === 0 ? (
@@ -397,10 +383,8 @@ export function Chat() {
           onSelectModel={handleModelChange}
           selectedModel={selectedModel}
           isUserAuthenticated={isAuthenticated}
-          systemPrompt={systemPrompt}
           stop={stop}
           status={status}
-          placeholder={"Ask Zola anything"}
         />
       </motion.div>
 

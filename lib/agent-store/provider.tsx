@@ -1,6 +1,7 @@
 "use client"
 
 import { useChatSession } from "@/app/providers/chat-session-provider"
+import { Agent } from "@/app/types/agent"
 import { usePathname, useSearchParams } from "next/navigation"
 import {
   createContext,
@@ -10,66 +11,89 @@ import {
   useState,
 } from "react"
 import { useChats } from "../chat-store/chats/provider"
+import { CURATED_AGENTS_SLUGS } from "../config"
 import { createClient } from "../supabase/client"
 import { loadGitHubAgent } from "./load-github-agent"
 
-type AgentMetadata = {
-  name: string
-  description: string
-  avatar_url: string | null
-  slug: string
-  tools_enabled: boolean
-  id: string
-}
-
-type AgentState = {
-  status: "idle" | "loading"
-}
-
-type AgentContextType = AgentState & {
-  setStatus: (status: AgentState["status"]) => void
-  agent: AgentMetadata | null
+type AgentContextType = {
+  currentAgent: Agent | null
+  curatedAgents: Agent[] | null
+  userAgents: Agent[] | null
 }
 
 const AgentContext = createContext<AgentContextType | undefined>(undefined)
 
-export const AgentProvider = ({ children }: { children: React.ReactNode }) => {
+type AgentProviderProps = {
+  children: React.ReactNode
+  userId?: string | null
+}
+
+export const AgentProvider = ({ children, userId }: AgentProviderProps) => {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const agentSlug = searchParams.get("agent")
   const { getChatById } = useChats()
   const { chatId } = useChatSession()
   const currentChat = chatId ? getChatById(chatId) : null
-  const [status, setStatus] = useState<AgentState["status"]>("idle")
-  const [agent, setAgent] = useState<AgentMetadata | null>(null)
+  const [currentAgent, setCurrentAgent] = useState<Agent | null>(null)
   const currentChatAgentId = currentChat?.agent_id || null
+  const [curatedAgents, setCuratedAgents] = useState<Agent[] | null>(null)
+  const [userAgents, setUserAgents] = useState<Agent[] | null>(null)
 
-  const fetchAgent = useCallback(async () => {
+  const fetchCuratedAgents = useCallback(async () => {
+    const supabase = createClient()
+    const { data, error } = await supabase
+      .from("agents")
+      .select("*")
+      .in("slug", CURATED_AGENTS_SLUGS)
+
+    if (error) {
+      console.error("Error fetching curated agents:", error)
+    } else {
+      setCuratedAgents(data)
+    }
+  }, [])
+
+  const fetchUserAgents = useCallback(async () => {
+    if (!userId) {
+      return
+    }
+
+    const supabase = createClient()
+
+    const { data, error } = await supabase
+      .from("agents")
+      .select("*")
+      .eq("creator_id", userId)
+
+    if (error) {
+      console.error("Error fetching user agents:", error)
+    } else {
+      setUserAgents(data)
+    }
+  }, [userId])
+
+  const fetchCurrentAgent = useCallback(async () => {
     if (!agentSlug && !currentChatAgentId) {
-      setAgent(null)
+      setCurrentAgent(null)
       return
     }
 
     // IF first time loading agent, check if it's a github agent
     // create one if it doesn't exist
-    // @todo: first platform agent, more scalable way coming
+    // @todo:
+    // remove it
     if (agentSlug?.startsWith("github/")) {
-      setStatus("loading")
       const specialAgent = await loadGitHubAgent(agentSlug)
-      setStatus("idle")
 
       if (specialAgent) {
-        setAgent(specialAgent)
+        setCurrentAgent(specialAgent)
         return
       }
     }
 
     const supabase = createClient()
-    setStatus("loading")
-
-    let query = supabase
-      .from("agents")
-      .select("name, description, avatar_url, slug, tools_enabled, id")
+    let query = supabase.from("agents").select("*")
 
     if (agentSlug) {
       query = query.eq("slug", agentSlug)
@@ -81,31 +105,41 @@ export const AgentProvider = ({ children }: { children: React.ReactNode }) => {
 
     if (error || !data) {
       console.error("Error fetching agent:", error)
-      setAgent(null)
+      setCurrentAgent(null)
     } else {
-      setAgent(data)
+      setCurrentAgent(data)
     }
-
-    setStatus("idle")
   }, [agentSlug, currentChatAgentId])
 
   useEffect(() => {
     if (!agentSlug && !currentChatAgentId) {
-      setAgent(null)
+      setCurrentAgent(null)
       return
     }
 
-    fetchAgent()
-  }, [pathname, agentSlug, currentChatAgentId, fetchAgent])
+    fetchCurrentAgent()
+  }, [pathname, agentSlug, currentChatAgentId, fetchCurrentAgent])
+
+  useEffect(() => {
+    fetchCuratedAgents()
+  }, [fetchCuratedAgents])
+
+  useEffect(() => {
+    if (!userId) {
+      return
+    }
+
+    fetchUserAgents()
+  }, [fetchUserAgents])
 
   return (
-    <AgentContext.Provider value={{ status, setStatus, agent }}>
+    <AgentContext.Provider value={{ currentAgent, curatedAgents, userAgents }}>
       {children}
     </AgentContext.Provider>
   )
 }
 
-export const useAgentContext = () => {
+export const useAgent = () => {
   const context = useContext(AgentContext)
   if (!context)
     throw new Error("useAgentContext must be used within AgentProvider")

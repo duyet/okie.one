@@ -9,7 +9,7 @@ import { useUser } from "@/app/providers/user-provider"
 import type { Agent } from "@/app/types/agent"
 import { Button } from "@/components/ui/button"
 import { useSidebar } from "@/components/ui/sidebar"
-import { useAgent } from "@/lib/agent-store/hooks"
+import { useAgent } from "@/lib/agent-store/provider"
 import { APP_NAME } from "@/lib/config"
 import { Info } from "@phosphor-icons/react"
 import Link from "next/link"
@@ -25,19 +25,18 @@ export type AgentHeader = Pick<
 export function Header({ hasSidebar }: { hasSidebar: boolean }) {
   const isMobile = useBreakpoint(768)
   const { user } = useUser()
-  const { agent } = useAgent()
   const { open: isSidebarOpen } = useSidebar()
+  const { currentAgent } = useAgent()
 
   const isLoggedIn = !!user
 
   return (
     <header className="h-app-header pointer-events-none fixed top-0 right-0 left-0 z-50">
-      {/* <div className="h-app-header top-app-header bg-background pointer-events-none absolute left-0 z-50 mx-auto w-full to-transparent backdrop-blur-xl [-webkit-mask-image:linear-gradient(to_bottom,black,transparent)] lg:hidden"></div> */}
       <div className="relative mx-auto flex h-full max-w-full items-center justify-between bg-transparent px-4 sm:px-6 lg:bg-transparent lg:px-8">
         <div className="flex flex-1 items-center justify-between">
           <div className="flex flex-1 items-center gap-2">
             {hasSidebar && <HeaderSidebarTrigger />}
-            {Boolean(!agent || !isMobile) && (
+            {Boolean(!currentAgent || !isMobile) && (
               <div className="flex-1">
                 <Link
                   href="/"
@@ -73,7 +72,7 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
             </div>
           ) : (
             <div className="pointer-events-auto flex flex-1 items-center justify-end gap-2">
-              {agent && <DialogPublish agent={agent} />}
+              {currentAgent && <DialogPublish agent={currentAgent} />}
               <ButtonNewChat />
               <AgentLink />
               {!isSidebarOpen && <HistoryTrigger hasSidebar={hasSidebar} />}

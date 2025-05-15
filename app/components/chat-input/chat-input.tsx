@@ -1,5 +1,6 @@
 "use client"
 
+import { useAgentCommand } from "@/app/components/chat-input/use-agent-command"
 import {
   PromptInput,
   PromptInputAction,
@@ -7,14 +8,16 @@ import {
   PromptInputTextarea,
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
-import { useAgent } from "@/lib/agent-store/hooks"
+import { useAgent } from "@/lib/agent-store/provider"
 import { MODELS_OPTIONS } from "@/lib/config"
 import { ArrowUp, Stop, Warning } from "@phosphor-icons/react"
-import React, { useCallback, useEffect, useRef } from "react"
+import React, { useCallback, useEffect } from "react"
 import { PromptSystem } from "../suggestions/prompt-system"
+import { AgentCommand } from "./agent-command"
 import { ButtonFileUpload } from "./button-file-upload"
 import { FileList } from "./file-list"
 import { SelectModel } from "./select-model"
+import { SelectedAgent } from "./selected-agent"
 
 type ChatInputProps = {
   value: string
@@ -30,10 +33,8 @@ type ChatInputProps = {
   onSelectModel: (model: string) => void
   selectedModel: string
   isUserAuthenticated: boolean
-  systemPrompt?: string
   stop: () => void
   status?: "submitted" | "streaming" | "ready" | "error"
-  placeholder?: string
 }
 
 export function ChatInput({
@@ -51,10 +52,15 @@ export function ChatInput({
   isUserAuthenticated,
   stop,
   status,
-  placeholder,
 }: ChatInputProps) {
-  const { agent } = useAgent()
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null)
+  const { currentAgent, curatedAgents, userAgents } = useAgent()
+
+  const agentCommand = useAgentCommand({
+    value,
+    onValueChange,
+    agents: [...(curatedAgents || []), ...(userAgents || [])],
+    defaultAgent: currentAgent,
+  })
 
   const selectModelConfig = MODELS_OPTIONS.find(
     (model) => model.id === selectedModel
@@ -63,26 +69,7 @@ export function ChatInput({
     (feature) => feature.id === "tool-use" && !feature.enabled
   )
 
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (isSubmitting) {
-        e.preventDefault()
-        return
-      }
-
-      if (e.key === "Enter" && status === "streaming") {
-        e.preventDefault()
-        return
-      }
-
-      if (e.key === "Enter" && !e.shiftKey) {
-        onSend()
-      }
-    },
-    [onSend, isSubmitting]
-  )
-
-  const handleMainClick = () => {
+  const handleSend = useCallback(() => {
     if (isSubmitting) {
       return
     }
@@ -93,7 +80,30 @@ export function ChatInput({
     }
 
     onSend()
-  }
+  }, [isSubmitting, onSend, status, stop])
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      // First process agent command related key handling
+      agentCommand.handleKeyDown(e)
+
+      if (isSubmitting) {
+        e.preventDefault()
+        return
+      }
+
+      if (e.key === "Enter" && status === "streaming") {
+        e.preventDefault()
+        return
+      }
+
+      if (e.key === "Enter" && !e.shiftKey && !agentCommand.showAgentCommand) {
+        e.preventDefault()
+        onSend()
+      }
+    },
+    [agentCommand, isSubmitting, onSend, status]
+  )
 
   const handlePaste = useCallback(
     async (e: ClipboardEvent) => {
@@ -136,11 +146,11 @@ export function ChatInput({
   )
 
   useEffect(() => {
-    const el = textareaRef.current
+    const el = agentCommand.textareaRef.current
     if (!el) return
     el.addEventListener("paste", handlePaste)
     return () => el.removeEventListener("paste", handlePaste)
-  }, [handlePaste])
+  }, [agentCommand.textareaRef, handlePaste])
 
   return (
     <div className="relative flex w-full flex-col gap-4">
@@ -153,17 +163,35 @@ export function ChatInput({
       )}
       <div className="relative order-2 px-2 pb-3 sm:pb-4 md:order-1">
         <PromptInput
-          className="bg-popover relative z-10 overflow-hidden p-0 pb-2 shadow-xs backdrop-blur-xl"
+          className="bg-popover relative z-10 p-0 pb-2 shadow-xs backdrop-blur-xl"
           maxHeight={200}
           value={value}
-          onValueChange={onValueChange}
+          onValueChange={agentCommand.handleValueChange}
         >
+          {agentCommand.showAgentCommand && (
+            <div className="absolute bottom-full left-0 w-full">
+              <AgentCommand
+                isOpen={agentCommand.showAgentCommand}
+                searchTerm={agentCommand.agentSearchTerm}
+                onSelect={agentCommand.handleAgentSelect}
+                onClose={agentCommand.closeAgentCommand}
+                activeIndex={agentCommand.activeAgentIndex}
+                onActiveIndexChange={agentCommand.setActiveAgentIndex}
+                curatedAgents={curatedAgents || []}
+                userAgents={userAgents || []}
+              />
+            </div>
+          )}
+          <SelectedAgent
+            selectedAgent={agentCommand.selectedAgent}
+            removeSelectedAgent={agentCommand.removeSelectedAgent}
+          />
           <FileList files={files} onFileRemove={onFileRemove} />
           <PromptInputTextarea
-            placeholder={placeholder}
+            placeholder={"Ask Zola or @mention an agent"}
             onKeyDown={handleKeyDown}
             className="mt-2 ml-2 min-h-[44px] text-base leading-[1.3] sm:text-base md:text-base"
-            ref={textareaRef}
+            ref={agentCommand.textareaRef}
           />
           <PromptInputActions className="mt-5 w-full justify-between px-2">
             <div className="flex gap-2">
@@ -177,7 +205,7 @@ export function ChatInput({
                 onSelectModel={onSelectModel}
                 isUserAuthenticated={isUserAuthenticated}
               />
-              {agent && noToolSupport && (
+              {currentAgent && noToolSupport && (
                 <div className="flex items-center gap-1">
                   <Warning className="size-4" />
                   <p className="line-clamp-2 text-xs">
@@ -195,7 +223,7 @@ export function ChatInput({
                 className="size-9 rounded-full transition-all duration-300 ease-out"
                 disabled={!value || isSubmitting}
                 type="button"
-                onClick={handleMainClick}
+                onClick={handleSend}
                 aria-label={status === "streaming" ? "Stop" : "Send message"}
               >
                 {status === "streaming" ? (
