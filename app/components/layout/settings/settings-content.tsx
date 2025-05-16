@@ -4,13 +4,21 @@ import { useUser } from "@/app/providers/user-provider"
 import { ModelSelector } from "@/components/common/model-selector/base"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "@/components/ui/toast"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
 import { clearAllIndexedDBStores } from "@/lib/chat-store/persist"
 import { MODEL_DEFAULT } from "@/lib/config"
 import { cn } from "@/lib/utils"
-import { SignOut, User, X } from "@phosphor-icons/react"
+import {
+  GearSix,
+  PaintBrush,
+  PlugsConnected,
+  SignOut,
+  User,
+  X,
+} from "@phosphor-icons/react"
 import { useTheme } from "next-themes"
 import { useRouter } from "next/navigation"
 import type React from "react"
@@ -22,6 +30,8 @@ type SettingsContentProps = {
   onClose: () => void
   isDrawer?: boolean
 }
+
+type TabType = "general" | "appearance" | "connections"
 
 export function SettingsContent({
   onClose,
@@ -35,6 +45,7 @@ export function SettingsContent({
   const [selectedModelId, setSelectedModelId] = useState<string>(
     user?.preferred_model || MODEL_DEFAULT
   )
+  const [activeTab, setActiveTab] = useState<TabType>("general")
   const router = useRouter()
 
   useEffect(() => {
@@ -72,7 +83,7 @@ export function SettingsContent({
   return (
     <div
       className={cn(
-        "max-h-[70vh] space-y-0 overflow-y-auto",
+        "flex w-full flex-col overflow-y-auto",
         isDrawer ? "p-0 pb-16" : "py-0"
       )}
     >
@@ -84,192 +95,326 @@ export function SettingsContent({
           </Button>
         </div>
       )}
-      {/* User Info */}
-      <div className="px-6 py-4">
-        <div className="flex items-center space-x-4">
-          <div className="bg-muted flex h-16 w-16 items-center justify-center overflow-hidden rounded-full">
-            {user?.profile_image ? (
-              <Avatar>
-                <AvatarImage
-                  src={user.profile_image}
-                  className="object-cover"
-                />
-                <AvatarFallback>{user?.display_name?.charAt(0)}</AvatarFallback>
-              </Avatar>
-            ) : (
-              <User className="text-muted-foreground size-8" />
-            )}
-          </div>
-          <div>
-            <h3 className="text-sm font-medium">{user?.display_name}</h3>
-            <p className="text-muted-foreground text-sm">{user?.email}</p>
-          </div>
-        </div>
-      </div>
-      {/* Message Usage */}
-      {/* <div className="border-border border-t">
-        <div className="px-6 py-4">
-          <h3 className="mb-3 text-sm font-medium">Standard usage</h3>
-          <div className="bg-secondary rounded-lg p-3">
-            <div className="mb-2 flex justify-between">
-              <span className="text-secondary-foreground text-sm">Today</span>
-              <span className="text-sm font-medium">
-                {user?.daily_message_count} / {AUTH_DAILY_MESSAGE_LIMIT}{" "}
-                messages
-              </span>
-            </div>
-            <div className="bg-muted h-1.5 w-full rounded-full">
-              <div
-                className="bg-primary h-1.5 rounded-full"
-                style={{
-                  width: `${
-                    ((user?.daily_message_count || 0) /
-                      AUTH_DAILY_MESSAGE_LIMIT) *
-                    100
-                  }%`,
-                }}
-              ></div>
-            </div>
-            <p className="text-muted-foreground mt-2 text-xs">
-              Limit of {AUTH_DAILY_MESSAGE_LIMIT} messages per day
-            </p>
-          </div>
-        </div>
-      </div> */}
-      {/* Pro Message Usage
-      <div className="border-border border-t">
-        <div className="px-6 py-4">
-          <h3 className="mb-3 text-sm font-medium">Advanced model usage</h3>
-          <div className="bg-secondary rounded-lg p-3">
-            <div className="mb-2 flex justify-between">
-              <span className="text-secondary-foreground text-sm">Today</span>
-              <span className="text-sm font-medium">
-                {user?.daily_pro_message_count || 0} / {DAILY_LIMIT_PRO_MODELS}{" "}
-                messages
-              </span>
-            </div>
-            <div className="bg-muted h-1.5 w-full rounded-full">
-              <div
-                className="bg-primary h-1.5 rounded-full"
-                style={{
-                  width: `${
-                    ((user?.daily_pro_message_count || 0) /
-                      DAILY_LIMIT_PRO_MODELS) *
-                    100
-                  }%`,
-                }}
-              ></div>
-            </div>
-            <p className="text-muted-foreground mt-2 text-xs">
-              Limit of {DAILY_LIMIT_PRO_MODELS} pro model messages per day
-            </p>
-          </div>
-        </div>
-      </div> */}
-      {/* Theme Selection */}
-      <div className="border-border border-t">
-        <div className="px-6 py-4">
-          <h3 className="mb-3 text-sm font-medium">Theme</h3>
-          <div
-            className={`grid ${isDrawer ? "grid-cols-2" : "grid-cols-3"} gap-3`}
-          >
-            {themes.map((theme) => (
-              <button
-                key={theme.id}
-                type="button"
-                onClick={() => {
-                  setSelectedTheme(theme.id)
-                  setTheme(theme.id)
-                }}
-                className={`rounded-lg border p-3 ${
-                  selectedTheme === theme.id
-                    ? "border-primary ring-primary/30 ring-2"
-                    : "border-border"
-                }`}
+
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as TabType)}
+        className={cn(
+          "flex w-full flex-row",
+          isDrawer ? "" : "flex min-h-[400px]"
+        )}
+      >
+        {isDrawer ? (
+          // Mobile version - tabs on top
+          <div className="w-full px-6 py-4">
+            <TabsList className="mb-4 grid w-full grid-cols-3 bg-transparent">
+              <TabsTrigger value="general" className="flex items-center gap-2">
+                <GearSix className="size-4" />
+                <span>General</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="appearance"
+                className="flex items-center gap-2"
               >
-                <div className="mb-2 flex space-x-1">
-                  {theme.colors.map((color, i) => (
-                    <div
-                      key={i}
-                      className="border-border h-4 w-4 rounded-full border"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                <PaintBrush className="size-4" />
+                <span>Appearance</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="connections"
+                className="flex items-center gap-2"
+              >
+                <PlugsConnected className="size-4" />
+                <span>Connections</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Mobile tabs content */}
+            <TabsContent value="general" className="space-y-0">
+              {/* User Info */}
+              <div className="mb-4">
+                <div className="flex items-center space-x-4">
+                  <div className="bg-muted flex items-center justify-center overflow-hidden rounded-full">
+                    {user?.profile_image ? (
+                      <Avatar className="size-10">
+                        <AvatarImage
+                          src={user.profile_image}
+                          className="object-cover"
+                        />
+                        <AvatarFallback>
+                          {user?.display_name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : (
+                      <User className="text-muted-foreground size-10" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium">
+                      {user?.display_name}
+                    </h3>
+                    <p className="text-muted-foreground text-sm">
+                      {user?.email}
+                    </p>
+                  </div>
                 </div>
-                <p className="text-left text-sm font-medium">{theme.name}</p>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-      {/* Layout */}
-      <LayoutSection />
-      {/* Model Selection */}
-      <div className="border-border border-t">
-        <div className="px-6 py-4">
-          <h3 className="mb-3 text-sm font-medium">Preferred model</h3>
-          <div className="relative">
-            <ModelSelector
-              selectedModelId={selectedModelId}
-              setSelectedModelId={handleModelSelection}
-              className="w-full"
-            />
-          </div>
-          <p className="text-muted-foreground mt-2 text-xs">
-            This model will be used by default for new conversations.
-          </p>
-        </div>
-      </div>
-      <SystemPromptSection />
-      {/* Sign Out */}
-      <div className="border-border border-t">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-medium">Account</h3>
-              <p className="text-muted-foreground text-xs">
-                Log out on this device
-              </p>
-            </div>
-            <Button
-              variant="default"
-              size="sm"
-              className="flex items-center gap-2"
-              onClick={handleSignOut}
-            >
-              <SignOut className="size-4" />
-              <span>Sign out</span>
-            </Button>
-          </div>
-        </div>
-      </div>
-      {/* Delete Account, not ready yet */}
-      {/* <div className="border-border border-t">
-          <div className="px-6 py-4">
-            <div
-              className={`flex ${
-                isDrawer ? "flex-col space-y-3" : "items-center justify-between"
-              }`}
-            >
-              <div>
-                <h3 className="text-sm font-medium">Delete Account</h3>
-                <p className="text-muted-foreground max-w-xs text-xs">
-                  Permanently delete your account and associated data. Deletions
-                  are immediate and cannot be undone.
+              </div>
+
+              {/* Model Selection */}
+              <div className="py-4">
+                <h3 className="mb-3 text-sm font-medium">Preferred model</h3>
+                <div className="relative">
+                  <ModelSelector
+                    selectedModelId={selectedModelId}
+                    setSelectedModelId={handleModelSelection}
+                    className="w-full"
+                  />
+                </div>
+                <p className="text-muted-foreground mt-2 text-xs">
+                  This model will be used by default for new conversations.
                 </p>
               </div>
-              <Button
-                variant="destructive"
-                size="sm"
-                className={`${
-                  isDrawer ? "mt-3 self-start" : "whitespace-nowrap"
-                }`}
-              >
-                Delete Account
-              </Button>
-            </div>
+
+              {/* System Prompt */}
+              <SystemPromptSection />
+
+              {/* Sign Out */}
+              <div className="py-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium">Account</h3>
+                    <p className="text-muted-foreground text-xs">
+                      Log out on this device
+                    </p>
+                  </div>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={handleSignOut}
+                  >
+                    <SignOut className="size-4" />
+                    <span>Sign out</span>
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="appearance" className="space-y-0">
+              {/* Theme Selection */}
+              <div className="mb-4">
+                <h3 className="mb-3 text-sm font-medium">Theme</h3>
+                <div className="grid grid-cols-2 gap-3">
+                  {themes.map((theme) => (
+                    <button
+                      key={theme.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedTheme(theme.id)
+                        setTheme(theme.id)
+                      }}
+                      className={`rounded-lg border p-3 ${
+                        selectedTheme === theme.id
+                          ? "border-primary ring-primary/30 ring-2"
+                          : "border-border"
+                      }`}
+                    >
+                      <div className="mb-2 flex space-x-1">
+                        {theme.colors.map((color, i) => (
+                          <div
+                            key={i}
+                            className="border-border h-4 w-4 rounded-full border"
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-left text-sm font-medium">
+                        {theme.name}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Layout */}
+              <div className="py-4">
+                <LayoutSection />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="connections" className="py-4">
+              <div className="py-8 text-center">
+                <PlugsConnected className="text-muted-foreground mx-auto mb-2 size-12" />
+                <h3 className="mb-1 text-sm font-medium">
+                  No connections available
+                </h3>
+                <p className="text-muted-foreground text-sm">
+                  Third-party service connections will appear here.
+                </p>
+              </div>
+            </TabsContent>
           </div>
-        </div> */}
+        ) : (
+          // Desktop version - tabs on left
+          <>
+            <TabsList className="block w-48 rounded-none bg-transparent px-3 pt-4">
+              <div className="flex w-full flex-col gap-1">
+                <TabsTrigger
+                  value="general"
+                  className="w-full justify-start rounded-md px-3 py-2 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <GearSix className="size-4" />
+                    <span>General</span>
+                  </div>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="appearance"
+                  className="w-full justify-start rounded-md px-3 py-2 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <PaintBrush className="size-4" />
+                    <span>Appearance</span>
+                  </div>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="connections"
+                  className="w-full justify-start rounded-md px-3 py-2 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <PlugsConnected className="size-4" />
+                    <span>Connections</span>
+                  </div>
+                </TabsTrigger>
+              </div>
+            </TabsList>
+
+            {/* Desktop tabs content */}
+            <div className="flex-1 overflow-auto px-6 pt-4">
+              <TabsContent value="general" className="mt-0 space-y-6">
+                {/* User Info */}
+                <div>
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-muted flex items-center justify-center overflow-hidden rounded-full">
+                      {user?.profile_image ? (
+                        <Avatar className="size-12">
+                          <AvatarImage
+                            src={user.profile_image}
+                            className="object-cover"
+                          />
+                          <AvatarFallback>
+                            {user?.display_name?.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <User className="text-muted-foreground size-12" />
+                      )}
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium">
+                        {user?.display_name}
+                      </h4>
+                      <p className="text-muted-foreground text-sm">
+                        {user?.email}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Model Selection */}
+                <div>
+                  <h3 className="mb-3 text-sm font-medium">Preferred model</h3>
+                  <div className="relative">
+                    <ModelSelector
+                      selectedModelId={selectedModelId}
+                      setSelectedModelId={handleModelSelection}
+                      className="w-full"
+                    />
+                  </div>
+                  <p className="text-muted-foreground mt-2 text-xs">
+                    This model will be used by default for new conversations.
+                  </p>
+                </div>
+
+                {/* System Prompt */}
+                <div>
+                  <SystemPromptSection />
+                </div>
+
+                {/* Sign Out */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium">Sign out</h3>
+                    <p className="text-muted-foreground text-xs">
+                      Log out on this device
+                    </p>
+                  </div>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex items-center gap-2"
+                    onClick={handleSignOut}
+                  >
+                    <SignOut className="size-4" />
+                    <span>Sign out</span>
+                  </Button>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="appearance" className="mt-0 space-y-6">
+                {/* Theme Selection */}
+                <div>
+                  <h4 className="mb-3 text-sm font-medium">Theme</h4>
+                  <div className="grid grid-cols-3 gap-3">
+                    {themes.map((theme) => (
+                      <button
+                        key={theme.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedTheme(theme.id)
+                          setTheme(theme.id)
+                        }}
+                        className={`rounded-lg border p-3 ${
+                          selectedTheme === theme.id
+                            ? "border-primary ring-primary/30 ring-2"
+                            : "border-border"
+                        }`}
+                      >
+                        <div className="mb-2 flex space-x-1">
+                          {theme.colors.map((color, i) => (
+                            <div
+                              key={i}
+                              className="border-border h-4 w-4 rounded-full border"
+                              style={{ backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                        <p className="text-left text-sm font-medium">
+                          {theme.name}
+                        </p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <LayoutSection />
+              </TabsContent>
+
+              <TabsContent value="connections" className="mt-0">
+                <div className="py-8 text-center">
+                  <PlugsConnected className="text-muted-foreground mx-auto mb-2 size-12" />
+                  <h4 className="mb-1 text-sm font-medium">
+                    No connections available
+                  </h4>
+                  <p className="text-muted-foreground text-sm">
+                    Third-party service connections will appear here.
+                  </p>
+                </div>
+              </TabsContent>
+            </div>
+          </>
+        )}
+      </Tabs>
     </div>
   )
 }

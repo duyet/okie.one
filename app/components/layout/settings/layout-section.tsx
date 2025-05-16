@@ -242,30 +242,28 @@ export function LayoutSection() {
   const selectedLayout = preferences.layout
 
   return (
-    <div className="border-border border-t">
-      <div className="px-6 py-4">
-        <h3 className="mb-3 text-sm font-medium">Layout</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {OPTIONS.map((option) => (
-            <button
-              key={option}
-              type="button"
-              className={cn(
-                "overflow-hidden rounded-lg border",
-                selectedLayout === option &&
-                  "border-primary ring-primary/30 ring-2"
-              )}
-              onClick={() => setLayout(option)}
-            >
-              {option === "sidebar" && (
-                <LayoutSidebar className="h-full w-full" />
-              )}
-              {option === "fullscreen" && (
-                <LayoutFullscreen className="h-full w-full" />
-              )}
-            </button>
-          ))}
-        </div>
+    <div>
+      <h3 className="mb-3 text-sm font-medium">Layout</h3>
+      <div className="grid grid-cols-2 gap-3">
+        {OPTIONS.map((option) => (
+          <button
+            key={option}
+            type="button"
+            className={cn(
+              "overflow-hidden rounded-lg border",
+              selectedLayout === option &&
+                "border-primary ring-primary/30 ring-2"
+            )}
+            onClick={() => setLayout(option)}
+          >
+            {option === "sidebar" && (
+              <LayoutSidebar className="h-full w-full" />
+            )}
+            {option === "fullscreen" && (
+              <LayoutFullscreen className="h-full w-full" />
+            )}
+          </button>
+        ))}
       </div>
     </div>
   )

@@ -40,8 +40,8 @@ export function SettingsTrigger() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="gap-0 p-0 sm:max-w-xl">
-        <DialogHeader className="border-border border-b px-6 py-4">
+      <DialogContent className="flex h-[80%] min-h-[480px] w-full flex-col gap-0 p-0 sm:max-w-[768px]">
+        <DialogHeader className="border-border border-b px-6 py-5">
           <DialogTitle>Settings</DialogTitle>
         </DialogHeader>
         <SettingsContent onClose={() => setOpen(false)} />

@@ -52,45 +52,43 @@ export function SystemPromptSection() {
   const hasChanges = prompt !== (user?.system_prompt || "")
 
   return (
-    <div className="border-border border-t">
-      <div className="px-6 py-4">
-        <Label htmlFor="system-prompt" className="mb-3 text-sm font-medium">
-          Default system prompt
-        </Label>
-        <div className="relative">
-          <Textarea
-            id="system-prompt"
-            className="min-h-24 w-full"
-            placeholder="Enter a default system prompt for new conversations"
-            value={prompt}
-            onChange={handlePromptChange}
-          />
+    <div>
+      <Label htmlFor="system-prompt" className="mb-3 text-sm font-medium">
+        Default system prompt
+      </Label>
+      <div className="relative">
+        <Textarea
+          id="system-prompt"
+          className="min-h-24 w-full"
+          placeholder="Enter a default system prompt for new conversations"
+          value={prompt}
+          onChange={handlePromptChange}
+        />
 
-          <AnimatePresence>
-            {hasChanges && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="absolute right-3 bottom-3"
+        <AnimatePresence>
+          {hasChanges && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute right-3 bottom-3"
+            >
+              <Button
+                size="sm"
+                onClick={savePrompt}
+                className="shadow-sm"
+                disabled={isLoading}
               >
-                <Button
-                  size="sm"
-                  onClick={savePrompt}
-                  className="shadow-sm"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Saving..." : "Save prompt"}
-                </Button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-        <p className="text-muted-foreground mt-2 text-xs">
-          This prompt will be used for new chats unless you select an agent.
-        </p>
+                {isLoading ? "Saving..." : "Save prompt"}
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
+      <p className="text-muted-foreground mt-2 text-xs">
+        This prompt will be used for new chats unless you select an agent.
+      </p>
     </div>
   )
 }
