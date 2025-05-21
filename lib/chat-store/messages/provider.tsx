@@ -6,11 +6,10 @@ import type { Message as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
 import { writeToIndexedDB } from "../persist"
 import {
-  addMessage,
   cacheMessages,
   clearMessagesForChat,
-  fetchAndCacheMessages,
   getCachedMessages,
+  getMessagesFromDb,
   setMessages as saveMessages,
 } from "./api"
 
@@ -18,7 +17,6 @@ interface MessagesContextType {
   messages: MessageAISDK[]
   setMessages: React.Dispatch<React.SetStateAction<MessageAISDK[]>>
   refresh: () => Promise<void>
-  addMessage: (message: MessageAISDK) => Promise<void>
   saveAllMessages: (messages: MessageAISDK[]) => Promise<void>
   cacheAndAddMessage: (message: MessageAISDK) => Promise<void>
   resetMessages: () => Promise<void>
@@ -52,7 +50,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
       setMessages(cached)
 
       try {
-        const fresh = await fetchAndCacheMessages(chatId)
+        const fresh = await getMessagesFromDb(chatId)
         setMessages(fresh)
         cacheMessages(chatId, fresh)
       } catch (error) {
@@ -67,21 +65,10 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     if (!chatId) return
 
     try {
-      const fresh = await fetchAndCacheMessages(chatId)
+      const fresh = await getMessagesFromDb(chatId)
       setMessages(fresh)
     } catch (e) {
       toast({ title: "Failed to refresh messages", status: "error" })
-    }
-  }
-
-  const addSingleMessage = async (message: MessageAISDK) => {
-    if (!chatId) return
-
-    try {
-      await addMessage(chatId, message)
-      setMessages((prev) => [...prev, message])
-    } catch (e) {
-      toast({ title: "Failed to add message", status: "error" })
     }
   }
 
@@ -89,15 +76,18 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     if (!chatId) return
 
     try {
-      const updated = [...messages, message]
-      await writeToIndexedDB("messages", { id: chatId, messages: updated })
-      setMessages(updated)
+      setMessages((prev) => {
+        const updated = [...prev, message]
+        writeToIndexedDB("messages", { id: chatId, messages: updated })
+        return updated
+      })
     } catch (e) {
       toast({ title: "Failed to save message", status: "error" })
     }
   }
 
   const saveAllMessages = async (newMessages: MessageAISDK[]) => {
+    // @todo: manage the case where the chatId is null (first time the user opens the chat)
     if (!chatId) return
 
     try {
@@ -125,7 +115,6 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
         messages,
         setMessages,
         refresh,
-        addMessage: addSingleMessage,
         saveAllMessages,
         cacheAndAddMessage,
         resetMessages,
