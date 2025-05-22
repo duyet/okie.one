@@ -19,13 +19,13 @@ export function useAgentCommand({
   agents: Agent[]
   defaultAgent?: Agent | null
 }) {
+  const searchParams = useSearchParams()
   const { chatId } = useChatSession()
   const { user } = useUser()
   const { updateChatAgent } = useChats()
 
   const pathname = usePathname()
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(defaultAgent)
   const [showAgentCommand, setShowAgentCommand] = useState(false)
@@ -53,6 +53,8 @@ export function useAgentCommand({
 
   const updateAgentInUrl = useCallback(
     (agent: Agent | null) => {
+      if (!searchParams) return
+
       const params = new URLSearchParams(searchParams.toString())
       agent ? params.set("agent", agent.slug) : params.delete("agent")
       router.push(`${pathname}?${params.toString()}`, { scroll: false })
