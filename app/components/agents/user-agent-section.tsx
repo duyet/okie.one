@@ -8,7 +8,7 @@ import { DialogCreateAgentTrigger } from "./dialog-create-agent/dialog-trigger-c
 type UserAgentsSectionProps = {
   agents: Agent[] | null
   userId?: string | null
-  handleAgentClick: (agentId: string) => void
+  handleAgentClick: (agentId: string | null) => void
   openAgentId: string | null
   setOpenAgentId: (agentId: string | null) => void
   moreAgents: Agent[]
@@ -84,6 +84,7 @@ export function UserAgentsSection({
             system_prompt={agent.system_prompt}
             tools={agent.tools}
             mcp_config={agent.mcp_config}
+            creator_id={agent.creator_id}
           />
         ))}
       </div>
