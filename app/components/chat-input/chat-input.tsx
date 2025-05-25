@@ -1,6 +1,7 @@
 "use client"
 
 import { useAgentCommand } from "@/app/components/chat-input/use-agent-command"
+import { ModelSelector } from "@/components/common/model-selector/base"
 import {
   PromptInput,
   PromptInputAction,
@@ -9,7 +10,7 @@ import {
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
 import { useAgent } from "@/lib/agent-store/provider"
-import { MODELS_OPTIONS } from "@/lib/config"
+import { MODELS } from "@/lib/models"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { ArrowUp, Stop, Warning } from "@phosphor-icons/react"
 import React, { useCallback, useEffect } from "react"
@@ -17,7 +18,6 @@ import { PromptSystem } from "../suggestions/prompt-system"
 import { AgentCommand } from "./agent-command"
 import { ButtonFileUpload } from "./button-file-upload"
 import { FileList } from "./file-list"
-import { SelectModel } from "./select-model"
 import { SelectedAgent } from "./selected-agent"
 
 type ChatInputProps = {
@@ -63,12 +63,8 @@ export function ChatInput({
     defaultAgent: currentAgent,
   })
 
-  const selectModelConfig = MODELS_OPTIONS.find(
-    (model) => model.id === selectedModel
-  )
-  const noToolSupport = selectModelConfig?.features?.some(
-    (feature) => feature.id === "tool-use" && !feature.enabled
-  )
+  const selectModelConfig = MODELS.find((model) => model.id === selectedModel)
+  const noToolSupport = selectModelConfig?.tools
 
   const handleSend = useCallback(() => {
     if (isSubmitting) {
@@ -203,10 +199,11 @@ export function ChatInput({
                 isUserAuthenticated={isUserAuthenticated}
                 model={selectedModel}
               />
-              <SelectModel
-                selectedModel={selectedModel}
-                onSelectModel={onSelectModel}
+              <ModelSelector
+                selectedModelId={selectedModel}
+                setSelectedModelId={onSelectModel}
                 isUserAuthenticated={isUserAuthenticated}
+                className="rounded-full"
               />
               {currentAgent && noToolSupport && (
                 <div className="flex items-center gap-1">
