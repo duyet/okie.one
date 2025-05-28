@@ -1,17 +1,16 @@
 // app/providers/user-provider.tsx
 "use client"
 
+import { UserProfile } from "@/app/types/user"
 import { createClient } from "@/lib/supabase/client"
-import { createContext, useContext, useEffect, useState } from "react"
-import { UserProfile } from "../types/user"
 import {
   fetchUserProfile,
   signOutUser,
   subscribeToUserUpdates,
   updateUserProfile,
-} from "./user-api"
+} from "@/lib/user-store/api"
+import { createContext, useContext, useEffect, useState } from "react"
 
-// @todo: move in /lib/user/provider.tsx
 type UserContextType = {
   user: UserProfile | null
   isLoading: boolean

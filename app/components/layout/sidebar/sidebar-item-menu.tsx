@@ -1,5 +1,4 @@
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { useChatSession } from "@/app/providers/chat-session-provider"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,6 +7,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
+import { useChatSession } from "@/lib/chat-store/session/provider"
 import { DotsThree, PencilSimple, Trash } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"

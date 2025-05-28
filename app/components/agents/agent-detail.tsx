@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/app/providers/user-provider"
 import { AgentSummary } from "@/app/types/agent"
 import type { Tables } from "@/app/types/database.types"
 import { ButtonCopy } from "@/components/common/button-copy"
@@ -32,6 +31,7 @@ import {
 import { fetchClient } from "@/lib/fetch"
 import { API_ROUTE_DELETE_AGENT } from "@/lib/routes"
 import { createClient } from "@/lib/supabase/client"
+import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 import {
   ChatCircle,

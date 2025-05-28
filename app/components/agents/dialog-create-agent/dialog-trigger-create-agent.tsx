@@ -1,7 +1,6 @@
 "use client"
 
 import { PopoverContentAuth } from "@/app/components/chat-input/popover-content-auth"
-import { useUser } from "@/app/providers/user-provider"
 import {
   Dialog,
   DialogContent,
@@ -18,6 +17,7 @@ import {
 import { toast } from "@/components/ui/toast"
 import { fetchClient } from "@/lib/fetch"
 import { API_ROUTE_CREATE_AGENT } from "@/lib/routes"
+import { useUser } from "@/lib/user-store/provider"
 import { useRouter } from "next/navigation"
 import type React from "react"
 import { useState } from "react"

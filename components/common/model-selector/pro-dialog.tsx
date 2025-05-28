@@ -1,13 +1,13 @@
 "use client"
 
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { useUser } from "@/app/providers/user-provider"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Drawer, DrawerContent } from "@/components/ui/drawer"
 import { APP_NAME } from "@/lib/config"
 import { createClient } from "@/lib/supabase/client"
+import { useUser } from "@/lib/user-store/provider"
 import { useEffect, useState } from "react"
 
 type ProModelDialogProps = {

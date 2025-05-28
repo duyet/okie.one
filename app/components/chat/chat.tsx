@@ -3,13 +3,12 @@
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { Conversation } from "@/app/components/chat/conversation"
 import { useChatDraft } from "@/app/hooks/use-chat-draft"
-import { useChatSession } from "@/app/providers/chat-session-provider"
-import { useUser } from "@/app/providers/user-provider"
 import { toast } from "@/components/ui/toast"
 import { useAgent } from "@/lib/agent-store/provider"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
+import { useChatSession } from "@/lib/chat-store/session/provider"
 import {
   MESSAGE_MAX_LENGTH,
   MODEL_DEFAULT,
@@ -17,6 +16,7 @@ import {
 } from "@/lib/config"
 import { Attachment } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
+import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 import { useChat } from "@ai-sdk/react"
 import { AnimatePresence, motion } from "motion/react"

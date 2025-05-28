@@ -1,12 +1,12 @@
 "use client"
 
-import { useChatSession } from "@/app/providers/chat-session-provider"
 import { Agent } from "@/app/types/agent"
 import {
   fetchAgentBySlugOrId,
   fetchCuratedAgentsFromDb,
   fetchUserAgentsFromDb,
 } from "@/lib/agent-store/api"
+import { useChatSession } from "@/lib/chat-store/session/provider"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import {
   createContext,

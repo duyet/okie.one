@@ -1,6 +1,5 @@
 "use client"
 
-import { useUser } from "@/app/providers/user-provider"
 import { ModelSelector } from "@/components/common/model-selector/base"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -11,6 +10,7 @@ import { useMessages } from "@/lib/chat-store/messages/provider"
 import { clearAllIndexedDBStores } from "@/lib/chat-store/persist"
 import { MODEL_DEFAULT } from "@/lib/config"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 import {
   GearSix,

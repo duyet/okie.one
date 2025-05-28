@@ -1,10 +1,10 @@
 "use client"
 
-import { useUser } from "@/app/providers/user-provider"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "@/components/ui/toast"
+import { useUser } from "@/lib/user-store/provider"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState } from "react"
 
