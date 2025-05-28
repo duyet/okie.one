@@ -24,6 +24,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { FREE_MODELS_IDS } from "@/lib/config"
+import { fetchClient } from "@/lib/fetch"
 import { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
 import { cn } from "@/lib/utils"
@@ -51,18 +52,18 @@ export function ModelSelector({
   // Load models on component mount
   useEffect(() => {
     // Only run on client side
-    if (typeof window === 'undefined') return
-    
+    if (typeof window === "undefined") return
+
     const loadModels = async () => {
       try {
         setIsLoadingModels(true)
-        
+
         // Use the API endpoint directly to avoid SSR issues
-        const response = await fetch('/api/models')
+        const response = await fetchClient("/api/models")
         if (!response.ok) {
-          throw new Error('Failed to fetch models')
+          throw new Error("Failed to fetch models")
         }
-        
+
         const data = await response.json()
         setModels(data.models || [])
       } catch (error) {
@@ -81,10 +82,11 @@ export function ModelSelector({
   const currentProvider = PROVIDERS.find(
     (provider) => provider.id === currentModel?.providerId
   )
-  
+
   // Treat all Ollama models as free models
-  const freeModels = models.filter((model) =>
-    FREE_MODELS_IDS.includes(model.id) || model.providerId === "ollama"
+  const freeModels = models.filter(
+    (model) =>
+      FREE_MODELS_IDS.includes(model.id) || model.providerId === "ollama"
   )
   const proModels = models.filter((model) => !freeModels.includes(model))
 
@@ -179,13 +181,19 @@ export function ModelSelector({
   // Get the hovered model data
   const hoveredModelData = models.find((model) => model.id === hoveredModel)
 
-  const filteredModels = models.filter((model) =>
-    model.name.toLowerCase().includes(searchQuery.toLowerCase())
-  ).sort((a, b) => {
-    const aIsFree = FREE_MODELS_IDS.includes(a.id)
-    const bIsFree = FREE_MODELS_IDS.includes(b.id)
-    return aIsFree === bIsFree ? 0 : aIsFree ? -1 : 1
-  })
+  const filteredModels = models
+    .filter((model) =>
+      model.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      const aIsFree = FREE_MODELS_IDS.includes(a.id)
+      const bIsFree = FREE_MODELS_IDS.includes(b.id)
+      return aIsFree === bIsFree ? 0 : aIsFree ? -1 : 1
+    })
+
+  if (isLoadingModels) {
+    return null
+  }
 
   const trigger = (
     <Button
@@ -195,7 +203,7 @@ export function ModelSelector({
     >
       <div className="flex items-center gap-2">
         {currentProvider?.icon && <currentProvider.icon className="size-5" />}
-        <span>{isLoadingModels ? "Loading models..." : currentModel?.name || "Select model"}</span>
+        <span>{currentModel?.name || "Select model"}</span>
       </div>
       <CaretDown className="size-4 opacity-50" />
     </Button>

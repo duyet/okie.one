@@ -23,12 +23,18 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ children }: SettingsDialogProps) {
-  const { providers, customProviders, updateProvider, addCustomProvider, removeCustomProvider } = useSettingsStore()
+  const {
+    providers,
+    customProviders,
+    updateProvider,
+    addCustomProvider,
+    removeCustomProvider,
+  } = useSettingsStore()
   const [isOpen, setIsOpen] = useState(false)
   const [newProvider, setNewProvider] = useState({
-    name: '',
-    baseUrl: '',
-    apiKey: '',
+    name: "",
+    baseUrl: "",
+    apiKey: "",
   })
 
   const handleAddCustomProvider = () => {
@@ -40,11 +46,11 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
       baseUrl: newProvider.baseUrl,
       apiKey: newProvider.apiKey,
       enabled: true,
-      type: 'openai-compatible',
+      type: "openai-compatible",
     }
 
     addCustomProvider(provider)
-    setNewProvider({ name: '', baseUrl: '', apiKey: '' })
+    setNewProvider({ name: "", baseUrl: "", apiKey: "" })
   }
 
   const trigger = children || (
@@ -57,7 +63,7 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
@@ -75,21 +81,35 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
             <div className="space-y-4">
               <h3 className="text-lg font-medium">Model Providers</h3>
               {providers.map((provider) => (
-                <div key={provider.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={provider.id}
+                  className="flex items-center justify-between rounded-lg border p-4"
+                >
                   <div className="space-y-1">
                     <div className="font-medium">{provider.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {provider.type === 'ollama' ? 'Local AI models' : `${provider.name} API`}
+                    <div className="text-muted-foreground text-sm">
+                      {provider.type === "ollama"
+                        ? "Local AI models"
+                        : `${provider.name} API`}
                     </div>
                   </div>
                   <div className="flex items-center space-x-4">
-                    {provider.type === 'ollama' && (
+                    {provider.type === "ollama" && (
                       <div className="space-y-2">
-                        <Label htmlFor={`${provider.id}-url`} className="text-sm">Base URL</Label>
+                        <Label
+                          htmlFor={`${provider.id}-url`}
+                          className="text-sm"
+                        >
+                          Base URL
+                        </Label>
                         <Input
                           id={`${provider.id}-url`}
-                          value={provider.baseUrl || ''}
-                          onChange={(e) => updateProvider(provider.id, { baseUrl: e.target.value })}
+                          value={provider.baseUrl || ""}
+                          onChange={(e) =>
+                            updateProvider(provider.id, {
+                              baseUrl: e.target.value,
+                            })
+                          }
                           placeholder="http://localhost:11434"
                           className="w-48"
                         />
@@ -97,7 +117,9 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                     )}
                     <Switch
                       checked={provider.enabled}
-                      onCheckedChange={(enabled) => updateProvider(provider.id, { enabled })}
+                      onCheckedChange={(enabled) =>
+                        updateProvider(provider.id, { enabled })
+                      }
                     />
                   </div>
                 </div>
@@ -107,10 +129,12 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
 
           <TabsContent value="custom" className="space-y-4">
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Custom OpenAI-Compatible Providers</h3>
-              
+              <h3 className="text-lg font-medium">
+                Custom OpenAI-Compatible Providers
+              </h3>
+
               {/* Add new provider form */}
-              <div className="p-4 border rounded-lg space-y-4">
+              <div className="space-y-4 rounded-lg border p-4">
                 <h4 className="font-medium">Add New Provider</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -118,7 +142,9 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                     <Input
                       id="provider-name"
                       value={newProvider.name}
-                      onChange={(e) => setNewProvider({ ...newProvider, name: e.target.value })}
+                      onChange={(e) =>
+                        setNewProvider({ ...newProvider, name: e.target.value })
+                      }
                       placeholder="My Custom Provider"
                     />
                   </div>
@@ -127,7 +153,12 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                     <Input
                       id="provider-url"
                       value={newProvider.baseUrl}
-                      onChange={(e) => setNewProvider({ ...newProvider, baseUrl: e.target.value })}
+                      onChange={(e) =>
+                        setNewProvider({
+                          ...newProvider,
+                          baseUrl: e.target.value,
+                        })
+                      }
                       placeholder="https://api.example.com/v1"
                     />
                   </div>
@@ -138,12 +169,17 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                     id="provider-key"
                     type="password"
                     value={newProvider.apiKey}
-                    onChange={(e) => setNewProvider({ ...newProvider, apiKey: e.target.value })}
+                    onChange={(e) =>
+                      setNewProvider({ ...newProvider, apiKey: e.target.value })
+                    }
                     placeholder="sk-..."
                   />
                 </div>
-                <Button onClick={handleAddCustomProvider} disabled={!newProvider.name || !newProvider.baseUrl}>
-                  <Plus className="size-4 mr-2" />
+                <Button
+                  onClick={handleAddCustomProvider}
+                  disabled={!newProvider.name || !newProvider.baseUrl}
+                >
+                  <Plus className="mr-2 size-4" />
                   Add Provider
                 </Button>
               </div>
@@ -153,15 +189,22 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
                 <div className="space-y-2">
                   <h4 className="font-medium">Your Custom Providers</h4>
                   {customProviders.map((provider) => (
-                    <div key={provider.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div
+                      key={provider.id}
+                      className="flex items-center justify-between rounded-lg border p-4"
+                    >
                       <div className="space-y-1">
                         <div className="font-medium">{provider.name}</div>
-                        <div className="text-sm text-muted-foreground">{provider.baseUrl}</div>
+                        <div className="text-muted-foreground text-sm">
+                          {provider.baseUrl}
+                        </div>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Switch
                           checked={provider.enabled}
-                          onCheckedChange={(enabled) => updateProvider(provider.id, { enabled })}
+                          onCheckedChange={(enabled) =>
+                            updateProvider(provider.id, { enabled })
+                          }
                         />
                         <Button
                           variant="ghost"
@@ -177,7 +220,7 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
               )}
 
               {customProviders.length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
+                <div className="text-muted-foreground py-8 text-center">
                   No custom providers configured yet.
                 </div>
               )}
@@ -187,4 +230,4 @@ export function SettingsDialog({ children }: SettingsDialogProps) {
       </DialogContent>
     </Dialog>
   )
-} 
+}

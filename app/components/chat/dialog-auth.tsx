@@ -47,7 +47,10 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
       }
     } catch (err: unknown) {
       console.error("Error signing in with Google:", err)
-      setError((err as Error).message || "An unexpected error occurred. Please try again.")
+      setError(
+        (err as Error).message ||
+          "An unexpected error occurred. Please try again."
+      )
     } finally {
       setIsLoading(false)
     }
@@ -77,7 +80,7 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
             onClick={handleSignInWithGoogle}
             disabled={isLoading}
           >
-            <Image
+            <img
               src="https://www.google.com/favicon.ico"
               alt="Google logo"
               width={20}

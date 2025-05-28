@@ -69,7 +69,7 @@ export function ConnectionsSection() {
   return (
     <div className="space-y-8">
       {/* Provider Settings */}
-      <ProviderSettingsSection />
+      {isDev && <ProviderSettingsSection />}
 
       {/* Divider */}
       <div className="border-t" />
@@ -82,26 +82,35 @@ export function ConnectionsSection() {
       ) : !isDev ? (
         <div className="py-8 text-center">
           <PlugsConnected className="text-muted-foreground mx-auto mb-2 size-12" />
-          <h3 className="mb-1 text-sm font-medium">No developer tools available</h3>
+          <h3 className="mb-1 text-sm font-medium">
+            No developer tools available
+          </h3>
           <p className="text-muted-foreground text-sm">
-            Third-party service connections will appear here in development mode.
+            Third-party service connections will appear here in development
+            mode.
           </p>
         </div>
       ) : (
         <div className="space-y-6">
           {/* Header */}
           <div>
-            <h3 className="mb-2 text-lg font-medium">Developer Tool connections</h3>
+            <h3 className="mb-2 text-lg font-medium">
+              Developer Tool connections
+            </h3>
             <p className="text-muted-foreground text-sm">
-              Add API keys in .env.local to enable tools like Exa and GitHub. These
-              keys follow specific formats and are only used in development mode.
+              Add API keys in .env.local to enable tools like Exa and GitHub.
+              These keys follow specific formats and are only used in
+              development mode.
             </p>
           </div>
 
           {/* Tools List */}
           <div className="space-y-6">
             {tools.map((tool) => (
-              <div key={tool.id} className="border-border rounded-lg border p-3">
+              <div
+                key={tool.id}
+                className="border-border rounded-lg border p-3"
+              >
                 <div className="space-y-4">
                   {/* Tool Header */}
                   <div className="flex items-start gap-3">

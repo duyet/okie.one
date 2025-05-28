@@ -60,7 +60,6 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
                   </Button>
                 }
               />
-              <AgentLink />
               <Link
                 href="/auth"
                 className="font-base text-muted-foreground hover:text-foreground text-base transition-colors"

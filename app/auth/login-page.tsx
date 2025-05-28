@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button"
 import { signInWithGoogle } from "@/lib/api"
 import { createClient } from "@/lib/supabase/client"
-import Link from "next/link"
 import Image from "next/image"
+import Link from "next/link"
 import { useState } from "react"
 import { HeaderGoBack } from "../components/header-go-back"
 
@@ -31,7 +31,10 @@ export default function LoginPage() {
       }
     } catch (err: unknown) {
       console.error("Error signing in with Google:", err)
-      setError((err as Error).message || "An unexpected error occurred. Please try again.")
+      setError(
+        (err as Error).message ||
+          "An unexpected error occurred. Please try again."
+      )
     } finally {
       setIsLoading(false)
     }
@@ -64,7 +67,7 @@ export default function LoginPage() {
               onClick={handleSignInWithGoogle}
               disabled={isLoading}
             >
-              <Image
+              <img
                 src="https://www.google.com/favicon.ico"
                 alt="Google logo"
                 width={20}
