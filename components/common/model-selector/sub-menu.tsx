@@ -1,6 +1,6 @@
 import { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
-import { Brain, Image } from "@phosphor-icons/react"
+import { Brain, Image as ImageIcon } from "@phosphor-icons/react"
 import { Wrench } from "lucide-react"
 
 type SubMenuProps = {
@@ -28,7 +28,7 @@ export function SubMenu({ hoveredModelData }: SubMenuProps) {
           <div className="mt-1 flex flex-wrap gap-2">
             {hoveredModelData.vision && (
               <div className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs text-green-700 dark:bg-green-800 dark:text-green-100">
-                <Image className="size-3" />
+                <ImageIcon className="size-3" />
                 <span>Vision</span>
               </div>
             )}

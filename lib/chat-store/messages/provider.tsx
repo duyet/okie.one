@@ -67,7 +67,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     try {
       const fresh = await getMessagesFromDb(chatId)
       setMessages(fresh)
-    } catch (e) {
+    } catch {
       toast({ title: "Failed to refresh messages", status: "error" })
     }
   }
@@ -81,7 +81,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
         writeToIndexedDB("messages", { id: chatId, messages: updated })
         return updated
       })
-    } catch (e) {
+    } catch {
       toast({ title: "Failed to save message", status: "error" })
     }
   }
@@ -93,7 +93,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     try {
       await saveMessages(chatId, newMessages)
       setMessages(newMessages)
-    } catch (e) {
+    } catch {
       toast({ title: "Failed to save messages", status: "error" })
     }
   }

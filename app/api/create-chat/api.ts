@@ -1,4 +1,3 @@
-import type { Database } from "@/app/types/database.types"
 import { validateUserIdentity } from "@/lib/server/api"
 import { checkUsageByModel } from "@/lib/usage"
 

@@ -143,7 +143,7 @@ export function Chat() {
     if (chatId === null) {
       setMessages([])
     }
-  }, [chatId])
+  }, [chatId, setMessages])
 
   useEffect(() => {
     setHydrated(true)
@@ -248,7 +248,7 @@ export function Chat() {
       cacheAndAddMessage(optimisticMessage)
       clearDraft()
       hasSentFirstMessageRef.current = true
-    } catch (error) {
+    } catch {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       toast({ title: "Failed to send message", status: "error" })
@@ -313,7 +313,7 @@ export function Chat() {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       setIsSubmitting(false)
     },
-    [ensureChatExists, selectedModel, user?.id, append]
+    [ensureChatExists, selectedModel, user, append, checkLimitsAndNotify, isAuthenticated, setMessages]
   )
 
   const handleReload = async () => {
@@ -370,7 +370,7 @@ export function Chat() {
             }}
           >
             <h1 className="mb-6 text-3xl font-medium tracking-tight">
-              What's on your mind?
+              What&apos;s on your mind?
             </h1>
           </motion.div>
         ) : (

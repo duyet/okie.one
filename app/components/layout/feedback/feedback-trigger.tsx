@@ -11,13 +11,13 @@ import { Question } from "@phosphor-icons/react"
 import { useState } from "react"
 
 export function FeedbackTrigger() {
-  if (!isSupabaseEnabled) {
-    return null
-  }
-
   const { user } = useUser()
   const isMobile = useBreakpoint(768)
   const [isOpen, setIsOpen] = useState(false)
+
+  if (!isSupabaseEnabled) {
+    return null
+  }
 
   const handleClose = () => {
     setIsOpen(false)

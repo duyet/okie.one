@@ -3,17 +3,18 @@ import { checkSpecialAgentUsage, incrementSpecialAgentUsage } from "@/lib/api"
 import { sanitizeUserInput } from "@/lib/sanitize"
 import { validateUserIdentity } from "@/lib/server/api"
 import { checkUsageByModel, incrementUsageByModel } from "@/lib/usage"
-import type { Attachment } from "@ai-sdk/ui-utils"
+import type { 
+  SupabaseClientType, 
+  ChatApiParams, 
+  LogUserMessageParams, 
+  StoreAssistantMessageParams 
+} from "@/app/types/api.types"
 
 export async function validateAndTrackUsage({
   userId,
   model,
   isAuthenticated,
-}: {
-  userId: string
-  model: string
-  isAuthenticated: boolean
-}) {
+}: ChatApiParams): Promise<SupabaseClientType | null> {
   const supabase = await validateUserIdentity(userId, isAuthenticated)
   if (!supabase) return null
 
@@ -29,22 +30,14 @@ export async function logUserMessage({
   attachments,
   model,
   isAuthenticated,
-}: {
-  supabase: any
-  userId: string
-  chatId: string
-  content: string
-  attachments?: Attachment[]
-  model: string
-  isAuthenticated: boolean
-}) {
+}: LogUserMessageParams): Promise<void> {
   if (!supabase) return
 
   const { error } = await supabase.from("messages").insert({
     chat_id: chatId,
     role: "user",
     content: sanitizeUserInput(content),
-    experimental_attachments: attachments as any,
+    experimental_attachments: attachments,
     user_id: userId,
   })
 
@@ -55,7 +48,7 @@ export async function logUserMessage({
   }
 }
 
-export async function trackSpecialAgentUsage(supabase: any, userId: string) {
+export async function trackSpecialAgentUsage(supabase: SupabaseClientType, userId: string): Promise<void> {
   if (!supabase) return
   await checkSpecialAgentUsage(supabase, userId)
   await incrementSpecialAgentUsage(supabase, userId)
@@ -65,11 +58,7 @@ export async function storeAssistantMessage({
   supabase,
   chatId,
   messages,
-}: {
-  supabase: any
-  chatId: string
-  messages: any
-}) {
+}: StoreAssistantMessageParams): Promise<void> {
   if (!supabase) return
   try {
     await saveFinalAssistantMessage(supabase, chatId, messages)

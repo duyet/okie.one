@@ -2,6 +2,7 @@ import { toast } from "@/components/ui/toast"
 import { checkRateLimits } from "@/lib/api"
 import { REMAINING_QUERY_ALERT_THRESHOLD } from "@/lib/config"
 import { Message } from "@ai-sdk/react"
+import type { Chats } from "@/lib/chat-store/types"
 
 type UseChatUtilsProps = {
   isAuthenticated: boolean
@@ -18,7 +19,7 @@ type UseChatUtilsProps = {
     isAuthenticated?: boolean,
     systemPrompt?: string,
     agentId?: string
-  ) => Promise<any>
+  ) => Promise<Chats | undefined>
   setHasDialogAuth: (value: boolean) => void
 }
 
@@ -92,13 +93,17 @@ export function useChatUtils({
         }
 
         return newChat.id
-      } catch (err: any) {
+      } catch (err: unknown) {
         let errorMessage = "Something went wrong."
         try {
-          const parsed = JSON.parse(err.message)
-          errorMessage = parsed.error || errorMessage
+          const errorObj = err as { message?: string }
+          if (errorObj.message) {
+            const parsed = JSON.parse(errorObj.message)
+            errorMessage = parsed.error || errorMessage
+          }
         } catch {
-          errorMessage = err.message || errorMessage
+          const errorObj = err as { message?: string }
+          errorMessage = errorObj.message || errorMessage
         }
         toast({
           title: errorMessage,

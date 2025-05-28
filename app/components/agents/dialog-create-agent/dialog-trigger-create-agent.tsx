@@ -11,7 +11,6 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import {
   Popover,
-  PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { toast } from "@/components/ui/toast"
@@ -233,12 +232,12 @@ Never invent answers. Use tools and return what you find.`
       // Close the dialog and redirect
       setOpen(false)
       router.push(`/?agent=${agent.slug}`)
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Agent creation error:", error)
       toast({
         title: "Error creating agent",
         description:
-          error.message || "Failed to create agent. Please try again.",
+          (error as Error).message || "Failed to create agent. Please try again.",
       })
       setError({ form: "Failed to create agent. Please try again." })
     } finally {

@@ -207,7 +207,7 @@ function SingleToolCard({
   className?: string
 }) {
   const [isExpanded, setIsExpanded] = useState(defaultOpen)
-  const [parsedResult, setParsedResult] = useState<any>(null)
+  const [parsedResult, setParsedResult] = useState<unknown>(null)
   const [parseError, setParseError] = useState<string | null>(null)
 
   const { toolInvocation } = toolData
@@ -248,7 +248,7 @@ function SingleToolCard({
               if (!didCancel) {
                 setParsedResult(parsed)
               }
-            } catch (e) {
+            } catch {
               // If not valid JSON, just use the text as is
               if (!didCancel) {
                 setParsedResult(textContent.text)
@@ -312,7 +312,7 @@ function SingleToolCard({
       ) {
         return (
           <div className="space-y-3">
-            {parsedResult.map((item: any, index: number) => (
+            {parsedResult.map((item: { url: string; title: string; snippet?: string }, index: number) => (
               <div
                 key={index}
                 className="border-border border-b pb-3 last:border-0 last:pb-0"
@@ -352,20 +352,24 @@ function SingleToolCard({
 
     // Handle object results
     if (typeof parsedResult === "object" && parsedResult !== null) {
+      const resultObj = parsedResult as Record<string, unknown>
+      const title = typeof resultObj.title === "string" ? resultObj.title : null
+      const htmlUrl = typeof resultObj.html_url === "string" ? resultObj.html_url : null
+      
       return (
         <div>
-          {parsedResult.title && (
-            <div className="mb-2 font-medium">{parsedResult.title}</div>
+          {title && (
+            <div className="mb-2 font-medium">{title}</div>
           )}
-          {parsedResult.html_url && (
+          {htmlUrl && (
             <div className="mb-2">
               <a
-                href={parsedResult.html_url}
+                href={htmlUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary flex items-center gap-1 hover:underline"
               >
-                <span className="font-mono">{parsedResult.html_url}</span>
+                <span className="font-mono">{htmlUrl}</span>
                 <Link className="h-3 w-3 opacity-70" />
               </a>
             </div>

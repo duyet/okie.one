@@ -29,7 +29,7 @@ export function ToolsSection({ onSelectTools }: ToolsSectionProps) {
       }
     }
     fetchTools()
-  }, [isDev])
+  }, [])
 
   const handleToolToggle = (toolId: string) => {
     const newSelection = selectedTools.includes(toolId)

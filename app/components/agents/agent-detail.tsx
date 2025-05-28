@@ -12,7 +12,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Avatar, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -30,7 +29,6 @@ import {
 } from "@/components/ui/tooltip"
 import { fetchClient } from "@/lib/fetch"
 import { API_ROUTE_DELETE_AGENT } from "@/lib/routes"
-import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 import {
@@ -426,7 +424,7 @@ export function AgentDetail({
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Agent</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete "{name}"? This action cannot be
+                Are you sure you want to delete &quot;{name}&quot;? This action cannot be
                 undone.
               </AlertDialogDescription>
             </AlertDialogHeader>

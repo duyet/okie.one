@@ -58,12 +58,13 @@ export async function runCrawl(input: Input) {
         },
       ],
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err)
     return {
       content: [
         {
           type: "text" as const,
-          text: `Crawling error: ${err.message || String(err)}`,
+          text: `Crawling error: ${errorMessage}`,
         },
       ],
       isError: true,

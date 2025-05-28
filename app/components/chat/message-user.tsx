@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Message as MessageType } from "@ai-sdk/react"
 import { Check, Copy, Trash } from "@phosphor-icons/react"
+import Image from "next/image"
 import { useRef, useState } from "react"
 
 const getTextFromDataUrl = (dataUrl: string) => {
@@ -91,11 +92,13 @@ export function MessageUser({
               }}
             >
               <MorphingDialogTrigger className="z-10">
-                <img
+                <Image
                   className="mb-1 w-40 rounded-md"
                   key={attachment.name}
                   src={attachment.url}
-                  alt={attachment.name}
+                  alt={attachment.name || "Attachment"}
+                  width={160}
+                  height={120}
                 />
               </MorphingDialogTrigger>
               <MorphingDialogContainer>

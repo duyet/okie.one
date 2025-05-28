@@ -10,12 +10,13 @@
 
 ## Features
 
-- Multi-model support: OpenAI, Mistral, Claude, Gemini
+- Multi-model support: OpenAI, Mistral, Claude, Gemini, **Ollama (local models)**
 - File uploads with context-aware answers
 - Clean, responsive UI with light/dark themes
 - Built with Tailwind, shadcn/ui, and prompt-kit
 - Fully open-source and self-hostable
 - Customizable: user system prompt, multiple layout options
+- **Local AI with Ollama**: Run models locally with automatic model detection
 
 ## Agent Features (WIP)
 
@@ -23,9 +24,9 @@
 - Early tool and MCP integration for agent workflows
 - Foundation for more powerful, customizable agents (more coming soon)
 
-## Installation
+## Quick Start
 
-You can run Zola locally in seconds, all you need is an OpenAI API key.
+### Option 1: With OpenAI (Cloud)
 
 ```bash
 git clone https://github.com/ibelick/zola.git
@@ -33,6 +34,30 @@ cd zola
 npm install
 echo "OPENAI_API_KEY=your-key" > .env.local
 npm run dev
+```
+
+### Option 2: With Ollama (Local)
+
+```bash
+# Install and start Ollama
+curl -fsSL https://ollama.ai/install.sh | sh
+ollama pull llama3.2  # or any model you prefer
+
+# Clone and run Zola
+git clone https://github.com/ibelick/zola.git
+cd zola
+npm install
+npm run dev
+```
+
+Zola will automatically detect your local Ollama models!
+
+### Option 3: Docker with Ollama
+
+```bash
+git clone https://github.com/ibelick/zola.git
+cd zola
+docker-compose -f docker-compose.ollama.yml up
 ```
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ibelick/zola)

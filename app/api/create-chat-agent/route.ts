@@ -60,18 +60,18 @@ export async function POST(request: Request) {
         status: 200,
       }
     )
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error in create-chat-agent endpoint:", err)
 
-    if (err.code === "DAILY_LIMIT_REACHED") {
+    if (err instanceof Error && err.message.includes("DAILY_LIMIT_REACHED")) {
       return new Response(
-        JSON.stringify({ error: err.message, code: err.code }),
+        JSON.stringify({ error: err.message, code: "DAILY_LIMIT_REACHED" }),
         { status: 403 }
       )
     }
 
     return new Response(
-      JSON.stringify({ error: err.message || "Internal server error" }),
+      JSON.stringify({ error: (err as Error).message || "Internal server error" }),
       { status: 500 }
     )
   }

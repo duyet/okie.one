@@ -76,7 +76,6 @@ export function Conversation({
       <div className="absolute bottom-0 w-full max-w-3xl">
         <ScrollButton
           className="absolute top-[-50px] right-[30px]"
-          scrollRef={scrollRef}
           containerRef={containerRef}
         />
       </div>

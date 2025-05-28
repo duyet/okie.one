@@ -1,30 +1,7 @@
 import type { Database } from "@/app/types/database.types"
 import type { SupabaseClient } from "@supabase/supabase-js"
-
-type ContentPart = {
-  type: string
-  text?: string
-  toolCallId?: string
-  toolName?: string
-  args?: any
-  result?: any
-  toolInvocation?: {
-    state: string
-    step: number
-    toolCallId: string
-    toolName: string
-    args?: any
-    result?: any
-  }
-  reasoning?: string
-  details?: any[]
-}
-
-type Message = {
-  role: "user" | "assistant" | "system" | "data" | "tool" | "tool-call"
-  content: string | null | ContentPart[]
-  reasoning?: string
-}
+import type { ContentPart, Message } from "@/app/types/api.types"
+import type { Json } from "@/app/types/database.types"
 
 const DEFAULT_STEP = 0
 
@@ -35,7 +12,7 @@ export async function saveFinalAssistantMessage(
 ) {
   const parts: ContentPart[] = []
   const toolMap = new Map<string, ContentPart>()
-  let textParts: string[] = []
+  const textParts: string[] = []
 
   for (const msg of messages) {
     if (msg.role === "assistant" && Array.isArray(msg.content)) {
@@ -100,7 +77,7 @@ export async function saveFinalAssistantMessage(
     chat_id: chatId,
     role: "assistant",
     content: finalPlainText || "",
-    parts: parts,
+    parts: parts as unknown as Json,
   })
 
   if (error) {

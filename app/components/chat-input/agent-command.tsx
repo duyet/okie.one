@@ -31,24 +31,8 @@ export function AgentCommand({
   curatedAgents,
   userAgents,
 }: AgentCommandProps) {
-  if (!isSupabaseEnabled) {
-    return null
-  }
-
   const containerRef = useRef<HTMLDivElement>(null)
   const activeItemRef = useRef<HTMLLIElement>(null)
-
-  // Filter agents based on search term
-  const filteredAgents = searchTerm
-    ? [...curatedAgents, ...userAgents].filter((agent) =>
-        agent.name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-    : [...curatedAgents, ...userAgents]
-
-  // Helper function to check if an agent is curated
-  const isCuratedAgent = (agentId: string) => {
-    return curatedAgents.some((curatedAgent) => curatedAgent.id === agentId)
-  }
 
   // Handle clicks outside
   useEffect(() => {
@@ -76,6 +60,22 @@ export function AgentCommand({
       activeItemRef.current.scrollIntoView({ block: "nearest" })
     }
   }, [isOpen, activeIndex])
+
+  if (!isSupabaseEnabled) {
+    return null
+  }
+
+  // Filter agents based on search term
+  const filteredAgents = searchTerm
+    ? [...curatedAgents, ...userAgents].filter((agent) =>
+        agent.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : [...curatedAgents, ...userAgents]
+
+  // Helper function to check if an agent is curated
+  const isCuratedAgent = (agentId: string) => {
+    return curatedAgents.some((curatedAgent) => curatedAgent.id === agentId)
+  }
 
   if (!isOpen) return null
 

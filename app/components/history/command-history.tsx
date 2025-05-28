@@ -212,9 +212,9 @@ function CommandItemRow({
         <span
           className={cn(
             "text-muted-foreground text-sm font-normal opacity-100 transition-opacity duration-0",
-            "group-data-[selected=true]:opacity-0",
+            "group-data-[selected=true]:opacity-100",
             Boolean(editingId || deletingId) &&
-              "group-data-[selected=true]:opacity-100"
+              "group-data-[selected=true]:opacity-0"
           )}
         >
           {formatDate(chat?.created_at)}
@@ -400,6 +400,9 @@ export function CommandHistory({
       )
     },
     [
+      chatId,
+      router,
+      setIsOpen,
       editingId,
       deletingId,
       editTitle,

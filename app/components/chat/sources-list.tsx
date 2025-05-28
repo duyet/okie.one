@@ -5,6 +5,7 @@ import type { SourceUIPart } from "@ai-sdk/ui-utils"
 import { CaretDown, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion } from "motion/react"
 import { useState } from "react"
+import Image from "next/image"
 
 type SourcesListProps = {
   sources: SourceUIPart["source"][]
@@ -24,7 +25,7 @@ const getFavicon = (url: string | null) => {
 
     const domain = urlObj.hostname
     return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
-  } catch (error) {
+  } catch {
     // No need to log errors for invalid URLs
     return null
   }
@@ -42,7 +43,7 @@ const addUTM = (url: string) => {
     u.searchParams.set("utm_source", "zola.chat")
     u.searchParams.set("utm_medium", "research")
     return u.toString()
-  } catch (error) {
+  } catch {
     // If URL is invalid, return the original URL without modification
     return url
   }
@@ -92,10 +93,12 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                     className="bg-muted border-background h-4 w-4 rounded-full border"
                   />
                 ) : (
-                  <img
+                  <Image
                     key={`${source.url}-${index}`}
                     src={faviconUrl}
                     alt={`Favicon for ${source.title}`}
+                    width={16}
+                    height={16}
                     className="border-background h-4 w-4 rounded-sm border"
                     onError={() => handleFaviconError(source.url)}
                   />
@@ -143,9 +146,11 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                           {showFallback ? (
                             <div className="bg-muted h-4 w-4 flex-shrink-0 rounded-full" />
                           ) : (
-                            <img
+                            <Image
                               src={faviconUrl}
                               alt={`Favicon for ${source.title}`}
+                              width={16}
+                              height={16}
                               className="h-4 w-4 flex-shrink-0 rounded-sm"
                               onError={() => handleFaviconError(source.url)}
                             />

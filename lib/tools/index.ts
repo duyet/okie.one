@@ -9,7 +9,7 @@ export type ToolId = keyof typeof TOOL_REGISTRY
 
 export const getAvailableTools = () =>
   Object.entries(TOOL_REGISTRY)
-    .filter(([_, tool]) => tool.isAvailable)
+    .filter(([, tool]) => tool.isAvailable)
     .map(([id, tool]) => ({ ...tool, id }))
 
 export const getAllTools = () =>

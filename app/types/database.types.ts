@@ -318,7 +318,7 @@ export type Database = {
     Functions: {
       [_ in never]: never
     }
-    Enums: {}
+    Enums: Record<string, never>
     CompositeTypes: {
       [_ in never]: never
     }

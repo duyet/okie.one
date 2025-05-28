@@ -1,11 +1,9 @@
 import { loadAgent } from "@/lib/agents/load-agent"
 import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { loadMCPToolsFromURL } from "@/lib/mcp/load-mcp-from-url"
-import { MODELS } from "@/lib/models"
+import { getAllModels } from "@/lib/models"
 import { Attachment } from "@ai-sdk/ui-utils"
-import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import {
-  LanguageModelV1,
   Message as MessageAISDK,
   streamText,
   ToolSet,
@@ -74,24 +72,26 @@ export async function POST(req: Request) {
       agentConfig = await loadAgent(agentId)
     }
 
-    const modelConfig = MODELS.find((m) => m.id === model)
+    const allModels = await getAllModels()
+    const modelConfig = allModels.find((m) => m.id === model)
 
     if (!modelConfig || !modelConfig.apiSdk) {
       throw new Error(`Model ${model} not found`)
     }
 
-    let effectiveSystemPrompt =
+    const effectiveSystemPrompt =
       agentConfig?.systemPrompt || systemPrompt || SYSTEM_PROMPT_DEFAULT
 
     let toolsToUse = undefined
-    let effectiveMaxSteps = agentConfig?.maxSteps || 3
 
     if (agentConfig?.mcpConfig) {
       const { tools } = await loadMCPToolsFromURL(agentConfig.mcpConfig.server)
       toolsToUse = tools
     } else if (agentConfig?.tools) {
       toolsToUse = agentConfig.tools
-      await trackSpecialAgentUsage(supabase, userId)
+      if (supabase) {
+        await trackSpecialAgentUsage(supabase, userId)
+      }
     }
 
     let streamError: Error | null = null
@@ -104,20 +104,22 @@ export async function POST(req: Request) {
       // @todo: remove this
       // hardcoded for now
       maxSteps: 10,
-      onError: (err: any) => {
+      onError: (err: unknown) => {
         console.error("🛑 streamText error:", err)
         streamError = new Error(
-          err?.error ||
+          (err as { error?: string })?.error ||
             "AI generation failed. Please check your model or API key."
         )
       },
 
       onFinish: async ({ response }) => {
-        await storeAssistantMessage({
-          supabase,
-          chatId,
-          messages: response.messages,
-        })
+        if (supabase) {
+          await storeAssistantMessage({
+            supabase,
+            chatId,
+            messages: response.messages as unknown as import("@/app/types/api.types").Message[],
+          })
+        }
       },
     })
 
@@ -139,18 +141,19 @@ export async function POST(req: Request) {
       status: originalResponse.status,
       headers,
     })
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error in /api/chat:", err)
     // Return a structured error response if the error is a UsageLimitError.
-    if (err.code === "DAILY_LIMIT_REACHED") {
+    const error = err as { code?: string; message?: string }
+    if (error.code === "DAILY_LIMIT_REACHED") {
       return new Response(
-        JSON.stringify({ error: err.message, code: err.code }),
+        JSON.stringify({ error: error.message, code: error.code }),
         { status: 403 }
       )
     }
 
     return new Response(
-      JSON.stringify({ error: err.message || "Internal server error" }),
+      JSON.stringify({ error: error.message || "Internal server error" }),
       { status: 500 }
     )
   }

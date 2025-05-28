@@ -7,7 +7,6 @@ import { type VariantProps } from "class-variance-authority"
 import { useEffect, useState } from "react"
 
 export type ScrollButtonProps = {
-  scrollRef: React.RefObject<HTMLElement | null>
   containerRef: React.RefObject<HTMLElement | null>
   className?: string
   threshold?: number
@@ -16,7 +15,6 @@ export type ScrollButtonProps = {
 } & React.ButtonHTMLAttributes<HTMLButtonElement>
 
 function ScrollButton({
-  scrollRef,
   containerRef,
   className,
   threshold = 100,

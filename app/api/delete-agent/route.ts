@@ -73,10 +73,11 @@ export async function DELETE(request: Request) {
       JSON.stringify({ message: "Agent deleted successfully" }),
       { status: 200 }
     )
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error in delete-agent endpoint:", err)
+
     return new Response(
-      JSON.stringify({ error: err.message || "Internal server error" }),
+      JSON.stringify({ error: (err as Error).message || "Internal server error" }),
       { status: 500 }
     )
   }

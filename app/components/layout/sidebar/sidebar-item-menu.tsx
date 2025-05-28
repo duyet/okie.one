@@ -8,13 +8,14 @@ import {
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
 import { useChatSession } from "@/lib/chat-store/session/provider"
+import { Chat } from "@/lib/chat-store/types"
 import { DotsThree, PencilSimple, Trash } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { DialogDeleteChat } from "./dialog-delete-chat"
 
 type SidebarItemMenuProps = {
-  chat: any
+  chat: Chat
   onStartEditing: () => void
   onMenuOpenChange?: (open: boolean) => void
 }

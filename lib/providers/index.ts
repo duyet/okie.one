@@ -1,3 +1,4 @@
+import React from "react"
 import Anthropic from "@/components/icons/anthropic"
 import Claude from "@/components/icons/claude"
 import DeepSeek from "@/components/icons/deepseek"
@@ -5,6 +6,7 @@ import Gemini from "@/components/icons/gemini"
 import Google from "@/components/icons/google"
 import Grok from "@/components/icons/grok"
 import Mistral from "@/components/icons/mistral"
+import Ollama from "@/components/icons/ollama"
 import OpenAI from "@/components/icons/openai"
 import OpenRouter from "@/components/icons/openrouter"
 import Xai from "@/components/icons/xai"
@@ -66,5 +68,10 @@ export const PROVIDERS: Provider[] = [
     id: "anthropic",
     name: "Anthropic",
     icon: Anthropic,
+  },
+  {
+    id: "ollama",
+    name: "Ollama",
+    icon: Ollama,
   },
 ] as Provider[]

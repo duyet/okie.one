@@ -49,7 +49,7 @@ export function UserAgentsSection({
       <div className="mt-8 border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-6 text-center">
           <h3 className="mb-2 text-lg font-medium">
-            You haven't created any agents yet
+            You haven&apos;t created any agents yet
           </h3>
           <p className="text-muted-foreground mb-4">
             Create your first custom agent to get started

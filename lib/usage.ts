@@ -91,9 +91,6 @@ export async function incrementUsage(
   supabase: SupabaseClient,
   userId: string
 ): Promise<void> {
-  let messageCount: number
-  let dailyCount: number
-
   const { data: userData, error: userDataError } = await supabase
     .from("users")
     .select("message_count, daily_message_count")
@@ -107,14 +104,14 @@ export async function incrementUsage(
     )
   }
 
-  messageCount = userData.message_count || 0
-  dailyCount = userData.daily_message_count || 0
+  const messageCount = userData.message_count || 0
+  const dailyCount = userData.daily_message_count || 0
 
   // Increment both overall and daily message counts.
   const newOverallCount = messageCount + 1
   const newDailyCount = dailyCount + 1
 
-  const { error: updateError, data: updateData } = await supabase
+  const { error: updateError } = await supabase
     .from("users")
     .update({
       message_count: newOverallCount,

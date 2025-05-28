@@ -24,7 +24,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { FREE_MODELS_IDS } from "@/lib/config"
-import { MODELS } from "@/lib/models"
 import { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
 import { cn } from "@/lib/utils"
@@ -46,14 +45,48 @@ export function ModelSelector({
   className,
   isUserAuthenticated = true,
 }: ModelSelectorProps) {
-  const currentModel = MODELS.find((model) => model.id === selectedModelId)
+  const [models, setModels] = useState<ModelConfig[]>([])
+  const [isLoadingModels, setIsLoadingModels] = useState(true)
+
+  // Load models on component mount
+  useEffect(() => {
+    // Only run on client side
+    if (typeof window === 'undefined') return
+    
+    const loadModels = async () => {
+      try {
+        setIsLoadingModels(true)
+        
+        // Use the API endpoint directly to avoid SSR issues
+        const response = await fetch('/api/models')
+        if (!response.ok) {
+          throw new Error('Failed to fetch models')
+        }
+        
+        const data = await response.json()
+        setModels(data.models || [])
+      } catch (error) {
+        console.error("Failed to load models:", error)
+        // Fallback to empty array if loading fails
+        setModels([])
+      } finally {
+        setIsLoadingModels(false)
+      }
+    }
+
+    loadModels()
+  }, [])
+
+  const currentModel = models.find((model) => model.id === selectedModelId)
   const currentProvider = PROVIDERS.find(
     (provider) => provider.id === currentModel?.providerId
   )
-  const freeModels = MODELS.filter((model) =>
-    FREE_MODELS_IDS.includes(model.id)
+  
+  // Treat all Ollama models as free models
+  const freeModels = models.filter((model) =>
+    FREE_MODELS_IDS.includes(model.id) || model.providerId === "ollama"
   )
-  const proModels = MODELS.filter((model) => !freeModels.includes(model))
+  const proModels = models.filter((model) => !freeModels.includes(model))
 
   const isMobile = useBreakpoint(768)
 
@@ -144,9 +177,9 @@ export function ModelSelector({
   }
 
   // Get the hovered model data
-  const hoveredModelData = MODELS.find((model) => model.id === hoveredModel)
+  const hoveredModelData = models.find((model) => model.id === hoveredModel)
 
-  const filteredModels = MODELS.filter((model) =>
+  const filteredModels = models.filter((model) =>
     model.name.toLowerCase().includes(searchQuery.toLowerCase())
   ).sort((a, b) => {
     const aIsFree = FREE_MODELS_IDS.includes(a.id)
@@ -158,10 +191,11 @@ export function ModelSelector({
     <Button
       variant="outline"
       className={cn("dark:bg-secondary justify-between", className)}
+      disabled={isLoadingModels}
     >
       <div className="flex items-center gap-2">
         {currentProvider?.icon && <currentProvider.icon className="size-5" />}
-        <span>{currentModel?.name}</span>
+        <span>{isLoadingModels ? "Loading models..." : currentModel?.name || "Select model"}</span>
       </div>
       <CaretDown className="size-4 opacity-50" />
     </Button>
@@ -232,7 +266,13 @@ export function ModelSelector({
               </div>
             </div>
             <div className="flex h-full flex-col space-y-0.5 overflow-y-auto px-4 pb-6">
-              {filteredModels.length > 0 ? (
+              {isLoadingModels ? (
+                <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+                  <p className="text-muted-foreground mb-2 text-sm">
+                    Loading models...
+                  </p>
+                </div>
+              ) : filteredModels.length > 0 ? (
                 filteredModels.map((model) => renderModelItem(model))
               ) : (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
@@ -301,7 +341,13 @@ export function ModelSelector({
               </div>
             </div>
             <div className="flex h-full flex-col space-y-0.5 overflow-y-auto px-1 pt-1 pb-0">
-              {filteredModels.length > 0 ? (
+              {isLoadingModels ? (
+                <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+                  <p className="text-muted-foreground mb-2 text-sm">
+                    Loading models...
+                  </p>
+                </div>
+              ) : filteredModels.length > 0 ? (
                 filteredModels.map((model) => {
                   const isPro = proModels.some(
                     (proModel) => proModel.id === model.id
@@ -317,7 +363,7 @@ export function ModelSelector({
                         "flex w-full items-center justify-between px-3 py-2",
                         selectedModelId === model.id && "bg-accent"
                       )}
-                      onSelect={(e) => {
+                      onSelect={() => {
                         if (isPro) {
                           setSelectedProModel(model.id)
                           setIsProDialogOpen(true)
@@ -346,7 +392,6 @@ export function ModelSelector({
                       </div>
                       {isPro && (
                         <div className="border-input bg-accent text-muted-foreground flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium">
-                          {/* <Star className="size-2" /> */}
                           <span>Pro</span>
                         </div>
                       )}

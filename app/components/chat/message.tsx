@@ -41,7 +41,6 @@ export function Message({
   if (variant === "user") {
     return (
       <MessageUser
-        children={children}
         copied={copied}
         copyToClipboard={copyToClipboard}
         onReload={onReload}
@@ -50,14 +49,15 @@ export function Message({
         id={id}
         hasScrollAnchor={hasScrollAnchor}
         attachments={attachments}
-      />
+      >
+        {children}
+      </MessageUser>
     )
   }
 
   if (variant === "assistant") {
     return (
       <MessageAssistant
-        children={children}
         copied={copied}
         copyToClipboard={copyToClipboard}
         onReload={onReload}
@@ -65,7 +65,9 @@ export function Message({
         hasScrollAnchor={hasScrollAnchor}
         parts={parts}
         status={status}
-      />
+      >
+        {children}
+      </MessageAssistant>
     )
   }
 

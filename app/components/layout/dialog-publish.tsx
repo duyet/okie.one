@@ -33,15 +33,15 @@ import type React from "react"
 import { useState } from "react"
 
 export function DialogPublish() {
-  if (!isSupabaseEnabled) {
-    return null
-  }
-
   const [openDialog, setOpenDialog] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { chatId } = useChatSession()
   const isMobile = useBreakpoint(768)
   const [copied, setCopied] = useState(false)
+
+  if (!isSupabaseEnabled) {
+    return null
+  }
 
   if (!chatId) {
     return null

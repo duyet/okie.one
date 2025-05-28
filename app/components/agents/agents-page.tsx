@@ -1,6 +1,6 @@
 "use client"
 
-import { Agent, AgentSummary } from "@/app/types/agent"
+import { Agent } from "@/app/types/agent"
 import { Button } from "@/components/ui/button"
 import { useMemo, useState } from "react"
 import { AgentFeaturedSection } from "./agent-featured-section"

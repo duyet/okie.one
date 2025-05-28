@@ -65,12 +65,13 @@ export async function runWebSearch(input: Input) {
         },
       ],
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err)
     return {
       content: [
         {
           type: "text" as const,
-          text: `Search error: ${err.message || String(err)}`,
+          text: `Search error: ${errorMessage}`,
         },
       ],
       isError: true,
