@@ -65,6 +65,7 @@ export function ChatInput({
 
   const selectModelConfig = MODELS.find((model) => model.id === selectedModel)
   const noToolSupport = selectModelConfig?.tools
+  const isOnlyWhitespace = (text: string) => !/[^\s]/.test(text)
 
   const handleSend = useCallback(() => {
     if (isSubmitting) {
@@ -95,11 +96,15 @@ export function ChatInput({
       }
 
       if (e.key === "Enter" && !e.shiftKey && !agentCommand.showAgentCommand) {
+        if (isOnlyWhitespace(value)) {
+          return
+        }
+
         e.preventDefault()
         onSend()
       }
     },
-    [agentCommand, isSubmitting, onSend, status]
+    [agentCommand, isSubmitting, onSend, status, value]
   )
 
   const handlePaste = useCallback(
@@ -221,7 +226,7 @@ export function ChatInput({
               <Button
                 size="sm"
                 className="size-9 rounded-full transition-all duration-300 ease-out"
-                disabled={!value || isSubmitting}
+                disabled={!value || isSubmitting || isOnlyWhitespace(value)}
                 type="button"
                 onClick={handleSend}
                 aria-label={status === "streaming" ? "Stop" : "Send message"}
