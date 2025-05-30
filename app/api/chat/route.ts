@@ -3,17 +3,14 @@ import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { loadMCPToolsFromURL } from "@/lib/mcp/load-mcp-from-url"
 import { getAllModels } from "@/lib/models"
 import { Attachment } from "@ai-sdk/ui-utils"
-import {
-  Message as MessageAISDK,
-  streamText,
-  ToolSet,
-} from "ai"
+import { Message as MessageAISDK, streamText, ToolSet } from "ai"
 import {
   logUserMessage,
   storeAssistantMessage,
   trackSpecialAgentUsage,
   validateAndTrackUsage,
 } from "./api"
+import { cleanMessagesForTools } from "./utils"
 
 export const maxDuration = 60
 
@@ -68,7 +65,7 @@ export async function POST(req: Request) {
 
     let agentConfig = null
 
-    if (supabase && agentId) {
+    if (agentId) {
       agentConfig = await loadAgent(agentId)
     }
 
@@ -94,12 +91,16 @@ export async function POST(req: Request) {
       }
     }
 
+    // Clean messages when switching between agents with different tool capabilities
+    const hasTools = !!toolsToUse && Object.keys(toolsToUse).length > 0
+    const cleanedMessages = cleanMessagesForTools(messages, hasTools)
+
     let streamError: Error | null = null
 
     const result = streamText({
       model: modelConfig.apiSdk(),
       system: effectiveSystemPrompt,
-      messages,
+      messages: cleanedMessages,
       tools: toolsToUse as ToolSet,
       // @todo: remove this
       // hardcoded for now
@@ -117,7 +118,8 @@ export async function POST(req: Request) {
           await storeAssistantMessage({
             supabase,
             chatId,
-            messages: response.messages as unknown as import("@/app/types/api.types").Message[],
+            messages:
+              response.messages as unknown as import("@/app/types/api.types").Message[],
           })
         }
       },
