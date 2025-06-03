@@ -206,7 +206,7 @@ const LayoutFullscreen = (props: SVGProps<SVGSVGElement>) => {
         {/* Text content in right box */}
         <path
           fill="var(--border)"
-          d="M691.418 225H498.582c-1.978 0-3.582 1.791-3.582 4s1.604 4 3.582 4h192.836c1.978 0 3.582-1.791 3.582-4s-1.604-4-3.582-4M667.848 236H498.152c-1.741 0-3.152 2.015-3.152 4.5s1.411 4.5 3.152 4.5h169.696c1.741 0 3.152-2.015 3.152-4.5s-1.411-4.5-3.152-4.5"
+          d="M691.418 225H498.582c-1.978 0-3.582 1.791-3.582 4s1.604 4 3.582 4h192.836c1.978 0 3.582-1.791 3.582-4s-1.604-4-3.582-4M667.848 237H498.152c-1.741 0-3.152 2.015-3.152 4.5s1.411 4.5 3.152 4.5h169.696c1.741 0 3.152-2.015 3.152-4.5s-1.411-4.5-3.152-4.5"
         />
         {/* Toolbar/header at top */}
         <path
@@ -217,6 +217,7 @@ const LayoutFullscreen = (props: SVGProps<SVGSVGElement>) => {
         <path
           fill="var(--border)"
           d="M847 110v1h1v-1zm-670 0h-1v1h1zm16-40v1h638v-2H193zm654 16h-1v24h2V86zm0 24v-1H177v2h670zm-670 0h1V86h-2v24zm654-40v1c8.284 0 15 6.716 15 15h2c0-9.389-7.611-17-17-17zm-638 0v-1c-9.389 0-17 7.611-17 17h2c0-8.284 6.716-15 15-15z"
+          mask="url(#c)"
         />
         {/* Window controls (dots) */}
         <path
@@ -235,35 +236,42 @@ const LayoutFullscreen = (props: SVGProps<SVGSVGElement>) => {
   )
 }
 
-const OPTIONS: LayoutType[] = ["sidebar", "fullscreen"]
-
-export function LayoutSection() {
+export function LayoutSettings() {
   const { preferences, setLayout } = useUserPreferences()
-  const selectedLayout = preferences.layout
+
+  const handleLayoutChange = (layout: LayoutType) => {
+    setLayout(layout)
+  }
 
   return (
     <div>
       <h3 className="mb-3 text-sm font-medium">Layout</h3>
       <div className="grid grid-cols-2 gap-3">
-        {OPTIONS.map((option) => (
-          <button
-            key={option}
-            type="button"
-            className={cn(
-              "overflow-hidden rounded-lg border",
-              selectedLayout === option &&
-                "border-primary ring-primary/30 ring-2"
-            )}
-            onClick={() => setLayout(option)}
-          >
-            {option === "sidebar" && (
-              <LayoutSidebar className="h-full w-full" />
-            )}
-            {option === "fullscreen" && (
-              <LayoutFullscreen className="h-full w-full" />
-            )}
-          </button>
-        ))}
+        <button
+          type="button"
+          onClick={() => handleLayoutChange("sidebar")}
+          className={cn(
+            "rounded-lg border p-3 text-left transition-colors",
+            preferences.layout === "sidebar"
+              ? "border-primary ring-primary/30 ring-2"
+              : "border-border hover:bg-muted/50"
+          )}
+        >
+          <LayoutSidebar className="h-full w-full" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleLayoutChange("fullscreen")}
+          className={cn(
+            "rounded-lg border p-3 text-left transition-colors",
+            preferences.layout === "fullscreen"
+              ? "border-primary ring-primary/30 ring-2"
+              : "border-border hover:bg-muted/50"
+          )}
+        >
+          <LayoutFullscreen className="h-full w-full" />
+        </button>
       </div>
     </div>
   )
