@@ -2,11 +2,9 @@
 
 [zola.chat](https://zola.chat)
 
-**Zola** is the open-source interface for AI chat.
+**Zola** is the open-source chat interface for all your models.
 
-[![Chat with this repo](https://zola.chat/button/github.svg)](https://zola.chat/?agent=github/ibelick/zola)
-
-![zola screenshot](./public/cover_zola.webp)
+![zola cover](./public/cover_zola.jpg)
 
 ## Features
 
