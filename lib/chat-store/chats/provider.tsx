@@ -42,6 +42,7 @@ interface ChatsContextType {
     agentId: string | null,
     isAuthenticated: boolean
   ) => Promise<void>
+  bumpChat: (id: string) => Promise<void>
 }
 const ChatsContext = createContext<ChatsContextType | null>(null)
 
@@ -89,7 +90,13 @@ export function ChatsProvider({
 
   const updateTitle = async (id: string, title: string) => {
     const prev = [...chats]
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, title } : c)))
+    const updatedChatWithNewTitle = prev.map((c) =>
+      c.id === id ? { ...c, title, updated_at: new Date().toISOString() } : c
+    )
+    const sorted = updatedChatWithNewTitle.sort(
+      (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
+    )
+    setChats(sorted)
     try {
       await updateChatTitle(id, title)
     } catch {
@@ -136,6 +143,7 @@ export function ChatsProvider({
       agent_id: agentId || null,
       user_id: userId,
       public: true,
+      updated_at: new Date().toISOString(),
     }
     setChats((prev) => [...prev, optimisticChat])
 
@@ -191,6 +199,17 @@ export function ChatsProvider({
     await updateChatAgentFromDb(userId, chatId, agentId, isAuthenticated)
   }
 
+  const bumpChat = async (id: string) => {
+    const prev = [...chats]
+    const updatedChatWithNewUpdatedAt = prev.map((c) =>
+      c.id === id ? { ...c, updated_at: new Date().toISOString() } : c
+    )
+    const sorted = updatedChatWithNewUpdatedAt.sort(
+      (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
+    )
+    setChats(sorted)
+  }
+
   return (
     <ChatsContext.Provider
       value={{
@@ -204,6 +223,7 @@ export function ChatsProvider({
         getChatById,
         updateChatModel,
         updateChatAgent,
+        bumpChat,
         isLoading,
       }}
     >
