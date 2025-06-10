@@ -4,7 +4,6 @@ import { createMistral, mistral } from "@ai-sdk/mistral"
 import { createOpenAI, openai } from "@ai-sdk/openai"
 import type { LanguageModelV1 } from "@ai-sdk/provider"
 import { createXai, xai } from "@ai-sdk/xai"
-import { createOpenRouter } from "@openrouter/ai-sdk-provider"
 import { getProviderForModel } from "./provider-map"
 import type {
   AnthropicModel,
