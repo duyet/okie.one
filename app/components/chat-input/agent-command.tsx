@@ -1,11 +1,12 @@
 "use client"
 
+import useClickOutside from "@/app/hooks/use-click-outside"
 import { Agent } from "@/app/types/agent"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { cn } from "@/lib/utils"
 import { Cube, Plus } from "@phosphor-icons/react"
-import { useEffect, useRef } from "react"
+import { useRef } from "react"
 import { DialogCreateAgentTrigger } from "../agents/dialog-create-agent/dialog-trigger-create-agent"
 
 type AgentCommandProps = {
@@ -32,34 +33,16 @@ export function AgentCommand({
   userAgents,
 }: AgentCommandProps) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const activeItemRef = useRef<HTMLLIElement>(null)
 
-  // Handle clicks outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        onClose()
-      }
-    }
+  // Handle clicks outside using the custom hook
+  useClickOutside(containerRef, onClose)
 
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside)
+  // Ref callback to handle scrolling into view
+  const activeItemRef = (element: HTMLLIElement | null) => {
+    if (element && isOpen) {
+      element.scrollIntoView({ block: "nearest" })
     }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-    }
-  }, [isOpen, onClose])
-
-  // Scroll active item into view when activeIndex changes
-  useEffect(() => {
-    if (isOpen && activeItemRef.current) {
-      activeItemRef.current.scrollIntoView({ block: "nearest" })
-    }
-  }, [isOpen, activeIndex])
+  }
 
   if (!isSupabaseEnabled) {
     return null
