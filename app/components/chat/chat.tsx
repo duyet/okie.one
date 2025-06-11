@@ -99,6 +99,7 @@ export function Chat() {
   )
 
   const hasSentFirstMessageRef = useRef(false)
+  const prevChatIdRef = useRef<string | null>(chatId)
   const isAuthenticated = useMemo(() => !!user?.id, [user?.id])
 
   const { draftValue, clearDraft } = useChatDraft(chatId)
@@ -136,6 +137,16 @@ export function Chat() {
     onFinish: cacheAndAddMessage,
     onError: handleError,
   })
+
+  // Reset messages when navigating from a chat to home (not on every render)
+  if (
+    prevChatIdRef.current !== null &&
+    chatId === null &&
+    messages.length > 0
+  ) {
+    setMessages([])
+  }
+  prevChatIdRef.current = chatId
 
   const { checkLimitsAndNotify, ensureChatExists } = useChatUtils({
     isAuthenticated,
@@ -199,9 +210,6 @@ export function Chat() {
         return
       }
 
-      // refresh the chat history (in sidebar+command/drawer)
-      bumpChat(currentChatId)
-
       if (input.length > MESSAGE_MAX_LENGTH) {
         toast({
           title: `The message you submitted was too long, please submit something shorter. (Max ${MESSAGE_MAX_LENGTH} characters)`,
@@ -243,6 +251,12 @@ export function Chat() {
       cacheAndAddMessage(optimisticMessage)
       clearDraft()
       hasSentFirstMessageRef.current = true
+
+      // Bump existing chats to top (non-blocking, after submit)
+      // If messages.length === 0, this is a new chat that was just created
+      if (messages.length > 0) {
+        bumpChat(currentChatId)
+      }
     } catch (submitError) {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
@@ -270,6 +284,8 @@ export function Chat() {
     handleSubmit,
     cacheAndAddMessage,
     clearDraft,
+    messages.length,
+    bumpChat,
   ])
 
   const handleSuggestion = useCallback(
@@ -422,8 +438,17 @@ export function Chat() {
     ]
   )
 
-  // Check for redirect condition - removed hydrated dependency
-  if (chatId && !isChatsLoading && !currentChat) {
+  // Handle redirect for invalid chatId - only redirect if we're certain the chat doesn't exist
+  // and we're not in a transient state during chat creation
+  if (
+    chatId &&
+    !isChatsLoading &&
+    !currentChat &&
+    !isSubmitting &&
+    status === "ready" &&
+    messages.length === 0 &&
+    !hasSentFirstMessageRef.current // Don't redirect if we've already sent a message in this session
+  ) {
     return redirect("/")
   }
 
