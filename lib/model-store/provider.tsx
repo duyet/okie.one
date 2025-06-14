@@ -13,6 +13,11 @@ import {
 type UserKeyStatus = {
   openrouter: boolean
   openai: boolean
+  mistral: boolean
+  google: boolean
+  perplexity: boolean
+  xai: boolean
+  anthropic: boolean
   [key: string]: boolean // Allow for additional providers
 }
 
@@ -32,6 +37,11 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
   const [userKeyStatus, setUserKeyStatus] = useState<UserKeyStatus>({
     openrouter: false,
     openai: false,
+    mistral: false,
+    google: false,
+    perplexity: false,
+    xai: false,
+    anthropic: false,
   })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -57,7 +67,15 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Failed to fetch user key status:", error)
       // Set default values on error
-      setUserKeyStatus({ openrouter: false, openai: false })
+      setUserKeyStatus({
+        openrouter: false,
+        openai: false,
+        mistral: false,
+        google: false,
+        perplexity: false,
+        xai: false,
+        anthropic: false,
+      })
     }
   }, [])
 

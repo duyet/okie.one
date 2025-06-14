@@ -9,8 +9,8 @@ import Mistral from "@/components/icons/mistral"
 import Ollama from "@/components/icons/ollama"
 import OpenAI from "@/components/icons/openai"
 import OpenRouter from "@/components/icons/openrouter"
-import Xai from "@/components/icons/xai"
 import Preplexity from "@/components/icons/perplexity"
+import Xai from "@/components/icons/xai"
 
 export type Provider = {
   id: string

@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { cn, isDev } from "@/lib/utils"
 import {
+  CubeIcon,
   GearSixIcon,
   KeyIcon,
   PaintBrushIcon,
@@ -22,13 +23,14 @@ import { OllamaSection } from "./connections/ollama-section"
 import { AccountManagement } from "./general/account-management"
 import { ModelPreferences } from "./general/model-preferences"
 import { UserProfile } from "./general/user-profile"
+import { ModelVisibilitySettings } from "./models/model-visibility-settings"
 
 type SettingsContentProps = {
   onClose: () => void
   isDrawer?: boolean
 }
 
-type TabType = "general" | "appearance" | "connections"
+type TabType = "general" | "appearance" | "models" | "connections"
 
 export function SettingsContent({
   onClose,
@@ -87,6 +89,13 @@ export function SettingsContent({
                   <span>API Keys</span>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="models"
+                  className="flex shrink-0 items-center gap-2"
+                >
+                  <CubeIcon className="size-4" />
+                  <span>Models</span>
+                </TabsTrigger>
+                <TabsTrigger
                   value="connections"
                   className="flex shrink-0 items-center gap-2"
                 >
@@ -115,6 +124,10 @@ export function SettingsContent({
 
             <TabsContent value="apikeys" className="px-6">
               <ByokSection />
+            </TabsContent>
+
+            <TabsContent value="models" className="px-6">
+              <ModelVisibilitySettings />
             </TabsContent>
 
             <TabsContent value="connections" className="space-y-6 px-6">
@@ -158,6 +171,15 @@ export function SettingsContent({
                   </div>
                 </TabsTrigger>
                 <TabsTrigger
+                  value="models"
+                  className="w-full justify-start rounded-md px-3 py-2 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <CubeIcon className="size-4" />
+                    <span>Models</span>
+                  </div>
+                </TabsTrigger>
+                <TabsTrigger
                   value="connections"
                   className="w-full justify-start rounded-md px-3 py-2 text-left"
                 >
@@ -189,6 +211,10 @@ export function SettingsContent({
 
               <TabsContent value="apikeys" className="mt-0 space-y-6">
                 <ByokSection />
+              </TabsContent>
+
+              <TabsContent value="models" className="mt-0 space-y-6">
+                <ModelVisibilitySettings />
               </TabsContent>
 
               <TabsContent value="connections" className="mt-0 space-y-6">

@@ -1,7 +1,12 @@
 "use client"
 
+import ClaudeIcon from "@/components/icons/claude"
+import GoogleIcon from "@/components/icons/google"
+import MistralIcon from "@/components/icons/mistral"
 import OpenAIIcon from "@/components/icons/openai"
 import OpenRouterIcon from "@/components/icons/openrouter"
+import PerplexityIcon from "@/components/icons/perplexity"
+import XaiIcon from "@/components/icons/xai"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +16,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -50,6 +54,46 @@ const PROVIDERS: Provider[] = [
     placeholder: "sk-...",
     getKeyUrl: "https://platform.openai.com/api-keys",
     defaultKey: "sk-............",
+  },
+  {
+    id: "mistral",
+    name: "Mistral",
+    icon: MistralIcon,
+    placeholder: "...",
+    getKeyUrl: "https://console.mistral.ai/api-keys/",
+    defaultKey: "............",
+  },
+  {
+    id: "google",
+    name: "Google",
+    icon: GoogleIcon,
+    placeholder: "AIza...",
+    getKeyUrl: "https://ai.google.dev/gemini-api/docs/api-key",
+    defaultKey: "AIza............",
+  },
+  {
+    id: "perplexity",
+    name: "Perplexity",
+    icon: PerplexityIcon,
+    placeholder: "pplx-...",
+    getKeyUrl: "https://docs.perplexity.ai/guides/getting-started",
+    defaultKey: "pplx-............",
+  },
+  {
+    id: "xai",
+    name: "XAI",
+    icon: XaiIcon,
+    placeholder: "xai-...",
+    getKeyUrl: "https://console.x.ai/",
+    defaultKey: "xai-............",
+  },
+  {
+    id: "anthropic",
+    name: "Claude",
+    icon: ClaudeIcon,
+    placeholder: "sk-ant-...",
+    getKeyUrl: "https://console.anthropic.com/settings/keys",
+    defaultKey: "sk-ant-............",
   },
 ]
 
@@ -176,14 +220,14 @@ export function ByokSection() {
         Your keys are stored securely with end-to-end encryption.
       </p>
 
-      <div className="mt-4 flex flex-row items-start justify-start gap-3">
+      <div className="mt-4 -ml-2 flex flex-row items-start justify-start gap-3 overflow-x-auto mask-x-from-98% mask-x-to-100% px-2 py-2">
         {PROVIDERS.map((provider) => (
           <button
             key={provider.id}
             type="button"
             onClick={() => setSelectedProvider(provider.id)}
             className={cn(
-              "flex aspect-square w-28 flex-col items-center justify-center gap-2 rounded-lg border p-4",
+              "flex aspect-square min-w-28 flex-col items-center justify-center gap-2 rounded-lg border p-4",
               selectedProvider === provider.id
                 ? "border-primary ring-primary/30 ring-2"
                 : "border-border"
@@ -198,7 +242,7 @@ export function ByokSection() {
           type="button"
           disabled
           className={cn(
-            "flex aspect-square w-28 flex-col items-center justify-center gap-2 rounded-lg border p-4 opacity-20",
+            "flex aspect-square min-w-28 flex-col items-center justify-center gap-2 rounded-lg border p-4 opacity-20",
             "border-primary border-dashed"
           )}
         >

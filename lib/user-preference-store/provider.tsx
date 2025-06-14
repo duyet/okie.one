@@ -10,6 +10,7 @@ type UserPreferences = {
   promptSuggestions: boolean
   showToolInvocations: boolean
   showConversationPreviews: boolean
+  hiddenModels: string[] // Array of model IDs that should be hidden
 }
 
 const defaultPreferences: UserPreferences = {
@@ -17,6 +18,7 @@ const defaultPreferences: UserPreferences = {
   promptSuggestions: true,
   showToolInvocations: true,
   showConversationPreviews: true,
+  hiddenModels: [],
 }
 
 const PREFERENCES_STORAGE_KEY = "user-preferences"
@@ -28,6 +30,8 @@ interface UserPreferencesContextType {
   setPromptSuggestions: (enabled: boolean) => void
   setShowToolInvocations: (enabled: boolean) => void
   setShowConversationPreviews: (enabled: boolean) => void
+  toggleModelVisibility: (modelId: string) => void
+  isModelHidden: (modelId: string) => boolean
 }
 
 const UserPreferencesContext = createContext<
@@ -111,6 +115,20 @@ export function UserPreferencesProvider({
     updatePreferences({ showConversationPreviews: enabled })
   }
 
+  const toggleModelVisibility = (modelId: string) => {
+    const currentHidden = preferences.hiddenModels || []
+    const isHidden = currentHidden.includes(modelId)
+    const newHidden = isHidden
+      ? currentHidden.filter((id) => id !== modelId)
+      : [...currentHidden, modelId]
+
+    updatePreferences({ hiddenModels: newHidden })
+  }
+
+  const isModelHidden = (modelId: string) => {
+    return (preferences.hiddenModels || []).includes(modelId)
+  }
+
   return (
     <UserPreferencesContext.Provider
       value={{
@@ -119,6 +137,8 @@ export function UserPreferencesProvider({
         setPromptSuggestions,
         setShowToolInvocations,
         setShowConversationPreviews,
+        toggleModelVisibility,
+        isModelHidden,
       }}
     >
       {children}

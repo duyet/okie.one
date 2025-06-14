@@ -1,8 +1,8 @@
+import { PROVIDERS } from "@/lib/providers"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-// Supported providers
-const SUPPORTED_PROVIDERS = ["openrouter", "openai"]
+const SUPPORTED_PROVIDERS = PROVIDERS.map((p) => p.id)
 
 export async function GET() {
   try {

@@ -28,6 +28,7 @@ import { FREE_MODELS_IDS } from "@/lib/config"
 import { useModel } from "@/lib/model-store/provider"
 import { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
+import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
 import {
   CaretDownIcon,
@@ -52,6 +53,7 @@ export function ModelSelector({
   isUserAuthenticated = true,
 }: ModelSelectorProps) {
   const { models, isLoading: isLoadingModels } = useModel()
+  const { isModelHidden } = useUserPreferences()
 
   const currentModel = models.find((model) => model.id === selectedModelId)
   const currentProvider = PROVIDERS.find(
@@ -124,6 +126,7 @@ export function ModelSelector({
   const hoveredModelData = models.find((model) => model.id === hoveredModel)
 
   const filteredModels = models
+    .filter((model) => !isModelHidden(model.id))
     .filter((model) =>
       model.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
