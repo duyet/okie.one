@@ -220,7 +220,7 @@ export function ByokSection() {
         Your keys are stored securely with end-to-end encryption.
       </p>
 
-      <div className="mt-4 -ml-2 flex flex-row items-start justify-start gap-3 overflow-x-auto mask-x-from-98% mask-x-to-100% px-2 py-2">
+      <div className="mt-4 grid grid-cols-4 gap-3">
         {PROVIDERS.map((provider) => (
           <button
             key={provider.id}

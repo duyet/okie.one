@@ -18,7 +18,6 @@ export function ModelVisibilitySettings() {
     model.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  // Group models by icon (real provider type) and keep all models including duplicates from different providers
   const modelsByProvider = filteredModels.reduce(
     (acc, model) => {
       const iconKey = model.icon || "unknown"
@@ -35,7 +34,6 @@ export function ModelVisibilitySettings() {
   )
 
   const handleToggle = (modelId: string) => {
-    // Optimistic update
     const currentState =
       optimisticStates[modelId] !== undefined
         ? optimisticStates[modelId]
@@ -54,6 +52,43 @@ export function ModelVisibilitySettings() {
     return optimisticStates[modelId] !== undefined
       ? optimisticStates[modelId]
       : !isModelHidden(modelId)
+  }
+
+  const handleGroupToggle = (modelsGroup: typeof models) => {
+    const allVisible = modelsGroup.every((model) =>
+      getModelVisibility(model.id)
+    )
+
+    const newState = !allVisible
+
+    setOptimisticStates((prev) => {
+      const newOptimisticStates = { ...prev }
+      modelsGroup.forEach((model) => {
+        newOptimisticStates[model.id] = newState
+      })
+      return newOptimisticStates
+    })
+
+    modelsGroup.forEach((model) => {
+      const currentVisible =
+        optimisticStates[model.id] !== undefined
+          ? optimisticStates[model.id]
+          : !isModelHidden(model.id)
+
+      if (currentVisible !== newState) {
+        toggleModelVisibility(model.id)
+      }
+    })
+  }
+
+  const getGroupVisibility = (modelsGroup: typeof models) => {
+    const visibleCount = modelsGroup.filter((model) =>
+      getModelVisibility(model.id)
+    ).length
+
+    if (visibleCount === 0) return false
+    if (visibleCount === modelsGroup.length) return true
+    return "indeterminate"
   }
 
   return (
@@ -88,6 +123,18 @@ export function ModelVisibilitySettings() {
                 <span className="text-muted-foreground text-sm">
                   ({modelsGroup.length} models)
                 </span>
+                <div className="ml-auto flex items-center gap-2">
+                  <span className="text-muted-foreground text-xs">All</span>
+                  <Switch
+                    checked={getGroupVisibility(modelsGroup) === true}
+                    onCheckedChange={() => handleGroupToggle(modelsGroup)}
+                    className={
+                      getGroupVisibility(modelsGroup) === "indeterminate"
+                        ? "opacity-60"
+                        : ""
+                    }
+                  />
+                </div>
               </div>
 
               <div className="space-y-2 pl-7">
