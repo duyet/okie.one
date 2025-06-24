@@ -40,7 +40,7 @@ export const openrouterModels: ModelConfig[] = [
     provider: "OpenRouter",
     providerId: "openrouter",
     modelFamily: "Claude",
-    baseProviderId: "anthropic",
+    baseProviderId: "claude",
     description:
       "Claude's latest model with transparent reasoning mode, excellent for complex problem-solving and coding tasks.",
     tags: ["flagship", "reasoning", "transparent", "coding"],
@@ -77,7 +77,7 @@ export const openrouterModels: ModelConfig[] = [
     provider: "OpenRouter",
     providerId: "openrouter",
     modelFamily: "Claude",
-    baseProviderId: "anthropic",
+    baseProviderId: "claude",
     description:
       "Claude's latest model with transparent reasoning mode, excellent for complex problem-solving and coding tasks.",
     tags: ["flagship", "reasoning", "transparent", "coding"],
@@ -114,7 +114,7 @@ export const openrouterModels: ModelConfig[] = [
     provider: "OpenRouter",
     providerId: "openrouter",
     modelFamily: "Gemini",
-    baseProviderId: "google",
+    baseProviderId: "gemini",
     description:
       "Google's advanced multimodal model with methodical reasoning and excellent codebase analysis capabilities.",
     tags: ["flagship", "multimodal", "methodical", "coding"],
@@ -262,7 +262,7 @@ export const openrouterModels: ModelConfig[] = [
     provider: "OpenRouter",
     providerId: "openrouter",
     modelFamily: "Gemini",
-    baseProviderId: "google",
+    baseProviderId: "gemini",
     description:
       "High-speed variant of Gemini 2.5 optimized for responsiveness while maintaining strong reasoning abilities.",
     tags: ["fast", "responsive", "efficient", "coding"],
@@ -445,7 +445,7 @@ export const openrouterModels: ModelConfig[] = [
     provider: "OpenRouter",
     providerId: "openrouter",
     modelFamily: "Claude",
-    baseProviderId: "anthropic",
+    baseProviderId: "claude",
     description:
       "Anthropic's flagship model with exceptional reasoning, coding, and creative capabilities.",
     tags: ["flagship", "reasoning", "coding", "creative"],
@@ -480,7 +480,7 @@ export const openrouterModels: ModelConfig[] = [
     provider: "OpenRouter",
     providerId: "openrouter",
     modelFamily: "Gemini",
-    baseProviderId: "google",
+    baseProviderId: "gemini",
     description:
       "Google's next-generation multimodal model with enhanced speed and reasoning capabilities.",
     tags: ["fast", "multimodal", "reasoning", "coding"],
@@ -515,7 +515,7 @@ export const openrouterModels: ModelConfig[] = [
     provider: "OpenRouter",
     providerId: "openrouter",
     modelFamily: "Gemini",
-    baseProviderId: "google",
+    baseProviderId: "gemini",
     description:
       "Lightweight version of Gemini 2.0 Flash optimized for speed and cost-efficiency.",
     tags: ["fast", "lite", "efficient", "cost-effective"],
