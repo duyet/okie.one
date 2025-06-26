@@ -1,7 +1,6 @@
-import type { Database } from "@/app/types/database.types"
-import type { SupabaseClient } from "@supabase/supabase-js"
 import type { ContentPart, Message } from "@/app/types/api.types"
-import type { Json } from "@/app/types/database.types"
+import type { Database, Json } from "@/app/types/database.types"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 const DEFAULT_STEP = 0
 

@@ -5,9 +5,12 @@ import type {
   StoreAssistantMessageParams,
   SupabaseClientType,
 } from "@/app/types/api.types"
+import { FREE_MODELS_IDS, NON_AUTH_ALLOWED_MODELS } from "@/lib/config"
+import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { sanitizeUserInput } from "@/lib/sanitize"
 import { validateUserIdentity } from "@/lib/server/api"
-import { checkUsageByModel, incrementUsageByModel } from "@/lib/usage"
+import { checkUsageByModel, incrementUsage } from "@/lib/usage"
+import { getUserKey, type ProviderWithoutOllama } from "@/lib/user-keys"
 
 export async function validateAndTrackUsage({
   userId,
@@ -17,8 +20,54 @@ export async function validateAndTrackUsage({
   const supabase = await validateUserIdentity(userId, isAuthenticated)
   if (!supabase) return null
 
+  // Check if user is authenticated
+  if (!isAuthenticated) {
+    // For unauthenticated users, only allow specific models
+    if (!NON_AUTH_ALLOWED_MODELS.includes(model)) {
+      throw new Error(
+        "This model requires authentication. Please sign in to access more models."
+      )
+    }
+  } else {
+    // For authenticated users, check API key requirements
+    const provider = getProviderForModel(model)
+
+    if (provider !== "ollama") {
+      const userApiKey = await getUserKey(
+        userId,
+        provider as ProviderWithoutOllama
+      )
+
+      // If no API key and model is not in free list, deny access
+      if (!userApiKey && !FREE_MODELS_IDS.includes(model)) {
+        throw new Error(
+          `This model requires an API key for ${provider}. Please add your API key in settings or use a free model.`
+        )
+      }
+    }
+  }
+
+  // Check usage limits for the model
   await checkUsageByModel(supabase, userId, model, isAuthenticated)
+
   return supabase
+}
+
+export async function incrementMessageCount({
+  supabase,
+  userId,
+}: {
+  supabase: SupabaseClientType
+  userId: string
+}): Promise<void> {
+  if (!supabase) return
+
+  try {
+    await incrementUsage(supabase, userId)
+  } catch (err) {
+    console.error("Failed to increment message count:", err)
+    // Don't throw error as this shouldn't block the chat
+  }
 }
 
 export async function logUserMessage({
@@ -27,8 +76,6 @@ export async function logUserMessage({
   chatId,
   content,
   attachments,
-  model,
-  isAuthenticated,
 }: LogUserMessageParams): Promise<void> {
   if (!supabase) return
 
@@ -42,8 +89,6 @@ export async function logUserMessage({
 
   if (error) {
     console.error("Error saving user message:", error)
-  } else {
-    await incrementUsageByModel(supabase, userId, model, isAuthenticated)
   }
 }
 
