@@ -1,6 +1,6 @@
 "use client"
 
-import { MultiModelConversation } from "@/app/components/chat/multi-conversation"
+import { MultiModelConversation } from "@/app/components/multi-chat/multi-conversation"
 import { toast } from "@/components/ui/toast"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import { useChats } from "@/lib/chat-store/chats/provider"
@@ -255,6 +255,7 @@ export function MultiChat() {
         }
         chatIdToUse = createdChat.id
         setMultiChatId(chatIdToUse)
+        window.history.pushState(null, "", `/c/${chatIdToUse}`)
       }
 
       const selectedChats = modelChats.filter((chat) =>
