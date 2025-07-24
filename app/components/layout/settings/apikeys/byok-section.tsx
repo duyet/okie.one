@@ -219,9 +219,9 @@ export function ByokSection() {
 
   return (
     <div>
-      <h3 className="relative mb-2 inline-flex text-lg font-medium">
+      <h3 className="relative mb-2 inline-flex font-medium text-lg">
         Model Providers{" "}
-        <span className="text-muted-foreground absolute top-0 -right-7 text-xs">
+        <span className="-right-7 absolute top-0 text-muted-foreground text-xs">
           new
         </span>
       </h3>
@@ -241,7 +241,7 @@ export function ByokSection() {
             className={cn(
               "flex aspect-square min-w-28 flex-col items-center justify-center gap-2 rounded-lg border p-4",
               selectedProvider === provider.id
-                ? "border-primary ring-primary/30 ring-2"
+                ? "border-primary ring-2 ring-primary/30"
                 : "border-border"
             )}
           >
@@ -285,7 +285,7 @@ export function ByokSection() {
               <a
                 href={selectedProviderConfig.getKeyUrl}
                 target="_blank"
-                className="text-muted-foreground mt-1 text-xs hover:underline"
+                className="mt-1 text-muted-foreground text-xs hover:underline"
               >
                 Get API key
               </a>

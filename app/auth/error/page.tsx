@@ -17,7 +17,7 @@ function AuthErrorContent() {
   return (
     <div className="w-full max-w-md space-y-8">
       <div className="text-center">
-        <h1 className="text-3xl font-medium tracking-tight text-white sm:text-4xl">
+        <h1 className="font-medium text-3xl text-white tracking-tight sm:text-4xl">
           Authentication Error
         </h1>
         <div className="mt-6 rounded-md bg-red-500/10 p-4">
@@ -48,7 +48,7 @@ export default function AuthErrorPage() {
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-white hover:bg-zinc-700"
         >
           <ArrowLeft className="size-5 text-white" />
-          <span className="font-base ml-2 hidden text-sm sm:inline-block">
+          <span className="ml-2 hidden font-base text-sm sm:inline-block">
             Back to Chat
           </span>
         </Link>

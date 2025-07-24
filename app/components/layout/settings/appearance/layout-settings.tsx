@@ -3,7 +3,6 @@ import {
   useUserPreferences,
 } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
-import * as React from "react"
 import type { SVGProps } from "react"
 
 const LayoutSidebar = (props: SVGProps<SVGSVGElement>) => {
@@ -16,6 +15,7 @@ const LayoutSidebar = (props: SVGProps<SVGSVGElement>) => {
       fill="none"
       {...props}
     >
+      <title>Layout Sidebar</title>
       <g clipPath="url(#layout-sidebar)">
         {/* Main background */}
         <path d="M0 0h1028v578H0z" strokeWidth={1} />
@@ -131,6 +131,7 @@ const LayoutFullscreen = (props: SVGProps<SVGSVGElement>) => {
       fill="none"
       {...props}
     >
+      <title>Layout Fullscreen</title>
       <g clipPath="url(#layout-fullscreen)">
         {/* Main background */}
         <path d="M0 0h1028v578H0z" strokeWidth={1} />
@@ -245,7 +246,7 @@ export function LayoutSettings() {
 
   return (
     <div>
-      <h3 className="mb-3 text-sm font-medium">Layout</h3>
+      <h3 className="mb-3 font-medium text-sm">Layout</h3>
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
@@ -253,7 +254,7 @@ export function LayoutSettings() {
           className={cn(
             "rounded-lg border p-3 text-left transition-colors",
             preferences.layout === "sidebar"
-              ? "border-primary ring-primary/30 ring-2"
+              ? "border-primary ring-2 ring-primary/30"
               : "border-border hover:bg-muted/50"
           )}
         >
@@ -266,7 +267,7 @@ export function LayoutSettings() {
           className={cn(
             "rounded-lg border p-3 text-left transition-colors",
             preferences.layout === "fullscreen"
-              ? "border-primary ring-primary/30 ring-2"
+              ? "border-primary ring-2 ring-primary/30"
               : "border-border hover:bg-muted/50"
           )}
         >

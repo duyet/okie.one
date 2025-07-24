@@ -119,7 +119,7 @@ export function MessageUser({
               </MorphingDialogContainer>
             </MorphingDialog>
           ) : attachment.contentType?.startsWith("text") ? (
-            <div className="text-primary mb-3 h-24 w-40 overflow-hidden rounded-md border p-2 text-xs">
+            <div className="mb-3 h-24 w-40 overflow-hidden rounded-md border p-2 text-primary text-xs">
               {getTextFromDataUrl(attachment.url)}
             </div>
           ) : null}
@@ -127,7 +127,7 @@ export function MessageUser({
       ))}
       {isEditing ? (
         <div
-          className="bg-accent relative flex min-w-[180px] flex-col gap-2 rounded-3xl px-5 py-2.5"
+          className="relative flex min-w-[180px] flex-col gap-2 rounded-3xl bg-accent px-5 py-2.5"
           style={{
             width: contentRef.current?.offsetWidth,
           }}
@@ -145,7 +145,6 @@ export function MessageUser({
                 handleEditCancel()
               }
             }}
-            autoFocus
           />
           <div className="flex justify-end gap-2">
             <Button size="sm" variant="ghost" onClick={handleEditCancel}>
@@ -158,7 +157,7 @@ export function MessageUser({
         </div>
       ) : (
         <MessageContent
-          className="bg-accent relative max-w-[70%] rounded-3xl px-5 py-2.5"
+          className="relative max-w-[70%] rounded-3xl bg-accent px-5 py-2.5"
           markdown={true}
           ref={contentRef}
           components={{
@@ -182,7 +181,7 @@ export function MessageUser({
       <MessageActions className="flex gap-0 opacity-0 transition-opacity duration-0 group-hover:opacity-100">
         <MessageAction tooltip={copied ? "Copied!" : "Copy text"} side="bottom">
           <button
-            className="hover:bg-accent/60 text-muted-foreground hover:text-foreground flex size-7.5 items-center justify-center rounded-full bg-transparent transition"
+            className="flex size-7.5 items-center justify-center rounded-full bg-transparent text-muted-foreground transition hover:bg-accent/60 hover:text-foreground"
             aria-label="Copy text"
             onClick={copyToClipboard}
             type="button"
@@ -211,7 +210,7 @@ export function MessageUser({
         </MessageAction> */}
         <MessageAction tooltip="Delete" side="bottom">
           <button
-            className="hover:bg-accent/60 text-muted-foreground hover:text-foreground flex size-7.5 items-center justify-center rounded-full bg-transparent transition"
+            className="flex size-7.5 items-center justify-center rounded-full bg-transparent text-muted-foreground transition hover:bg-accent/60 hover:text-foreground"
             aria-label="Delete"
             onClick={handleDelete}
             type="button"

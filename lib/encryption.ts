@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, randomBytes } from "crypto"
+import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto"
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
 if (!ENCRYPTION_KEY) {
@@ -23,7 +23,7 @@ export function encryptKey(plaintext: string): {
   encrypted += cipher.final("hex")
 
   const authTag = cipher.getAuthTag()
-  const encryptedWithTag = encrypted + ":" + authTag.toString("hex")
+  const encryptedWithTag = `${encrypted}:${authTag.toString("hex")}`
 
   return {
     encrypted: encryptedWithTag,

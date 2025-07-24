@@ -61,7 +61,7 @@ export function ProModelDialog({
         />
       </div>
 
-      <div className="px-6 pt-4 text-center text-lg leading-tight font-medium">
+      <div className="px-6 pt-4 text-center font-medium text-lg leading-tight">
         This model is locked
       </div>
 
@@ -69,19 +69,19 @@ export function ProModelDialog({
         <div className="px-6 py-4">
           <p className="text-muted-foreground">
             To use it, connect your own API key. Okie supports BYOK via{" "}
-            <span className="text-primary inline-flex font-medium">
+            <span className="inline-flex font-medium text-primary">
               OpenRouter
             </span>
             .
           </p>
-          <p className="text-muted-foreground mt-1">
+          <p className="mt-1 text-muted-foreground">
             Go to{" "}
-            <span className="text-primary inline-flex font-medium">
+            <span className="inline-flex font-medium text-primary">
               Settings → API Keys
             </span>{" "}
             to add your key securely.
           </p>
-          <p className="text-muted-foreground mt-5">
+          <p className="mt-5 text-muted-foreground">
             We don&apos;t support this model yet?
           </p>
           {mutation.isSuccess ? (
@@ -122,7 +122,7 @@ export function ProModelDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogContent className="[&>button:last-child]:bg-background gap-0 overflow-hidden rounded-3xl p-0 shadow-xs sm:max-w-md [&>button:last-child]:rounded-full [&>button:last-child]:p-1">
+      <DialogContent className="gap-0 overflow-hidden rounded-3xl p-0 shadow-xs sm:max-w-md [&>button:last-child]:rounded-full [&>button:last-child]:bg-background [&>button:last-child]:p-1">
         <DialogHeader className="sr-only">
           <DialogTitle>Pro Model Access Required</DialogTitle>
         </DialogHeader>

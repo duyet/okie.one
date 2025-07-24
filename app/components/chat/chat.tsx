@@ -217,7 +217,7 @@ export function Chat() {
               },
             }}
           >
-            <h1 className="mb-6 text-3xl font-medium tracking-tight">
+            <h1 className="mb-6 font-medium text-3xl tracking-tight">
               What&apos;s on your mind?
             </h1>
           </motion.div>

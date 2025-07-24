@@ -47,7 +47,7 @@ export function SystemPromptSection() {
 
   return (
     <div>
-      <Label htmlFor="system-prompt" className="mb-3 text-sm font-medium">
+      <Label htmlFor="system-prompt" className="mb-3 font-medium text-sm">
         Default system prompt
       </Label>
       <div className="relative">
@@ -80,7 +80,7 @@ export function SystemPromptSection() {
           )}
         </AnimatePresence>
       </div>
-      <p className="text-muted-foreground mt-2 text-xs">
+      <p className="mt-2 text-muted-foreground text-xs">
         This prompt will be used for new chats.
       </p>
     </div>

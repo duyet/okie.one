@@ -14,24 +14,33 @@ jobs:
   validate:
     name: Lint and Test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
-      - name: Run ESLint
-        run: npm run lint
+      - name: Run Lint
+        run: pnpm run lint
 
       - name: Run TypeScript checks
-        run: npm run type-check
+        run: pnpm run type-check
 
       # TODO: Uncomment when tests are added
       # - name: Run Tests
@@ -41,20 +50,23 @@ jobs:
     name: Build Application
     needs: validate
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
     outputs:
       cache-key: ${{ steps.build-cache.outputs.key }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
-          cache: "npm"
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install
 
       - name: Generate build cache key
         id: build-cache
@@ -69,7 +81,7 @@ jobs:
 
       - name: Build application
         if: steps.check-build-cache.outputs.cache-hit != 'true'
-        run: npm run build
+        run: pnpm run build
 
       - name: Cache build output
         if: steps.check-build-cache.outputs.cache-hit != 'true'
@@ -139,26 +151,3 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NEXT_PUBLIC_VERCEL_URL=${{ env.NEXT_PUBLIC_VERCEL_URL }}
-
-  # deploy:
-  #   name: Deploy Application
-  #   needs: docker
-  #   if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-  #   runs-on: ubuntu-latest
-  #   environment:
-  #     name: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
-  #   steps:
-  #     - name: Deploy to Environment
-  #       run: |
-  #         echo "Deploying to ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}"
-  #         # Add your deployment commands here
-  #         # Example for a docker-compose deployment:
-  #         # ssh user@server "cd /path/to/app && docker-compose pull && docker-compose up -d"
-  #       env:
-  #         DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
-  #         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-  #         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-  #         SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE }}
-  #         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-  #         MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY }}
-  #         CSRF_SECRET: ${{ secrets.CSRF_SECRET }}

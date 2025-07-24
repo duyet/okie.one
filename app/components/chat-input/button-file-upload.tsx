@@ -18,7 +18,6 @@ import { getModelInfo } from "@/lib/models"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { cn } from "@/lib/utils"
 import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
-import React from "react"
 import { PopoverContentAuth } from "./popover-content-auth"
 
 type ButtonFileUploadProps = {
@@ -47,7 +46,7 @@ export function ButtonFileUpload({
               <Button
                 size="sm"
                 variant="secondary"
-                className="border-border dark:bg-secondary size-9 rounded-full border bg-transparent"
+                className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
                 type="button"
                 aria-label="Add files"
               >
@@ -77,7 +76,7 @@ export function ButtonFileUpload({
               <Button
                 size="sm"
                 variant="secondary"
-                className="border-border dark:bg-secondary size-9 rounded-full border bg-transparent"
+                className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
                 type="button"
                 aria-label="Add files"
               >
@@ -106,7 +105,7 @@ export function ButtonFileUpload({
               size="sm"
               variant="secondary"
               className={cn(
-                "border-border dark:bg-secondary size-9 rounded-full border bg-transparent",
+                "size-9 rounded-full border border-border bg-transparent dark:bg-secondary",
                 !isUserAuthenticated && "opacity-50"
               )}
               type="button"
@@ -120,9 +119,9 @@ export function ButtonFileUpload({
         <TooltipContent>Add files</TooltipContent>
       </Tooltip>
       <FileUploadContent>
-        <div className="border-input bg-background flex flex-col items-center rounded-lg border border-dashed p-8">
-          <FileArrowUp className="text-muted-foreground size-8" />
-          <span className="mt-4 mb-1 text-lg font-medium">Drop files here</span>
+        <div className="flex flex-col items-center rounded-lg border border-input border-dashed bg-background p-8">
+          <FileArrowUp className="size-8 text-muted-foreground" />
+          <span className="mt-4 mb-1 font-medium text-lg">Drop files here</span>
           <span className="text-muted-foreground text-sm">
             Drop any files here to add it to the conversation
           </span>

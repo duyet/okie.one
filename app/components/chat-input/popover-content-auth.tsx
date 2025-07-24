@@ -58,15 +58,15 @@ export function PopoverContentAuth() {
         className="h-32 w-full object-cover"
       />
       {error && (
-        <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+        <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
           {error}
         </div>
       )}
       <div className="p-3">
-        <p className="text-primary mb-1 text-base font-medium">
+        <p className="mb-1 font-medium text-base text-primary">
           Login to try more features for free
         </p>
-        <p className="text-muted-foreground mb-5 text-base">
+        <p className="mb-5 text-base text-muted-foreground">
           Add files, use more models, BYOK, and more.
         </p>
         <Button

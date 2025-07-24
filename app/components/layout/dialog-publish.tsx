@@ -29,7 +29,6 @@ import { APP_DOMAIN } from "@/lib/config"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { Check, Copy, Globe, Spinner } from "@phosphor-icons/react"
-import type React from "react"
 import { useState } from "react"
 
 export function DialogPublish() {
@@ -104,7 +103,7 @@ export function DialogPublish() {
           <Button
             variant="ghost"
             size="icon"
-            className="text-muted-foreground hover:text-foreground hover:bg-muted bg-background rounded-full p-1.5 transition-colors"
+            className="rounded-full bg-background p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             onClick={handlePublish}
             disabled={isLoading}
           >
@@ -133,7 +132,7 @@ export function DialogPublish() {
               <Button
                 variant="outline"
                 onClick={copyLink}
-                className="bg-background hover:bg-background absolute top-0 right-0 rounded-l-none transition-colors"
+                className="absolute top-0 right-0 rounded-l-none bg-background transition-colors hover:bg-background"
               >
                 {copied ? (
                   <Check className="size-4" />
@@ -150,7 +149,7 @@ export function DialogPublish() {
           View Page
         </Button>
         <Button onClick={shareOnX} className="flex-1">
-          Share on <XIcon className="text-primary-foreground size-4" />
+          Share on <XIcon className="size-4 text-primary-foreground" />
         </Button>
       </div>
     </>
@@ -161,7 +160,7 @@ export function DialogPublish() {
       <>
         {trigger}
         <Drawer open={openDialog} onOpenChange={setOpenDialog}>
-          <DrawerContent className="bg-background border-border">
+          <DrawerContent className="border-border bg-background">
             <DrawerHeader>
               <DrawerTitle>Your conversation is now public!</DrawerTitle>
               <DrawerDescription>

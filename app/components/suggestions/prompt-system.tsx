@@ -1,7 +1,7 @@
 "use client"
 
 import { AnimatePresence } from "motion/react"
-import React, { memo } from "react"
+import { memo } from "react"
 import { Suggestions } from "../chat-input/suggestions"
 
 type PromptSystemProps = {
@@ -16,8 +16,7 @@ export const PromptSystem = memo(function PromptSystem({
   value,
 }: PromptSystemProps) {
   return (
-    <>
-      <div className="relative order-1 w-full md:absolute md:bottom-[-70px] md:order-2 md:h-[70px]">
+    <div className="relative order-1 w-full md:absolute md:bottom-[-70px] md:order-2 md:h-[70px]">
         <AnimatePresence mode="popLayout">
           <Suggestions
             onValueChange={onValueChange}
@@ -26,6 +25,5 @@ export const PromptSystem = memo(function PromptSystem({
           />
         </AnimatePresence>
       </div>
-    </>
   )
 })

@@ -18,7 +18,7 @@ export function InteractionPreferences() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium">Prompt suggestions</h3>
+            <h3 className="font-medium text-sm">Prompt suggestions</h3>
             <p className="text-muted-foreground text-xs">
               Show suggested prompts when starting a new conversation
             </p>
@@ -33,7 +33,7 @@ export function InteractionPreferences() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium">Tool invocations</h3>
+            <h3 className="font-medium text-sm">Tool invocations</h3>
             <p className="text-muted-foreground text-xs">
               Show tool execution details in conversations
             </p>
@@ -48,7 +48,7 @@ export function InteractionPreferences() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium">Conversation previews</h3>
+            <h3 className="font-medium text-sm">Conversation previews</h3>
             <p className="text-muted-foreground text-xs">
               Show conversation previews in history
             </p>
@@ -63,7 +63,7 @@ export function InteractionPreferences() {
       <div>
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-medium">Multi-model chat</h3>
+            <h3 className="font-medium text-sm">Multi-model chat</h3>
             <p className="text-muted-foreground text-xs">
               Send prompts to multiple models at once
             </p>

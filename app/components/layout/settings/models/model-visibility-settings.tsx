@@ -93,8 +93,8 @@ export function ModelVisibilitySettings() {
 
   return (
     <div>
-      <h3 className="mb-2 text-lg font-medium">Available models</h3>
-      <p className="text-muted-foreground mb-4 text-sm">
+      <h3 className="mb-2 font-medium text-lg">Available models</h3>
+      <p className="mb-4 text-muted-foreground text-sm">
         Choose which models appear in your model selector.
       </p>
 
@@ -105,7 +105,7 @@ export function ModelVisibilitySettings() {
           placeholder="Search models..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-1 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm ring-offset-background transition-colors file:border-0 file:bg-transparent file:font-medium file:text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
         />
       </div>
 
@@ -151,7 +151,7 @@ export function ModelVisibilitySettings() {
                       <div className="flex flex-col">
                         <div className="flex items-center gap-2">
                           <span className="text-sm">{model.name}</span>
-                          <span className="text-muted-foreground bg-muted rounded px-1.5 py-0.5 text-xs">
+                          <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground text-xs">
                             via {modelProvider?.name || model.provider}
                           </span>
                         </div>
@@ -175,7 +175,7 @@ export function ModelVisibilitySettings() {
       </div>
 
       {filteredModels.length === 0 && (
-        <div className="text-muted-foreground py-8 text-center text-sm">
+        <div className="py-8 text-center text-muted-foreground text-sm">
           No models found matching your search.
         </div>
       )}

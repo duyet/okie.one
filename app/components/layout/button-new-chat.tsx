@@ -25,7 +25,7 @@ export function ButtonNewChat() {
       <TooltipTrigger asChild>
         <Link
           href="/"
-          className="text-muted-foreground hover:text-foreground hover:bg-muted bg-background rounded-full p-1.5 transition-colors"
+          className="rounded-full bg-background p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           prefetch
           aria-label="New Chat"
         >

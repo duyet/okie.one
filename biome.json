@@ -21,6 +21,17 @@
       "recommended": true,
       "nursery": {
         "useSortedClasses": "error"
+      },
+	  "a11y": {
+        "noStaticElementInteractions": "warn",
+		"noSvgWithoutTitle": "info",
+		"useKeyWithClickEvents": "info"
+      },
+	  "suspicious": {
+		"noArrayIndexKey": "warn"
+	  },
+	  "security": {
+        "noDangerouslySetInnerHtml": "warn"
       }
     }
   },

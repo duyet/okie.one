@@ -64,19 +64,19 @@ export function ToolInvocation({
 
   return (
     <div className="mb-10">
-      <div className="border-border flex flex-col gap-0 overflow-hidden rounded-md border">
+      <div className="flex flex-col gap-0 overflow-hidden rounded-md border border-border">
         <button
           onClick={(e) => {
             e.preventDefault()
             setIsExpanded(!isExpanded)
           }}
           type="button"
-          className="hover:bg-accent flex w-full flex-row items-center rounded-t-md px-3 py-2 transition-colors"
+          className="flex w-full flex-row items-center rounded-t-md px-3 py-2 transition-colors hover:bg-accent"
         >
           <div className="flex flex-1 flex-row items-center gap-2 text-left text-base">
-            <Nut className="text-muted-foreground size-4" />
+            <Nut className="size-4 text-muted-foreground" />
             <span className="text-sm">Tools executed</span>
-            <div className="bg-secondary text-secondary-foreground rounded-full px-1.5 py-0.5 font-mono text-xs">
+            <div className="rounded-full bg-secondary px-1.5 py-0.5 font-mono text-secondary-foreground text-xs">
               {uniqueToolIds.length}
             </div>
           </div>
@@ -251,7 +251,7 @@ function SingleToolCard({
   const formattedArgs = args
     ? Object.entries(args).map(([key, value]) => (
         <div key={key} className="mb-1">
-          <span className="text-muted-foreground font-medium">{key}:</span>{" "}
+          <span className="font-medium text-muted-foreground">{key}:</span>{" "}
           <span className="font-mono">
             {typeof value === "object"
               ? value === null
@@ -288,19 +288,19 @@ function SingleToolCard({
                 index: number
               ) => (
                 <div
-                  key={index}
+                  key={`${index}-${item.url}`}
                   className="border-border border-b pb-3 last:border-0 last:pb-0"
                 >
                   <a
                     href={item.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-primary group flex items-center gap-1 font-medium hover:underline"
+                    className="group flex items-center gap-1 font-medium text-primary hover:underline"
                   >
                     {item.title}
                     <Link className="h-3 w-3 opacity-70 transition-opacity group-hover:opacity-100" />
                   </a>
-                  <div className="text-muted-foreground mt-1 font-mono text-xs">
+                  <div className="mt-1 font-mono text-muted-foreground text-xs">
                     {item.url}
                   </div>
                   {item.snippet && (
@@ -341,7 +341,7 @@ function SingleToolCard({
                 href={htmlUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary flex items-center gap-1 hover:underline"
+                className="flex items-center gap-1 text-primary hover:underline"
               >
                 <span className="font-mono">{htmlUrl}</span>
                 <Link className="h-3 w-3 opacity-70" />
@@ -369,7 +369,7 @@ function SingleToolCard({
   return (
     <div
       className={cn(
-        "border-border flex flex-col gap-0 overflow-hidden rounded-md border",
+        "flex flex-col gap-0 overflow-hidden rounded-md border border-border",
         className
       )}
     >
@@ -379,10 +379,10 @@ function SingleToolCard({
           setIsExpanded(!isExpanded)
         }}
         type="button"
-        className="hover:bg-accent flex w-full flex-row items-center rounded-t-md px-3 py-2 transition-colors"
+        className="flex w-full flex-row items-center rounded-t-md px-3 py-2 transition-colors hover:bg-accent"
       >
         <div className="flex flex-1 flex-row items-center gap-2 text-left text-base">
-          <Wrench className="text-muted-foreground size-4" />
+          <Wrench className="size-4 text-muted-foreground" />
           <span className="font-mono text-sm">{toolName}</span>
           <AnimatePresence mode="popLayout" initial={false}>
             {isLoading ? (
@@ -393,7 +393,7 @@ function SingleToolCard({
                 transition={{ duration: 0.15 }}
                 key="loading"
               >
-                <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700 dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400">
+                <div className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-blue-700 text-xs dark:border-blue-800 dark:bg-blue-950/30 dark:text-blue-400">
                   <Spinner className="mr-1 h-3 w-3 animate-spin" />
                   Running
                 </div>
@@ -406,7 +406,7 @@ function SingleToolCard({
                 transition={{ duration: 0.15 }}
                 key="completed"
               >
-                <div className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-1.5 py-0.5 text-xs text-green-700 dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
+                <div className="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-1.5 py-0.5 text-green-700 text-xs dark:border-green-800 dark:bg-green-950/30 dark:text-green-400">
                   <CheckCircle className="mr-1 h-3 w-3" />
                   Completed
                 </div>
@@ -435,10 +435,10 @@ function SingleToolCard({
               {/* Arguments section */}
               {args && Object.keys(args).length > 0 && (
                 <div>
-                  <div className="text-muted-foreground mb-1 text-xs font-medium">
+                  <div className="mb-1 font-medium text-muted-foreground text-xs">
                     Arguments
                   </div>
-                  <div className="bg-background rounded border p-2 text-sm">
+                  <div className="rounded border bg-background p-2 text-sm">
                     {formattedArgs}
                   </div>
                 </div>
@@ -447,10 +447,10 @@ function SingleToolCard({
               {/* Result section */}
               {isCompleted && (
                 <div>
-                  <div className="text-muted-foreground mb-1 text-xs font-medium">
+                  <div className="mb-1 font-medium text-muted-foreground text-xs">
                     Result
                   </div>
-                  <div className="bg-background max-h-60 overflow-auto rounded border p-2 text-sm">
+                  <div className="max-h-60 overflow-auto rounded border bg-background p-2 text-sm">
                     {parseError ? (
                       <div className="text-red-500">{parseError}</div>
                     ) : (
@@ -461,7 +461,7 @@ function SingleToolCard({
               )}
 
               {/* Tool call ID */}
-              <div className="text-muted-foreground flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-muted-foreground text-xs">
                 <div className="flex items-center">
                   <Code className="mr-1 inline size-3" />
                   Tool Call ID:{" "}

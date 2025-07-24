@@ -12,7 +12,6 @@ import {
 import { signInWithGoogle } from "@/lib/api"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import Image from "next/image"
 import { useState } from "react"
 
 type DialogAuthProps = {
@@ -68,7 +67,7 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
           </DialogDescription>
         </DialogHeader>
         {error && (
-          <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+          <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
             {error}
           </div>
         )}

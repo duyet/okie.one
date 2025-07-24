@@ -74,7 +74,7 @@ function PromptSuggestion({
           const index = contentLower.indexOf(highlightLower)
           if (index === -1)
             return (
-              <span className="text-muted-foreground whitespace-pre-wrap">
+              <span className="whitespace-pre-wrap text-muted-foreground">
                 {content}
               </span>
             )
@@ -90,15 +90,15 @@ function PromptSuggestion({
           return (
             <>
               {before && (
-                <span className="text-muted-foreground whitespace-pre-wrap">
+                <span className="whitespace-pre-wrap text-muted-foreground">
                   {before}
                 </span>
               )}
-              <span className="text-primary font-medium whitespace-pre-wrap">
+              <span className="whitespace-pre-wrap font-medium text-primary">
                 {actualHighlightedText}
               </span>
               {after && (
-                <span className="text-muted-foreground whitespace-pre-wrap">
+                <span className="whitespace-pre-wrap text-muted-foreground">
                   {after}
                 </span>
               )}
@@ -106,7 +106,7 @@ function PromptSuggestion({
           )
         })()
       ) : (
-        <span className="text-muted-foreground whitespace-pre-wrap">
+        <span className="whitespace-pre-wrap text-muted-foreground">
           {content}
         </span>
       )}

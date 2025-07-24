@@ -47,7 +47,7 @@ export function OllamaSection() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="mb-2 text-lg font-medium">Local Model Settings</h3>
+        <h3 className="mb-2 font-medium text-lg">Local Model Settings</h3>
         <p className="text-muted-foreground text-sm">
           Configure your local Ollama instance for running models locally.
           {isLocked && (
@@ -80,7 +80,7 @@ export function OllamaSection() {
               onChange={(e) => setOllamaEndpoint(e.target.value)}
               disabled={!enableOllama || isLocked}
             />
-            <p className="text-muted-foreground mt-1 text-xs">
+            <p className="mt-1 text-muted-foreground text-xs">
               {isLocked
                 ? "Endpoint is read-only in production mode."
                 : "Default Ollama endpoint. Make sure Ollama is running locally."}
@@ -102,7 +102,7 @@ export function OllamaSection() {
 
           {isLocked && (
             <div className="rounded-md bg-orange-50 p-3 dark:bg-orange-950/20">
-              <p className="text-sm text-orange-800 dark:text-orange-200">
+              <p className="text-orange-800 text-sm dark:text-orange-200">
                 Ollama is disabled in production deployments for performance and
                 security.
               </p>

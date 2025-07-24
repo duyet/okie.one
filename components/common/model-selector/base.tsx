@@ -115,7 +115,7 @@ export function ModelSelector({
           </div>
         </div>
         {isLocked && (
-          <div className="border-input bg-accent text-muted-foreground flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium">
+          <div className="flex items-center gap-0.5 rounded-full border border-input bg-accent px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
             <StarIcon className="size-2" />
             <span>Locked</span>
           </div>
@@ -137,7 +137,7 @@ export function ModelSelector({
   const trigger = (
     <Button
       variant="outline"
-      className={cn("dark:bg-secondary justify-between", className)}
+      className={cn("justify-between dark:bg-secondary", className)}
       disabled={isLoadingModels}
     >
       <div className="flex items-center gap-2">
@@ -165,7 +165,7 @@ export function ModelSelector({
                 size="sm"
                 variant="secondary"
                 className={cn(
-                  "border-border dark:bg-secondary text-accent-foreground h-9 w-auto border bg-transparent",
+                  "h-9 w-auto border border-border bg-transparent text-accent-foreground dark:bg-secondary",
                   className
                 )}
                 type="button"
@@ -201,7 +201,7 @@ export function ModelSelector({
             </DrawerHeader>
             <div className="px-4 pb-2">
               <div className="relative">
-                <MagnifyingGlassIcon className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                <MagnifyingGlassIcon className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={searchInputRef}
                   placeholder="Search models..."
@@ -215,7 +215,7 @@ export function ModelSelector({
             <div className="flex h-full flex-col space-y-0 overflow-y-auto px-4 pb-6">
               {isLoadingModels ? (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-2 text-sm">
+                  <p className="mb-2 text-muted-foreground text-sm">
                     Loading models...
                   </p>
                 </div>
@@ -223,7 +223,7 @@ export function ModelSelector({
                 filteredModels.map((model) => renderModelItem(model))
               ) : (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-2 text-sm">
+                  <p className="mb-2 text-muted-foreground text-sm">
                     No results found.
                   </p>
                   <a
@@ -274,13 +274,13 @@ export function ModelSelector({
             forceMount
             side="top"
           >
-            <div className="bg-background sticky top-0 z-10 rounded-t-md border-b px-0 pt-0 pb-0">
+            <div className="sticky top-0 z-10 rounded-t-md border-b bg-background px-0 pt-0 pb-0">
               <div className="relative">
-                <MagnifyingGlassIcon className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                <MagnifyingGlassIcon className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={searchInputRef}
                   placeholder="Search models..."
-                  className="dark:bg-popover rounded-b-none border border-none pl-8 shadow-none focus-visible:ring-0"
+                  className="rounded-b-none border border-none pl-8 shadow-none focus-visible:ring-0 dark:bg-popover"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onClick={(e) => e.stopPropagation()}
@@ -292,7 +292,7 @@ export function ModelSelector({
             <div className="flex h-full flex-col space-y-0 overflow-y-auto px-1 pt-0 pb-0">
               {isLoadingModels ? (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-2 text-sm">
+                  <p className="mb-2 text-muted-foreground text-sm">
                     Loading models...
                   </p>
                 </div>
@@ -338,7 +338,7 @@ export function ModelSelector({
                         </div>
                       </div>
                       {isLocked && (
-                        <div className="border-input bg-accent text-muted-foreground flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium">
+                        <div className="flex items-center gap-0.5 rounded-full border border-input bg-accent px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
                           <span>Locked</span>
                         </div>
                       )}
@@ -347,7 +347,7 @@ export function ModelSelector({
                 })
               ) : (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-1 text-sm">
+                  <p className="mb-1 text-muted-foreground text-sm">
                     No results found.
                   </p>
                   <a

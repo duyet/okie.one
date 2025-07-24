@@ -30,10 +30,10 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
     .maybeSingle()
 
   if (userDataError) {
-    throw new Error("Error fetchClienting user data: " + userDataError.message)
+    throw new Error(`Error fetchClienting user data: ${userDataError.message}`)
   }
   if (!userData) {
-    throw new Error("User record not found for id: " + userId)
+    throw new Error(`User record not found for id: ${userId}`)
   }
 
   // Decide which daily limit to use.
@@ -62,7 +62,7 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
       .eq("id", userId)
 
     if (resetError) {
-      throw new Error("Failed to reset daily count: " + resetError.message)
+      throw new Error(`Failed to reset daily count: ${resetError.message}`)
     }
   }
 
@@ -121,7 +121,7 @@ export async function incrementUsage(
     .eq("id", userId)
 
   if (updateError) {
-    throw new Error("Failed to update usage data: " + updateError.message)
+    throw new Error(`Failed to update usage data: ${updateError.message}`)
   }
 }
 
@@ -133,10 +133,10 @@ export async function checkProUsage(supabase: SupabaseClient, userId: string) {
     .maybeSingle()
 
   if (userDataError) {
-    throw new Error("Error fetching user data: " + userDataError.message)
+    throw new Error(`Error fetching user data: ${userDataError.message}`)
   }
   if (!userData) {
-    throw new Error("User not found for ID: " + userId)
+    throw new Error(`User not found for ID: ${userId}`)
   }
 
   let dailyProCount = userData.daily_pro_message_count || 0
@@ -162,7 +162,7 @@ export async function checkProUsage(supabase: SupabaseClient, userId: string) {
       .eq("id", userId)
 
     if (resetError) {
-      throw new Error("Failed to reset pro usage: " + resetError.message)
+      throw new Error(`Failed to reset pro usage: ${resetError.message}`)
     }
   }
 
@@ -201,7 +201,7 @@ export async function incrementProUsage(
     .eq("id", userId)
 
   if (updateError) {
-    throw new Error("Failed to increment pro usage: " + updateError.message)
+    throw new Error(`Failed to increment pro usage: ${updateError.message}`)
   }
 }
 

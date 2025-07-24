@@ -75,14 +75,15 @@ export function MultiChatInput({
         onSend()
       }
     },
-    [isSubmitting, anyLoading, onSend, status, value]
+    // biome-ignore lint/correctness/useExhaustiveDependencies: fix this
+    [isSubmitting, anyLoading, onSend, status, value, isOnlyWhitespace]
   )
 
   return (
     <div className="relative flex w-full flex-col gap-4">
       <div className="relative order-2 px-2 pb-3 sm:pb-4 md:order-1">
         <PromptInput
-          className="bg-popover relative z-10 p-0 pt-1 shadow-xs backdrop-blur-xl"
+          className="relative z-10 bg-popover p-0 pt-1 shadow-xs backdrop-blur-xl"
           maxHeight={200}
           value={value}
           onValueChange={onValueChange}

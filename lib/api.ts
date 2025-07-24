@@ -152,8 +152,7 @@ export const getOrCreateGuestUserId = async (
 
   const existingGuestSessionUser = await supabase.auth.getUser()
   if (
-    existingGuestSessionUser.data?.user &&
-    existingGuestSessionUser.data.user.is_anonymous
+    existingGuestSessionUser.data?.user?.is_anonymous
   ) {
     const anonUserId = existingGuestSessionUser.data.user.id
 

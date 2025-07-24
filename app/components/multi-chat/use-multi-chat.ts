@@ -26,7 +26,8 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
   const chatHooks = Array.from({ length: MAX_MODELS }, (_, index) =>
     // todo: fix this
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    useChat({
+    // biome-ignore lint/correctness/useHookAtTopLevel: fix this
+            useChat({
       api: "/api/chat",
       onError: (error) => {
         const model = models[index]
@@ -61,7 +62,7 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
     return instances
     // todo: fix this
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [models, ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading])])
+  }, [models, ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading]), chatHooks[index]])
 
   return activeChatInstances
 }

@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "crypto"
+import { createHash, randomBytes } from "node:crypto"
 import { cookies } from "next/headers"
 
 const CSRF_SECRET = process.env.CSRF_SECRET!

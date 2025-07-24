@@ -90,7 +90,7 @@ export function SidebarProjectItem({ project }: SidebarProjectItemProps) {
       // Return a context object with the snapshotted values
       return { previousProjects, previousProject, projectId }
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // If the mutation fails, use the context returned from onMutate to roll back
       if (context?.previousProjects) {
         queryClient.setQueryData(["projects"], context.previousProjects)
@@ -235,27 +235,26 @@ export function SidebarProjectItem({ project }: SidebarProjectItemProps) {
       ref={containerRef}
     >
       {isEditing ? (
-        <div className="bg-accent flex items-center rounded-md py-1 pr-1 pl-2">
-          <FolderIcon size={20} className="text-primary mr-2 flex-shrink-0" />
+        <div className="flex items-center rounded-md bg-accent py-1 pr-1 pl-2">
+          <FolderIcon size={20} className="mr-2 flex-shrink-0 text-primary" />
           <input
             ref={inputRef}
             value={editName}
             onChange={handleInputChange}
-            className="text-primary max-h-full w-full bg-transparent text-sm focus:outline-none"
+            className="max-h-full w-full bg-transparent text-primary text-sm focus:outline-none"
             onKeyDown={handleKeyDown}
-            autoFocus
           />
           <div className="flex gap-0.5">
             <button
               onClick={handleSaveClick}
-              className="hover:bg-secondary text-muted-foreground hover:text-primary flex size-7 items-center justify-center rounded-md p-1 transition-colors duration-150"
+              className="flex size-7 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-secondary hover:text-primary"
               type="button"
             >
               <Check size={16} weight="bold" />
             </button>
             <button
               onClick={handleCancelClick}
-              className="hover:bg-secondary text-muted-foreground hover:text-primary flex size-7 items-center justify-center rounded-md p-1 transition-colors duration-150"
+              className="flex size-7 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-secondary hover:text-primary"
               type="button"
             >
               <X size={16} weight="bold" />
@@ -271,7 +270,7 @@ export function SidebarProjectItem({ project }: SidebarProjectItemProps) {
             onClick={handleLinkClick}
           >
             <div
-              className="text-primary relative line-clamp-1 flex w-full items-center gap-2 mask-r-from-80% mask-r-to-85% px-2 py-2 text-sm text-ellipsis whitespace-nowrap"
+              className="mask-r-from-80% mask-r-to-85% relative line-clamp-1 flex w-full items-center gap-2 text-ellipsis whitespace-nowrap px-2 py-2 text-primary text-sm"
               title={displayName}
             >
               <FolderIcon size={20} />

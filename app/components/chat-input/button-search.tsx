@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button"
 import { Popover, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 import { GlobeIcon } from "@phosphor-icons/react"
-import React from "react"
 import { PopoverContentAuth } from "./popover-content-auth"
 
 type ButtonSearchProps = {
@@ -27,7 +26,7 @@ export function ButtonSearch({
         <PopoverTrigger asChild>
           <Button
             variant="secondary"
-            className="border-border dark:bg-secondary rounded-full border bg-transparent"
+            className="rounded-full border border-border bg-transparent dark:bg-secondary"
           >
             <GlobeIcon className="size-5" />
             Search
@@ -42,7 +41,7 @@ export function ButtonSearch({
     <Button
       variant="secondary"
       className={cn(
-        "border-border dark:bg-secondary rounded-full border bg-transparent transition-all duration-150 has-[>svg]:px-1.75 md:has-[>svg]:px-3",
+        "rounded-full border border-border bg-transparent transition-all duration-150 has-[>svg]:px-1.75 md:has-[>svg]:px-3 dark:bg-secondary",
         isSelected &&
           "border-[#0091FF]/20 bg-[#E5F3FE] text-[#0091FF] hover:bg-[#E5F3FE] hover:text-[#0091FF]"
       )}

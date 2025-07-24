@@ -85,7 +85,7 @@ const MessageActions = ({
   ...props
 }: MessageActionsProps) => (
   <div
-    className={cn("text-muted-foreground flex items-center gap-2", className)}
+    className={cn("flex items-center gap-2 text-muted-foreground", className)}
     {...props}
   >
     {children}

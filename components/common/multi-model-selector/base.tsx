@@ -113,7 +113,7 @@ export function MultiModelSelector({
       <div
         key={model.id}
         className={cn(
-          "hover:bg-accent/50 flex w-full cursor-pointer items-center justify-between px-3 py-2",
+          "flex w-full cursor-pointer items-center justify-between px-3 py-2 hover:bg-accent/50",
           isSelected && "bg-accent"
         )}
         onClick={() => handleModelToggle(model.id, isLocked)}
@@ -132,13 +132,13 @@ export function MultiModelSelector({
         </div>
         <div className="flex items-center gap-2">
           {isLocked && (
-            <div className="border-input bg-accent text-muted-foreground flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium">
+            <div className="flex items-center gap-0.5 rounded-full border border-input bg-accent px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
               <StarIcon className="size-2" />
               <span>Locked</span>
             </div>
           )}
           {!isSelected && isAtLimit && !isLocked && (
-            <div className="border-input bg-muted text-muted-foreground flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium">
+            <div className="flex items-center gap-0.5 rounded-full border border-input bg-muted px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
               <span>Limit</span>
             </div>
           )}
@@ -165,7 +165,7 @@ export function MultiModelSelector({
     <Button
       variant="outline"
       className={cn(
-        "dark:bg-secondary min-w-[200px] justify-between rounded-full",
+        "min-w-[200px] justify-between rounded-full dark:bg-secondary",
         className
       )}
       disabled={isLoadingModels}
@@ -229,7 +229,7 @@ export function MultiModelSelector({
               transition={{ duration: 0.15, ease: "easeOut" }}
               className="flex min-w-0 flex-1 items-center gap-1"
             >
-              <div className="flex flex-shrink-0 -space-x-1">
+              <div className="-space-x-1 flex flex-shrink-0">
                 <AnimatePresence mode="popLayout">
                   {selectedModels.slice(0, 3).map((model, index) => {
                     const provider = PROVIDERS.find((p) => p.id === model.icon)
@@ -262,7 +262,7 @@ export function MultiModelSelector({
                           damping: 25,
                           delay: index * 0.05,
                         }}
-                        className="bg-background border-border flex size-5 items-center justify-center rounded-full border"
+                        className="flex size-5 items-center justify-center rounded-full border border-border bg-background"
                         style={{ zIndex: 3 - index }}
                       >
                         <provider.icon className="size-3" />
@@ -271,7 +271,7 @@ export function MultiModelSelector({
                   })}
                 </AnimatePresence>
               </div>
-              <span className="text-sm font-medium">
+              <span className="font-medium text-sm">
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={selectedModels.length}
@@ -314,7 +314,7 @@ export function MultiModelSelector({
                 size="sm"
                 variant="secondary"
                 className={cn(
-                  "border-border dark:bg-secondary text-accent-foreground h-9 w-auto border bg-transparent",
+                  "h-9 w-auto border border-border bg-transparent text-accent-foreground dark:bg-secondary",
                   className
                 )}
                 type="button"
@@ -349,7 +349,7 @@ export function MultiModelSelector({
             </DrawerHeader>
             <div className="px-4 pb-2">
               <div className="relative">
-                <MagnifyingGlassIcon className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                <MagnifyingGlassIcon className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={searchInputRef}
                   placeholder="Search models..."
@@ -363,7 +363,7 @@ export function MultiModelSelector({
             <div className="flex h-full flex-col space-y-0 overflow-y-auto px-4 pb-6">
               {isLoadingModels ? (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-2 text-sm">
+                  <p className="mb-2 text-muted-foreground text-sm">
                     Loading models...
                   </p>
                 </div>
@@ -371,7 +371,7 @@ export function MultiModelSelector({
                 filteredModels.map((model) => renderModelItem(model))
               ) : (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-2 text-sm">
+                  <p className="mb-2 text-muted-foreground text-sm">
                     No results found.
                   </p>
                   <a
@@ -425,13 +425,13 @@ export function MultiModelSelector({
             forceMount
             side="top"
           >
-            <div className="bg-background sticky top-0 z-10 rounded-t-md border-b px-0 pt-0 pb-0">
+            <div className="sticky top-0 z-10 rounded-t-md border-b bg-background px-0 pt-0 pb-0">
               <div className="relative">
-                <MagnifyingGlassIcon className="text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4" />
+                <MagnifyingGlassIcon className="absolute top-2.5 left-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   ref={searchInputRef}
                   placeholder="Search models..."
-                  className="dark:bg-popover rounded-b-none border border-none pl-8 shadow-none focus-visible:ring-0"
+                  className="rounded-b-none border border-none pl-8 shadow-none focus-visible:ring-0 dark:bg-popover"
                   value={searchQuery}
                   onChange={handleSearchChange}
                   onClick={(e) => e.stopPropagation()}
@@ -443,7 +443,7 @@ export function MultiModelSelector({
             <div className="flex h-full flex-col space-y-0 overflow-y-auto px-1 pt-0 pb-0">
               {isLoadingModels ? (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-2 text-sm">
+                  <p className="mb-2 text-muted-foreground text-sm">
                     Loading models...
                   </p>
                 </div>
@@ -486,7 +486,7 @@ export function MultiModelSelector({
                       <div className="flex items-center gap-2">
                         {isSelected && <CheckIcon className="size-4" />}
                         {isLocked && (
-                          <div className="border-input bg-accent text-muted-foreground flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 text-[10px] font-medium">
+                          <div className="flex items-center gap-0.5 rounded-full border border-input bg-accent px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
                             <span>Locked</span>
                           </div>
                         )}
@@ -496,7 +496,7 @@ export function MultiModelSelector({
                 })
               ) : (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                  <p className="text-muted-foreground mb-1 text-sm">
+                  <p className="mb-1 text-muted-foreground text-sm">
                     No results found.
                   </p>
                   <a

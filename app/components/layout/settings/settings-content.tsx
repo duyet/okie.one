@@ -42,8 +42,8 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
       )}
     >
       {isDrawer && (
-        <div className="border-border mb-2 flex items-center justify-between border-b px-4 pb-2">
-          <h2 className="text-lg font-medium">Settings</h2>
+        <div className="mb-2 flex items-center justify-between border-border border-b px-4 pb-2">
+          <h2 className="font-medium text-lg">Settings</h2>
           <DrawerClose asChild>
             <Button variant="ghost" size="icon">
               <XIcon className="size-4" />
@@ -107,9 +107,7 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             <TabsContent value="general" className="space-y-6 px-6">
               <UserProfile />
               {isSupabaseEnabled && (
-                <>
-                  <AccountManagement />
-                </>
+                <AccountManagement />
               )}
             </TabsContent>
 
@@ -194,9 +192,7 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
               <TabsContent value="general" className="mt-0 space-y-6">
                 <UserProfile />
                 {isSupabaseEnabled && (
-                  <>
-                    <AccountManagement />
-                  </>
+                  <AccountManagement />
                 )}
               </TabsContent>
 

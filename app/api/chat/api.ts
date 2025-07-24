@@ -81,6 +81,7 @@ export async function logUserMessage({
   message_group_id,
 }: LogUserMessageParams): Promise<void> {
   if (!supabase) return
+  console.log(`Model: ${model}, isAuthenticated: ${isAuthenticated}`)
 
   const { error } = await supabase.from("messages").insert({
     chat_id: chatId,

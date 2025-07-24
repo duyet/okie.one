@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { DotsThree, PencilSimple, Trash } from "@phosphor-icons/react"
+import { DotsThreeIcon, PencilSimple, Trash } from "@phosphor-icons/react"
 import { useState } from "react"
 
 type Project = {
@@ -36,15 +36,16 @@ export function SidebarProjectMenu({
     <>
       <DropdownMenu
         // shadcn/ui / radix pointer-events-none issue
-        modal={isMobile ? true : false}
+        modal={!!isMobile}
         onOpenChange={onMenuOpenChange}
       >
         <DropdownMenuTrigger asChild>
           <button
-            className="hover:bg-secondary flex size-7 items-center justify-center rounded-md p-1 transition-colors duration-150"
+            type="button"
+            className="flex size-7 items-center justify-center rounded-md p-1 transition-colors duration-150 hover:bg-secondary"
             onClick={(e) => e.stopPropagation()}
           >
-            <DotsThree size={18} className="text-primary" weight="bold" />
+            <DotsThreeIcon size={18} className="text-primary" weight="bold" />
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
