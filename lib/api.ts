@@ -6,33 +6,34 @@ import { APP_DOMAIN } from "@/lib/config"
  * Uses NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL (client) or VERCEL_PROJECT_PRODUCTION_URL (server)
  */
 function getOAuthBaseUrl(): string {
-  const isDev = process.env.NODE_ENV === "development"
-  
-  if (isDev) {
+  // Always use localhost for local development
+  if (process.env.NODE_ENV === "development" || 
+      (typeof window !== "undefined" && window.location.hostname === "localhost")) {
     return "http://localhost:3000"
   }
 
-  // In production, prioritize Vercel's production URL environment variables for consistent URLs
-  // NEXT_PUBLIC_* is available on client-side, VERCEL_* is server-side only
-  const productionUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
-                       process.env.VERCEL_PROJECT_PRODUCTION_URL
+  // Check if we're running in Vercel environment
+  const isVercel = process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_VERCEL_URL
   
-  if (productionUrl) {
-    return `https://${productionUrl}`
+  if (isVercel) {
+    // In Vercel, prioritize production URL environment variables for consistent URLs
+    // NEXT_PUBLIC_* is available on client-side, VERCEL_* is server-side only
+    const productionUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
+                         process.env.VERCEL_PROJECT_PRODUCTION_URL
+    
+    if (productionUrl) {
+      return `https://${productionUrl}`
+    }
   }
 
-  // Fallback to browser origin or configured domain
+  // For non-Vercel deployments or when Vercel env vars aren't available,
+  // use the current domain (browser origin) or configured domain
   if (typeof window !== "undefined") {
     return window.location.origin
   }
 
-  // Add validation for APP_DOMAIN fallback
-  if (!APP_DOMAIN || APP_DOMAIN === "https://localhost:3000") {
-    console.warn("APP_DOMAIN not properly configured, OAuth redirects may fail")
-    return "https://okie.one" // Safe fallback to production domain
-  }
-
-  return APP_DOMAIN
+  // Server-side fallback to configured domain
+  return APP_DOMAIN || "https://okie.one"
 }
 
 /**
@@ -46,11 +47,20 @@ async function signInWithOAuth(
 ) {
   try {
     const baseUrl = getOAuthBaseUrl()
+    const redirectTo = `${baseUrl}/auth/callback`
+    
+    // Debug logging for development
+    if (process.env.NODE_ENV === "development") {
+      console.log(`OAuth ${provider} redirect URL:`, redirectTo)
+      console.log('NODE_ENV:', process.env.NODE_ENV)
+      console.log('VERCEL:', process.env.VERCEL)
+      console.log('window.location:', typeof window !== "undefined" ? window.location.href : 'N/A (server-side)')
+    }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${baseUrl}/auth/callback`,
+        redirectTo,
         ...additionalOptions,
       },
     })
