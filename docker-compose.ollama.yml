@@ -4,7 +4,7 @@ services:
   # Ollama service for local LLM hosting
   ollama:
     image: ollama/ollama:latest
-    container_name: zola-ollama
+    container_name: okie-ollama
     ports:
       - "11434:11434"
     volumes:
@@ -19,10 +19,10 @@ services:
       retries: 3
       start_period: 30s
 
-  # Zola application
-  zola:
+  # Okie application
+  okie:
     build: .
-    container_name: zola-app
+    container_name: okie-app
     ports:
       - "3000:3000"
     environment:
