@@ -136,6 +136,39 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
   }
 }
 
+/**
+ * Signs in user with GitHub OAuth via Supabase
+ */
+export async function signInWithGitHub(supabase: SupabaseClient) {
+  try {
+    const isDev = process.env.NODE_ENV === "development"
+
+    // Get base URL dynamically (will work in both browser and server environments)
+    const baseUrl = isDev
+      ? "http://localhost:3000"
+      : typeof window !== "undefined"
+        ? window.location.origin
+        : APP_DOMAIN
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: `${baseUrl}/auth/callback`,
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+
+    // Return the provider URL
+    return data
+  } catch (err) {
+    console.error("Error signing in with GitHub:", err)
+    throw err
+  }
+}
+
 export const getOrCreateGuestUserId = async (
   user: UserProfile | null
 ): Promise<string | null> => {

@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { signInWithGoogle } from "@/lib/api"
+import { signInWithGoogle, signInWithGitHub } from "@/lib/api"
 import { createClient } from "@/lib/supabase/client"
 import Image from "next/image"
 import Link from "next/link"
@@ -10,6 +10,7 @@ import { HeaderGoBack } from "../components/header-go-back"
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   async function handleSignInWithGoogle() {
@@ -21,6 +22,7 @@ export default function LoginPage() {
 
     try {
       setIsLoading(true)
+      setLoadingProvider("google")
       setError(null)
 
       const data = await signInWithGoogle(supabase)
@@ -37,6 +39,37 @@ export default function LoginPage() {
       )
     } finally {
       setIsLoading(false)
+      setLoadingProvider(null)
+    }
+  }
+
+  async function handleSignInWithGitHub() {
+    const supabase = createClient()
+
+    if (!supabase) {
+      throw new Error("Supabase is not configured")
+    }
+
+    try {
+      setIsLoading(true)
+      setLoadingProvider("github")
+      setError(null)
+
+      const data = await signInWithGitHub(supabase)
+
+      // Redirect to the provider URL
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (err: unknown) {
+      console.error("Error signing in with GitHub:", err)
+      setError(
+        (err as Error).message ||
+          "An unexpected error occurred. Please try again."
+      )
+    } finally {
+      setIsLoading(false)
+      setLoadingProvider(null)
     }
   }
 
@@ -59,7 +92,7 @@ export default function LoginPage() {
               {error}
             </div>
           )}
-          <div className="mt-8">
+          <div className="mt-8 space-y-3">
             <Button
               variant="secondary"
               className="w-full text-base sm:text-base"
@@ -75,7 +108,25 @@ export default function LoginPage() {
                 className="mr-2"
               />
               <span>
-                {isLoading ? "Connecting..." : "Continue with Google"}
+                {loadingProvider === "google" ? "Connecting..." : "Continue with Google"}
+              </span>
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full text-base sm:text-base"
+              size="lg"
+              onClick={handleSignInWithGitHub}
+              disabled={isLoading}
+            >
+              <Image
+                src="https://github.com/favicon.ico"
+                alt="GitHub logo"
+                width={16}
+                height={16}
+                className="mr-2"
+              />
+              <span>
+                {loadingProvider === "github" ? "Connecting..." : "Continue with GitHub"}
               </span>
             </Button>
           </div>
