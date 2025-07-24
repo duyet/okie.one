@@ -4,6 +4,8 @@ on:
   push:
     branches: [main, develop]
     tags: ["v*"]
+  pull_request:
+    branches: [main, develop]
 
 env:
   REGISTRY: ghcr.io
@@ -24,8 +26,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -42,9 +42,37 @@ jobs:
       - name: Run TypeScript checks
         run: pnpm run type-check
 
-      # TODO: Uncomment when tests are added
-      # - name: Run Tests
-      #   run: npm test
+      - name: Run tests with coverage
+        run: pnpm test
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      # Temporarily disabled - E2E tests disabled
+      # - name: Cache Playwright browsers
+      #   uses: actions/cache@v4
+      #   id: playwright-cache
+      #   with:
+      #     path: |
+      #       ~/.cache/ms-playwright
+      #     key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      # - name: Install Playwright browsers
+      #   if: steps.playwright-cache.outputs.cache-hit != 'true'
+      #   run: npx playwright install --with-deps
+
+      # Temporarily disabled - E2E tests timing out in CI  
+      # TODO: Re-enable after optimizing server startup time
+      # - name: Run E2E tests
+      #   run: pnpm test:e2e
+      #   env:
+      #     CI: true
 
   build:
     name: Build Application
@@ -61,8 +89,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4

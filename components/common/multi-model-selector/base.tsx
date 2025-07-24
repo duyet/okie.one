@@ -1,5 +1,14 @@
 "use client"
 
+import {
+  CaretDownIcon,
+  CheckIcon,
+  MagnifyingGlassIcon,
+  StarIcon,
+} from "@phosphor-icons/react"
+import { AnimatePresence, motion } from "motion/react"
+import { useRef, useState } from "react"
+
 import { PopoverContentAuth } from "@/app/components/chat-input/popover-content-auth"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useKeyShortcut } from "@/app/hooks/use-key-shortcut"
@@ -31,14 +40,7 @@ import type { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
-import {
-  CaretDownIcon,
-  CheckIcon,
-  MagnifyingGlassIcon,
-  StarIcon,
-} from "@phosphor-icons/react"
-import { AnimatePresence, motion } from "motion/react"
-import { useRef, useState } from "react"
+
 import { ProModelDialog } from "../model-selector/pro-dialog"
 import { SubMenu } from "../model-selector/sub-menu"
 

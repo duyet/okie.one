@@ -1,9 +1,10 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import { CaretDown, CaretUp, Check } from "@phosphor-icons/react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import type * as React from "react"
+
+import { cn } from "@/lib/utils"
 
 function Select({
   ...props

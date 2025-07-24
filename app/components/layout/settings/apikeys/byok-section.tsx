@@ -1,5 +1,10 @@
 "use client"
 
+import { PlusIcon } from "@phosphor-icons/react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Loader2, Trash2 } from "lucide-react"
+import { useState } from "react"
+
 import ClaudeIcon from "@/components/icons/claude"
 import GoogleIcon from "@/components/icons/google"
 import MistralIcon from "@/components/icons/mistral"
@@ -24,10 +29,6 @@ import { toast } from "@/components/ui/toast"
 import { fetchClient } from "@/lib/fetch"
 import { useModel } from "@/lib/model-store/provider"
 import { cn } from "@/lib/utils"
-import { PlusIcon } from "@phosphor-icons/react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Loader2, Trash2 } from "lucide-react"
-import { useState } from "react"
 
 type Provider = {
   id: string

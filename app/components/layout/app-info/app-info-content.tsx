@@ -4,8 +4,8 @@ export function AppInfoContent() {
   return (
     <div className="space-y-4">
       <p className="text-foreground leading-relaxed">
-        <span className="font-medium">{APP_NAME}</span> is the open-source interface
-        for AI chat.
+        <span className="font-medium">{APP_NAME}</span> is the open-source
+        interface for AI chat.
         <br />
         Multi-model, BYOK-ready, and fully self-hostable.
         <br />

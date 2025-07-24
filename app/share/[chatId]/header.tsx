@@ -1,4 +1,5 @@
 import Link from "next/link"
+
 import { APP_NAME } from "@/lib/config"
 
 export function Header() {

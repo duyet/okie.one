@@ -1,8 +1,9 @@
 "use client"
 
+import { useQuery } from "@tanstack/react-query"
+
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
-import { useQuery } from "@tanstack/react-query"
 
 type DeveloperTool = {
   id: string

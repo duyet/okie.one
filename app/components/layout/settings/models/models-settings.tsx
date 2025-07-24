@@ -1,9 +1,5 @@
 "use client"
 
-import { useModel } from "@/lib/model-store/provider"
-import type { ModelConfig } from "@/lib/models/types"
-import { PROVIDERS } from "@/lib/providers"
-import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import {
   DotsSixVerticalIcon,
   MinusIcon,
@@ -12,6 +8,12 @@ import {
 } from "@phosphor-icons/react"
 import { AnimatePresence, motion, Reorder } from "motion/react"
 import { useMemo, useState } from "react"
+
+import { useModel } from "@/lib/model-store/provider"
+import type { ModelConfig } from "@/lib/models/types"
+import { PROVIDERS } from "@/lib/providers"
+import { useUserPreferences } from "@/lib/user-preference-store/provider"
+
 import { useFavoriteModels } from "./use-favorite-models"
 
 type FavoriteModelItem = ModelConfig & {

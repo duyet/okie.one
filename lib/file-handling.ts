@@ -1,6 +1,8 @@
-import { toast } from "@/components/ui/toast"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import * as fileType from "file-type"
+
+import { toast } from "@/components/ui/toast"
+
 import { DAILY_FILE_UPLOAD_LIMIT } from "./config"
 import { createClient } from "./supabase/client"
 import { isSupabaseEnabled } from "./supabase/config"

@@ -1,8 +1,9 @@
 "use client"
 
+import type { VariantProps } from "class-variance-authority"
+
 import { Button, type buttonVariants } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { VariantProps } from "class-variance-authority"
 
 export type PromptSuggestionProps = {
   children: React.ReactNode

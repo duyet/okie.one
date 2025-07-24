@@ -1,3 +1,5 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
+
 import { UsageLimitError } from "@/lib/api"
 import {
   AUTH_DAILY_MESSAGE_LIMIT,
@@ -5,7 +7,6 @@ import {
   FREE_MODELS_IDS,
   NON_AUTH_DAILY_MESSAGE_LIMIT,
 } from "@/lib/config"
-import type { SupabaseClient } from "@supabase/supabase-js"
 
 const isFreeModel = (modelId: string) => FREE_MODELS_IDS.includes(modelId)
 const isProModel = (modelId: string) => !isFreeModel(modelId)

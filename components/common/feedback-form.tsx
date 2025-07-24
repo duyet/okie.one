@@ -1,10 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { toast } from "@/components/ui/toast"
-import { APP_NAME } from "@/lib/config"
-import { createClient } from "@/lib/supabase/client"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
 import {
   CaretLeftIcon,
   SealCheckIcon,
@@ -12,6 +7,12 @@ import {
 } from "@phosphor-icons/react"
 import { AnimatePresence, motion, type Transition } from "motion/react"
 import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { toast } from "@/components/ui/toast"
+import { APP_NAME } from "@/lib/config"
+import { createClient } from "@/lib/supabase/client"
+import { isSupabaseEnabled } from "@/lib/supabase/config"
 
 const TRANSITION_CONTENT: Transition = {
   ease: "easeOut",

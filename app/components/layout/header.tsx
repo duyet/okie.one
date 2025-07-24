@@ -1,5 +1,8 @@
 "use client"
 
+import { Info } from "@phosphor-icons/react"
+import Link from "next/link"
+
 import { HistoryTrigger } from "@/app/components/history/history-trigger"
 import { AppInfoTrigger } from "@/app/components/layout/app-info/app-info-trigger"
 import { ButtonNewChat } from "@/app/components/layout/button-new-chat"
@@ -10,8 +13,7 @@ import { Button } from "@/components/ui/button"
 import { APP_NAME } from "@/lib/config"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { useUser } from "@/lib/user-store/provider"
-import { Info } from "@phosphor-icons/react"
-import Link from "next/link"
+
 import { DialogPublish } from "./dialog-publish"
 import { HeaderSidebarTrigger } from "./header-sidebar-trigger"
 

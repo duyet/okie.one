@@ -1,12 +1,14 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { signInWithGoogle, signInWithGitHub } from "@/lib/api"
-import { APP_NAME } from "@/lib/config"
-import { createClient } from "@/lib/supabase/client"
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { signInWithGitHub, signInWithGoogle } from "@/lib/api"
+import { APP_NAME } from "@/lib/config"
+import { createClient } from "@/lib/supabase/client"
+
 import { HeaderGoBack } from "../components/header-go-back"
 
 export default function LoginPage() {
@@ -104,7 +106,9 @@ export default function LoginPage() {
                 className="mr-2"
               />
               <span>
-                {loadingProvider === "google" ? "Connecting..." : "Continue with Google"}
+                {loadingProvider === "google"
+                  ? "Connecting..."
+                  : "Continue with Google"}
               </span>
             </Button>
             <Button
@@ -122,7 +126,9 @@ export default function LoginPage() {
                 className="mr-2"
               />
               <span>
-                {loadingProvider === "github" ? "Connecting..." : "Continue with GitHub"}
+                {loadingProvider === "github"
+                  ? "Connecting..."
+                  : "Continue with GitHub"}
               </span>
             </Button>
           </div>

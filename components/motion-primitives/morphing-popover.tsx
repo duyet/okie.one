@@ -1,11 +1,9 @@
 "use client"
 
-import useClickOutside from "@/app/hooks/use-click-outside"
-import { cn } from "@/lib/utils"
 import {
   AnimatePresence,
-  motion,
   MotionConfig,
+  motion,
   type Transition,
   type Variants,
 } from "motion/react"
@@ -18,6 +16,9 @@ import {
   useRef,
   useState,
 } from "react"
+
+import useClickOutside from "@/app/hooks/use-click-outside"
+import { cn } from "@/lib/utils"
 
 const TRANSITION: Transition = {
   type: "spring",

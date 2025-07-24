@@ -1,10 +1,5 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { DrawerClose } from "@/components/ui/drawer"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { cn, isDev } from "@/lib/utils"
 import {
   CubeIcon,
   GearSixIcon,
@@ -14,6 +9,13 @@ import {
   XIcon,
 } from "@phosphor-icons/react"
 import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { DrawerClose } from "@/components/ui/drawer"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { cn, isDev } from "@/lib/utils"
+
 import { ByokSection } from "./apikeys/byok-section"
 import { InteractionPreferences } from "./appearance/interaction-preferences"
 import { LayoutSettings } from "./appearance/layout-settings"

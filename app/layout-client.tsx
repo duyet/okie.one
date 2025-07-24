@@ -1,7 +1,8 @@
 "use client"
 
-import { API_ROUTE_CSRF } from "@/lib/routes"
 import { useQuery } from "@tanstack/react-query"
+
+import { API_ROUTE_CSRF } from "@/lib/routes"
 
 export function LayoutClient() {
   useQuery({

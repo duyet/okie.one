@@ -1,8 +1,10 @@
+import type { Metadata } from "next"
+import { notFound, redirect } from "next/navigation"
+
 import { APP_DOMAIN, APP_NAME } from "@/lib/config"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { createClient } from "@/lib/supabase/server"
-import type { Metadata } from "next"
-import { notFound, redirect } from "next/navigation"
+
 import Article from "./article"
 
 export const dynamic = "force-static"

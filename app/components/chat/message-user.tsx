@@ -1,5 +1,11 @@
 "use client"
 
+import type { Message as MessageType } from "@ai-sdk/react"
+import { Check, Copy, Trash } from "@phosphor-icons/react"
+import type { Transition } from "motion/react"
+import Image from "next/image"
+import { useRef, useState } from "react"
+
 import {
   MorphingDialog,
   MorphingDialogClose,
@@ -16,11 +22,6 @@ import {
 } from "@/components/prompt-kit/message"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import type { Message as MessageType } from "@ai-sdk/react"
-import { Check, Copy, Trash } from "@phosphor-icons/react"
-import type { Transition } from "motion/react"
-import Image from "next/image"
-import { useRef, useState } from "react"
 
 const getTextFromDataUrl = (dataUrl: string) => {
   const base64 = dataUrl.split(",")[1]

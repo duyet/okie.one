@@ -1,9 +1,10 @@
+import { redirect } from "next/navigation"
+
 import { LayoutApp } from "@/app/components/layout/layout-app"
 import { ProjectView } from "@/app/p/[projectId]/project-view"
 import { MessagesProvider } from "@/lib/chat-store/messages/provider"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 
 type Props = {
   params: Promise<{ projectId: string }>

@@ -1,11 +1,10 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import { X } from "@phosphor-icons/react"
 import {
   AnimatePresence,
-  motion,
   MotionConfig,
+  motion,
   type Transition,
   type Variant,
 } from "motion/react"
@@ -19,6 +18,9 @@ import React, {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
+
+import { cn } from "@/lib/utils"
+
 import useClickOutside from "./useClickOutside"
 
 export type MorphingDialogContextType = {

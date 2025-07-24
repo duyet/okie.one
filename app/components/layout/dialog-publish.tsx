@@ -1,5 +1,8 @@
 "use client"
 
+import { Check, Copy, Globe, Spinner } from "@phosphor-icons/react"
+import { useState } from "react"
+
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import XIcon from "@/components/icons/x"
 import { Button } from "@/components/ui/button"
@@ -28,8 +31,6 @@ import { useChatSession } from "@/lib/chat-store/session/provider"
 import { APP_DOMAIN, APP_NAME } from "@/lib/config"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { Check, Copy, Globe, Spinner } from "@phosphor-icons/react"
-import { useState } from "react"
 
 export function DialogPublish() {
   const [openDialog, setOpenDialog] = useState(false)

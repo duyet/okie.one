@@ -1,10 +1,11 @@
+import { useCallback, useState } from "react"
+
 import { toast } from "@/components/ui/toast"
 import {
   type Attachment,
   checkFileUploadLimit,
   processFiles,
 } from "@/lib/file-handling"
-import { useCallback, useState } from "react"
 
 export const useFileUpload = () => {
   const [files, setFiles] = useState<File[]>([])

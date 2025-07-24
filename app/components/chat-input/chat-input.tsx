@@ -1,5 +1,8 @@
 "use client"
 
+import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
+import { useCallback, useMemo } from "react"
+
 import { ModelSelector } from "@/components/common/model-selector/base"
 import {
   PromptInput,
@@ -10,8 +13,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { APP_NAME } from "@/lib/config"
 import { getModelInfo } from "@/lib/models"
-import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
-import { useCallback, useMemo } from "react"
+
 import { PromptSystem } from "../suggestions/prompt-system"
 import { ButtonFileUpload } from "./button-file-upload"
 import { ButtonSearch } from "./button-search"

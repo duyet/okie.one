@@ -1,9 +1,10 @@
+import type { SVGProps } from "react"
+
 import {
   type LayoutType,
   useUserPreferences,
 } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
-import type { SVGProps } from "react"
 
 const LayoutSidebar = (props: SVGProps<SVGSVGElement>) => {
   return (

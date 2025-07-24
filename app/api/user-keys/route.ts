@@ -1,7 +1,8 @@
+import { NextResponse } from "next/server"
+
 import { encryptKey, isEncryptionAvailable } from "@/lib/encryption"
 import { getModelsForProvider } from "@/lib/models"
 import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
@@ -17,7 +18,10 @@ export async function POST(request: Request) {
     // Check if encryption is available
     if (!isEncryptionAvailable()) {
       return NextResponse.json(
-        { error: "ENCRYPTION_KEY not configured. User API keys cannot be stored without encryption." },
+        {
+          error:
+            "ENCRYPTION_KEY not configured. User API keys cannot be stored without encryption.",
+        },
         { status: 500 }
       )
     }

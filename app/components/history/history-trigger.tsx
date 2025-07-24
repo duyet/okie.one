@@ -1,13 +1,15 @@
 "use client"
 
+import { ListMagnifyingGlass } from "@phosphor-icons/react"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
 import { useChatSession } from "@/lib/chat-store/session/provider"
 import { cn } from "@/lib/utils"
-import { ListMagnifyingGlass } from "@phosphor-icons/react"
-import { useRouter } from "next/navigation"
-import { useState } from "react"
+
 import { CommandHistory } from "./command-history"
 import { DrawerHistory } from "./drawer-history"
 

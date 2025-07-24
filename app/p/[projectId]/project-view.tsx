@@ -1,10 +1,17 @@
 "use client"
 
-import { ChatInput } from "@/app/components/chat-input/chat-input"
+import { useChat } from "@ai-sdk/react"
+import { ChatCircleIcon } from "@phosphor-icons/react"
+import { useQuery } from "@tanstack/react-query"
+import { AnimatePresence, motion } from "motion/react"
+import { usePathname } from "next/navigation"
+import { useCallback, useMemo, useState } from "react"
+
 import { Conversation } from "@/app/components/chat/conversation"
 import { useChatOperations } from "@/app/components/chat/use-chat-operations"
 import { useFileUpload } from "@/app/components/chat/use-file-upload"
 import { useModel } from "@/app/components/chat/use-model"
+import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { ProjectChatItem } from "@/app/components/layout/sidebar/project-chat-item"
 import { toast } from "@/components/ui/toast"
 import { useChats } from "@/lib/chat-store/chats/provider"
@@ -14,12 +21,6 @@ import type { Attachment } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
 import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
-import { useChat } from "@ai-sdk/react"
-import { ChatCircleIcon } from "@phosphor-icons/react"
-import { useQuery } from "@tanstack/react-query"
-import { AnimatePresence, motion } from "motion/react"
-import { usePathname } from "next/navigation"
-import { useCallback, useMemo, useState } from "react"
 
 type Project = {
   id: string

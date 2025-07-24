@@ -1,8 +1,9 @@
+import { useCallback, useState } from "react"
+
 import { toast } from "@/components/ui/toast"
 import type { Chats } from "@/lib/chat-store/types"
 import { MODEL_DEFAULT } from "@/lib/config"
 import type { UserProfile } from "@/lib/user/types"
-import { useCallback, useState } from "react"
 
 interface UseModelProps {
   currentChat: Chats | null

@@ -1,6 +1,5 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import {
   Children,
   cloneElement,
@@ -12,6 +11,8 @@ import {
   useState,
 } from "react"
 import { createPortal } from "react-dom"
+
+import { cn } from "@/lib/utils"
 
 type FileUploadContextValue = {
   isDragging: boolean

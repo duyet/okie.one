@@ -1,5 +1,7 @@
+import { type NextRequest, NextResponse } from "next/server"
+
 import { updateSession } from "@/utils/supabase/middleware"
-import { NextResponse, type NextRequest } from "next/server"
+
 import { validateCsrfToken } from "./lib/csrf"
 
 export async function middleware(request: NextRequest) {

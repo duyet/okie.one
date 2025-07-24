@@ -1,5 +1,6 @@
-import { AnimatePresence, motion } from "motion/react"
 import type { Transition } from "motion/react"
+import { AnimatePresence, motion } from "motion/react"
+
 import { FileItem } from "./file-items"
 
 type FileListProps = {

@@ -1,7 +1,9 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
 import Image from "next/image"
+import { useState } from "react"
+
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -10,10 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { signInWithGoogle, signInWithGitHub } from "@/lib/api"
+import { signInWithGitHub, signInWithGoogle } from "@/lib/api"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { useState } from "react"
 
 type DialogAuthProps = {
   open: boolean
@@ -110,7 +111,11 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
                 height={16}
                 className="mr-2"
               />
-              <span>{loadingProvider === "google" ? "Connecting..." : "Continue with Google"}</span>
+              <span>
+                {loadingProvider === "google"
+                  ? "Connecting..."
+                  : "Continue with Google"}
+              </span>
             </Button>
             <Button
               variant="secondary"
@@ -126,7 +131,11 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
                 height={16}
                 className="mr-2"
               />
-              <span>{loadingProvider === "github" ? "Connecting..." : "Continue with GitHub"}</span>
+              <span>
+                {loadingProvider === "github"
+                  ? "Connecting..."
+                  : "Continue with GitHub"}
+              </span>
             </Button>
           </div>
         </DialogFooter>

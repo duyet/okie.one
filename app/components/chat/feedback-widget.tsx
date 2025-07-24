@@ -1,5 +1,10 @@
 "use client"
 
+import { QuestionMark } from "@phosphor-icons/react"
+import type { Transition } from "motion/react"
+import { motion } from "motion/react"
+import { useState } from "react"
+
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { FeedbackForm } from "@/components/common/feedback-form"
 import {
@@ -8,10 +13,6 @@ import {
   MorphingPopoverTrigger,
 } from "@/components/motion-primitives/morphing-popover"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { QuestionMark } from "@phosphor-icons/react"
-import { motion } from "motion/react"
-import type { Transition } from "motion/react"
-import { useState } from "react"
 
 const TRANSITION_POPOVER = {
   type: "spring",

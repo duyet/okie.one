@@ -1,5 +1,8 @@
 "use client"
 
+import { User } from "@phosphor-icons/react"
+import { useState } from "react"
+
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import {
   Dialog,
@@ -10,8 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
-import { User } from "@phosphor-icons/react"
-import { useState } from "react"
+
 import { SettingsContent } from "./settings-content"
 
 type SettingsTriggerProps = {
