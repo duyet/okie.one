@@ -1,5 +1,5 @@
 import {
-  LayoutType,
+  type LayoutType,
   useUserPreferences,
 } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"

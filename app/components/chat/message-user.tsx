@@ -16,8 +16,9 @@ import {
 } from "@/components/prompt-kit/message"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { Message as MessageType } from "@ai-sdk/react"
+import type { Message as MessageType } from "@ai-sdk/react"
 import { Check, Copy, Trash } from "@phosphor-icons/react"
+import type { Transition } from "motion/react"
 import Image from "next/image"
 import { useRef, useState } from "react"
 
@@ -87,12 +88,14 @@ export function MessageUser({
         >
           {attachment.contentType?.startsWith("image") ? (
             <MorphingDialog
-              transition={{
-                type: "spring",
-                stiffness: 280,
-                damping: 18,
-                mass: 0.3,
-              }}
+              transition={
+                {
+                  type: "spring",
+                  stiffness: 280,
+                  damping: 18,
+                  mass: 0.3,
+                } as Transition
+              }
             >
               <MorphingDialogTrigger className="z-10">
                 <Image

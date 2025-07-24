@@ -120,6 +120,7 @@ export function AppSidebar() {
           className="hover:bg-muted flex items-center gap-2 rounded-md p-2"
           target="_blank"
           aria-label="Star the repo on GitHub"
+          rel="noopener"
         >
           <div className="rounded-full border p-1">
             <GithubLogo className="size-4" />

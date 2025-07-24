@@ -7,7 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Chats } from "@/lib/chat-store/types"
+import type { Chats } from "@/lib/chat-store/types"
 import {
   Check,
   MagnifyingGlass,
@@ -43,15 +43,18 @@ export function DrawerHistory({
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const params = useParams<{ chatId: string }>()
 
-  const handleOpenChange = useCallback((open: boolean) => {
-    setIsOpen(open)
-    if (!open) {
-      setSearchQuery("")
-      setEditingId(null)
-      setEditTitle("")
-      setDeletingId(null)
-    }
-  }, [setIsOpen])
+  const handleOpenChange = useCallback(
+    (open: boolean) => {
+      setIsOpen(open)
+      if (!open) {
+        setSearchQuery("")
+        setEditingId(null)
+        setEditTitle("")
+        setDeletingId(null)
+      }
+    },
+    [setIsOpen]
+  )
 
   const handleEdit = useCallback((chat: Chats) => {
     setEditingId(chat.id)

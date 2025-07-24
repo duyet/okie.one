@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useModel } from "@/lib/model-store/provider"
 import { filterAndSortModels } from "@/lib/model-store/utils"
-import { ModelConfig } from "@/lib/models/types"
+import type { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"

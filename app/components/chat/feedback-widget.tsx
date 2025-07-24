@@ -10,13 +10,14 @@ import {
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { QuestionMark } from "@phosphor-icons/react"
 import { motion } from "motion/react"
+import type { Transition } from "motion/react"
 import { useState } from "react"
 
 const TRANSITION_POPOVER = {
   type: "spring",
   bounce: 0.1,
   duration: 0.3,
-}
+} as Transition
 
 type FeedbackWidgetProps = {
   authUserId?: string
@@ -63,7 +64,7 @@ export function FeedbackWidget({ authUserId }: FeedbackWidgetProps) {
             }}
             transition={{
               duration: 0,
-              delay: isOpen ? 0 : TRANSITION_POPOVER.duration / 2,
+              delay: isOpen ? 0 : TRANSITION_POPOVER.duration! / 2,
             }}
           >
             <QuestionMark className="text-foreground size-4" />

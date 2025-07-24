@@ -31,9 +31,7 @@ type SettingsContentProps = {
 
 type TabType = "general" | "appearance" | "models" | "connections"
 
-export function SettingsContent({
-  isDrawer = false,
-}: SettingsContentProps) {
+export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
   const [activeTab, setActiveTab] = useState<TabType>("general")
 
   return (

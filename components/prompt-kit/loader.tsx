@@ -1,6 +1,6 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, type Transition } from "motion/react"
 
 // Style constants
 const DOT_SIZE = "size-2"
@@ -24,7 +24,7 @@ const TRANSITION = {
   ease: "easeInOut",
   repeat: Number.POSITIVE_INFINITY,
   repeatType: "loop" as const,
-}
+} as Transition
 
 export function Loader() {
   return (

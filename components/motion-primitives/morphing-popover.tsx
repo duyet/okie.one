@@ -6,8 +6,8 @@ import {
   AnimatePresence,
   motion,
   MotionConfig,
-  Transition,
-  Variants,
+  type Transition,
+  type Variants,
 } from "motion/react"
 import {
   createContext,
@@ -19,7 +19,7 @@ import {
   useState,
 } from "react"
 
-const TRANSITION = {
+const TRANSITION: Transition = {
   type: "spring",
   bounce: 0.1,
   duration: 0.4,

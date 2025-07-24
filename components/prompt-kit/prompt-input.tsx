@@ -7,13 +7,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react"
+import type React from "react"
+import { createContext, useContext, useEffect, useRef, useState } from "react"
 
 type PromptInputContextType = {
   isLoading: boolean

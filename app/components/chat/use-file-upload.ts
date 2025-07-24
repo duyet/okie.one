@@ -1,6 +1,6 @@
 import { toast } from "@/components/ui/toast"
 import {
-  Attachment,
+  type Attachment,
   checkFileUploadLimit,
   processFiles,
 } from "@/lib/file-handling"
@@ -20,7 +20,10 @@ export const useFileUpload = () => {
     } catch (err: unknown) {
       const error = err as { code?: string; message?: string }
       if (error.code === "DAILY_FILE_LIMIT_REACHED") {
-        toast({ title: error.message || "Daily file limit reached", status: "error" })
+        toast({
+          title: error.message || "Daily file limit reached",
+          status: "error",
+        })
         return null
       }
     }
@@ -43,7 +46,9 @@ export const useFileUpload = () => {
     }))
   }
 
-  const cleanupOptimisticAttachments = (attachments?: Array<{ url?: string }>) => {
+  const cleanupOptimisticAttachments = (
+    attachments?: Array<{ url?: string }>
+  ) => {
     if (!attachments) return
     attachments.forEach((attachment) => {
       if (attachment.url?.startsWith("blob:")) {

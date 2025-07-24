@@ -1,5 +1,5 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
-import { ModelConfig } from "../types"
+import type { ModelConfig } from "../types"
 
 export const openrouterModels: ModelConfig[] = [
   {

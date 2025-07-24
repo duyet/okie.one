@@ -23,6 +23,8 @@ export async function GET(req: Request) {
 
     return new Response(JSON.stringify(usage), { status: 200 })
   } catch (err: unknown) {
-    return new Response(JSON.stringify({ error: (err as Error).message }), { status: 500 })
+    return new Response(JSON.stringify({ error: (err as Error).message }), {
+      status: 500,
+    })
   }
 }

@@ -50,7 +50,7 @@ export type MistralModel =
   | "open-mixtral-8x7b"
   | "open-mixtral-8x22b"
 
-export type PerplexityModel = 
+export type PerplexityModel =
   | "sonar"
   | "sonar-pro"
   | "sonar-deep-research"

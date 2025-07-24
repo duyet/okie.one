@@ -1,5 +1,5 @@
 import { openproviders } from "@/lib/openproviders"
-import { ModelConfig } from "../types"
+import type { ModelConfig } from "../types"
 
 // Interface for Ollama API response
 interface OllamaModel {

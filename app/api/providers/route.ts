@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
-import { getEffectiveApiKey, ProviderWithoutOllama } from "@/lib/user-keys"
-import { NextRequest, NextResponse } from "next/server"
+import { getEffectiveApiKey, type ProviderWithoutOllama } from "@/lib/user-keys"
+import { type NextRequest, NextResponse } from "next/server"
 
 export async function POST(request: NextRequest) {
   try {

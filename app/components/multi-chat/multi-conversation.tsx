@@ -9,7 +9,7 @@ import { ScrollButton } from "@/components/prompt-kit/scroll-button"
 import { getModelInfo } from "@/lib/models"
 import { PROVIDERS } from "@/lib/providers"
 import { cn } from "@/lib/utils"
-import { Message as MessageType } from "@ai-sdk/react"
+import type { Message as MessageType } from "@ai-sdk/react"
 import { useEffect, useState } from "react"
 import { Message } from "../chat/message"
 

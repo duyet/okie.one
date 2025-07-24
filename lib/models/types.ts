@@ -1,4 +1,4 @@
-import { LanguageModelV1 } from "ai"
+import type { LanguageModelV1 } from "ai"
 
 type ModelConfig = {
   id: string // "gpt-4.1-nano" // same from AI SDKs

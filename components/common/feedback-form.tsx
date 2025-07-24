@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { CaretLeft, SealCheck, Spinner } from "@phosphor-icons/react"
-import { AnimatePresence, motion } from "motion/react"
+import {
+  CaretLeftIcon,
+  SealCheckIcon,
+  SpinnerIcon,
+} from "@phosphor-icons/react"
+import { AnimatePresence, motion, type Transition } from "motion/react"
 import { useState } from "react"
 
-const TRANSITION_CONTENT = {
+const TRANSITION_CONTENT: Transition = {
   ease: "easeOut",
   duration: 0.2,
 }
@@ -101,7 +105,7 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
             transition={TRANSITION_CONTENT}
           >
             <div className="rounded-full bg-green-500/10 p-1">
-              <SealCheck className="size-6 text-green-500" />
+              <SealCheckIcon className="size-6 text-green-500" />
             </div>
             <p className="text-foreground mt-3 mb-1 text-center text-sm font-medium">
               Thank you for your time!
@@ -154,7 +158,7 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
                 disabled={status === "submitting"}
                 className="rounded-lg"
               >
-                <CaretLeft size={16} className="text-foreground" />
+                <CaretLeftIcon size={16} className="text-foreground" />
               </Button>
               <Button
                 type="submit"
@@ -174,7 +178,7 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
                       transition={TRANSITION_CONTENT}
                       className="inline-flex items-center gap-2"
                     >
-                      <Spinner className="size-4 animate-spin" />
+                      <SpinnerIcon className="size-4 animate-spin" />
                       Sending...
                     </motion.span>
                   ) : (

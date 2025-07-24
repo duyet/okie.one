@@ -1,7 +1,7 @@
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import useClickOutside from "@/app/hooks/use-click-outside"
 import { useChats } from "@/lib/chat-store/chats/provider"
-import { Chat } from "@/lib/chat-store/types"
+import type { Chat } from "@/lib/chat-store/types"
 import { cn } from "@/lib/utils"
 import { Check, X } from "@phosphor-icons/react"
 import Link from "next/link"

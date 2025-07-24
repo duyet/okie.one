@@ -1,5 +1,5 @@
 import { FREE_MODELS_IDS } from "@/lib/config"
-import { ModelConfig } from "@/lib/models/types"
+import type { ModelConfig } from "@/lib/models/types"
 
 /**
  * Utility function to filter and sort models based on favorites, search, and visibility

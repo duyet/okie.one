@@ -1,6 +1,6 @@
 import { decryptKey } from "./encryption"
 import { env } from "./openproviders/env"
-import { Provider } from "./openproviders/types"
+import type { Provider } from "./openproviders/types"
 import { createClient } from "./supabase/server"
 
 export type { Provider } from "./openproviders/types"

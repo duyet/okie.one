@@ -9,7 +9,8 @@ import {
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
 import { ArrowUp, Stop } from "@phosphor-icons/react"
-import React, { useCallback } from "react"
+import type React from "react"
+import { useCallback } from "react"
 
 type MultiChatInputProps = {
   value: string

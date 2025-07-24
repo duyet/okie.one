@@ -1,7 +1,7 @@
 "use client"
 
 import { useModel } from "@/lib/model-store/provider"
-import { ModelConfig } from "@/lib/models/types"
+import type { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import {
@@ -10,7 +10,7 @@ import {
   PlusIcon,
   StarIcon,
 } from "@phosphor-icons/react"
-import { AnimatePresence, motion, Reorder } from "framer-motion"
+import { AnimatePresence, motion, Reorder } from "motion/react"
 import { useMemo, useState } from "react"
 import { useFavoriteModels } from "./use-favorite-models"
 

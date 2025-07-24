@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "motion/react"
+import type { Transition } from "motion/react"
 import { FileItem } from "./file-items"
 
 type FileListProps = {
@@ -10,7 +11,7 @@ const TRANSITION = {
   type: "spring",
   duration: 0.2,
   bounce: 0,
-}
+} as Transition
 
 export function FileList({ files, onFileRemove }: FileListProps) {
   return (

@@ -4,7 +4,7 @@ import {
 } from "@/components/prompt-kit/chat-container"
 import { Loader } from "@/components/prompt-kit/loader"
 import { ScrollButton } from "@/components/prompt-kit/scroll-button"
-import { Message as MessageType } from "@ai-sdk/react"
+import type { Message as MessageType } from "@ai-sdk/react"
 import { useRef } from "react"
 import { Message } from "./message"
 
@@ -24,7 +24,6 @@ export function Conversation({
   onReload,
 }: ConversationProps) {
   const initialMessageCount = useRef(messages.length)
-
 
   if (!messages || messages.length === 0)
     return <div className="h-full w-full"></div>

@@ -62,11 +62,14 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --spacing-scroll-area: calc(
-    -1 * (var(--spacing-input-area) + var(--spacing-app-header))
+    -1 *
+    (var(--spacing-input-area) + var(--spacing-app-header))
   );
   --spacing-scroll-anchor-offset: 140px;
   --spacing-scroll-anchor: calc(
-    var(--spacing-scroll-area) - var(--spacing-scroll-anchor-offset) + 100dvh
+    var(--spacing-scroll-area) -
+    var(--spacing-scroll-anchor-offset) +
+    100dvh
   );
 }
 

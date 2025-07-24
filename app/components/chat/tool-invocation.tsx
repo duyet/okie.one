@@ -11,7 +11,7 @@ import {
   Spinner,
   Wrench,
 } from "@phosphor-icons/react"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, motion, type Transition } from "motion/react"
 import { useMemo, useState } from "react"
 
 interface ToolInvocationProps {
@@ -24,7 +24,7 @@ const TRANSITION = {
   type: "spring",
   duration: 0.2,
   bounce: 0,
-}
+} as Transition
 
 export function ToolInvocation({
   toolInvocations,

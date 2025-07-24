@@ -1,5 +1,5 @@
 import { addUTM } from "@/app/components/chat/utils"
-import { ModelConfig } from "@/lib/models/types"
+import type { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
 import {
   ArrowSquareOutIcon,

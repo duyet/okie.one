@@ -6,8 +6,8 @@ import {
   AnimatePresence,
   motion,
   MotionConfig,
-  Transition,
-  Variant,
+  type Transition,
+  type Variant,
 } from "motion/react"
 import React, {
   useCallback,

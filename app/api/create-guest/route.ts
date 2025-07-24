@@ -61,7 +61,9 @@ export async function POST(request: Request) {
     console.error("Error in create-guest endpoint:", err)
 
     return new Response(
-      JSON.stringify({ error: (err as Error).message || "Internal server error" }),
+      JSON.stringify({
+        error: (err as Error).message || "Internal server error",
+      }),
       { status: 500 }
     )
   }
