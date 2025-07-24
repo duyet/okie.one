@@ -20,6 +20,7 @@ First, you'll need to set up your environment variables. Create a `.env.local` f
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+# Both SUPABASE_SERVICE_ROLE_KEY (Vercel Integration) and SUPABASE_SERVICE_ROLE are supported
 SUPABASE_SERVICE_ROLE=your_supabase_service_role_key
 
 # OpenAI
