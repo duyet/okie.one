@@ -3,6 +3,7 @@ import { SourcesList } from "@/app/components/chat/sources-list"
 import type { Tables } from "@/app/types/database.types"
 import { Message, MessageContent } from "@/components/prompt-kit/message"
 import { Button } from "@/components/ui/button"
+import { APP_NAME } from "@/lib/config"
 import { cn } from "@/lib/utils"
 import type { Message as MessageAISDK } from "@ai-sdk/react"
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
@@ -53,7 +54,7 @@ export default function Article({
               variant="outline"
               className="group flex h-12 w-full max-w-36 items-center justify-between rounded-full py-2 pr-2 pl-4 text-muted-foreground shadow-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
             >
-              Ask Okie{" "}
+              Ask {APP_NAME}{" "}
               <div className="rounded-full bg-black/20 p-2 backdrop-blur-sm transition-colors group-hover:bg-black/30">
                 <ArrowUpRight className="h-4 w-4 text-white" />
               </div>

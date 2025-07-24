@@ -3,6 +3,7 @@
 import { groupChatsByDate } from "@/app/components/history/utils"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { APP_NAME } from "@/lib/config"
 import {
   Sidebar,
   SidebarContent,
@@ -127,7 +128,7 @@ export function AppSidebar() {
           </div>
           <div className="flex flex-col">
             <div className="font-medium text-sidebar-foreground text-sm">
-              Okie is open source
+              {APP_NAME} is open source
             </div>
             <div className="text-sidebar-foreground/70 text-xs">
               Star the repo on GitHub!
