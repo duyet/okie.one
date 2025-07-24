@@ -1,4 +1,28 @@
 import { APP_DOMAIN } from "@/lib/config"
+
+/**
+ * Get the appropriate base URL for OAuth redirects
+ * Prioritizes NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL for consistent production URLs
+ */
+function getOAuthBaseUrl(): string {
+  const isDev = process.env.NODE_ENV === "development"
+  
+  if (isDev) {
+    return "http://localhost:3000"
+  }
+
+  // In production, prioritize NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL for consistent URLs
+  if (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
+  }
+
+  // Fallback to browser origin or configured domain
+  if (typeof window !== "undefined") {
+    return window.location.origin
+  }
+
+  return APP_DOMAIN
+}
 import type { UserProfile } from "@/lib/user/types"
 import type { SupabaseClient } from "@supabase/supabase-js"
 import { fetchClient } from "./fetch"
@@ -104,14 +128,7 @@ export async function updateChatModel(chatId: string, model: string) {
  */
 export async function signInWithGoogle(supabase: SupabaseClient) {
   try {
-    const isDev = process.env.NODE_ENV === "development"
-
-    // Get base URL dynamically (will work in both browser and server environments)
-    const baseUrl = isDev
-      ? "http://localhost:3000"
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : APP_DOMAIN
+    const baseUrl = getOAuthBaseUrl()
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -141,14 +158,7 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
  */
 export async function signInWithGitHub(supabase: SupabaseClient) {
   try {
-    const isDev = process.env.NODE_ENV === "development"
-
-    // Get base URL dynamically (will work in both browser and server environments)
-    const baseUrl = isDev
-      ? "http://localhost:3000"
-      : typeof window !== "undefined"
-        ? window.location.origin
-        : APP_DOMAIN
+    const baseUrl = getOAuthBaseUrl()
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "github",
