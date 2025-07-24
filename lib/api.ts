@@ -1,9 +1,18 @@
 import { APP_DOMAIN } from "@/lib/config"
 
 /**
- * Get the appropriate base URL for OAuth redirects
- * Prioritizes Vercel's production URL environment variables for consistent production URLs
- * Uses NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL (client) or VERCEL_PROJECT_PRODUCTION_URL (server)
+ * Get the appropriate base URL for OAuth redirects based on environment
+ * 
+ * Environment detection priority:
+ * 1. Local development: localhost:3000
+ * 2. Vercel production (VERCEL_ENV=production): Uses VERCEL_PROJECT_PRODUCTION_URL
+ * 3. Vercel preview (VERCEL_ENV=preview): Uses VERCEL_URL for branch previews
+ * 4. Fallback: window.location.origin or APP_DOMAIN
+ * 
+ * Environment Variables:
+ * - VERCEL_ENV: "production" | "preview" | "development"
+ * - VERCEL_PROJECT_PRODUCTION_URL / NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: Custom production domain
+ * - VERCEL_URL / NEXT_PUBLIC_VERCEL_URL: Auto-generated Vercel domain (for previews)
  */
 function getOAuthBaseUrl(): string {
   // Always use localhost for local development
@@ -12,12 +21,35 @@ function getOAuthBaseUrl(): string {
     return "http://localhost:3000"
   }
 
-  // Check if we're running in Vercel environment
+  // Check if we're running in Vercel environment using VERCEL_ENV
+  const vercelEnv = process.env.VERCEL_ENV
+  
+  if (vercelEnv) {
+    if (vercelEnv === "production") {
+      // For production deployments, use the custom production domain
+      const productionUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
+                           process.env.VERCEL_PROJECT_PRODUCTION_URL
+      
+      if (productionUrl) {
+        return `https://${productionUrl}`
+      }
+    } else if (vercelEnv === "preview") {
+      // For preview deployments, use the auto-generated Vercel URL
+      const previewUrl = process.env.NEXT_PUBLIC_VERCEL_URL || 
+                        process.env.VERCEL_URL
+      
+      if (previewUrl) {
+        return `https://${previewUrl}`
+      }
+    }
+    // Note: vercelEnv === "development" would be local dev, handled above
+  }
+
+  // Fallback: Check if we're in any Vercel environment (legacy detection)
   const isVercel = process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_VERCEL_URL
   
   if (isVercel) {
-    // In Vercel, prioritize production URL environment variables for consistent URLs
-    // NEXT_PUBLIC_* is available on client-side, VERCEL_* is server-side only
+    // Legacy fallback - use production URL if available
     const productionUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
                          process.env.VERCEL_PROJECT_PRODUCTION_URL
     
@@ -53,7 +85,12 @@ async function signInWithOAuth(
     if (process.env.NODE_ENV === "development") {
       console.log(`OAuth ${provider} redirect URL:`, redirectTo)
       console.log('NODE_ENV:', process.env.NODE_ENV)
+      console.log('VERCEL_ENV:', process.env.VERCEL_ENV)
       console.log('VERCEL:', process.env.VERCEL)
+      console.log('VERCEL_URL:', process.env.VERCEL_URL)
+      console.log('NEXT_PUBLIC_VERCEL_URL:', process.env.NEXT_PUBLIC_VERCEL_URL)
+      console.log('VERCEL_PROJECT_PRODUCTION_URL:', process.env.VERCEL_PROJECT_PRODUCTION_URL)
+      console.log('NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL:', process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL)
       console.log('window.location:', typeof window !== "undefined" ? window.location.href : 'N/A (server-side)')
     }
 
