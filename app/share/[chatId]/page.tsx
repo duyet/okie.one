@@ -1,4 +1,4 @@
-import { APP_DOMAIN } from "@/lib/config"
+import { APP_DOMAIN, APP_NAME } from "@/lib/config"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { createClient } from "@/lib/supabase/server"
 import type { Metadata } from "next"
@@ -30,7 +30,7 @@ export async function generateMetadata({
     .single()
 
   const title = chat?.title || "Chat"
-  const description = "A chat in Okie"
+  const description = `A conversation in ${APP_NAME}`
 
   return {
     title,
@@ -90,7 +90,7 @@ export default async function ShareChat({
       messages={messagesData}
       date={chatData.created_at || ""}
       title={chatData.title || ""}
-      subtitle={"A conversation in Okie"}
+      subtitle={`A conversation in ${APP_NAME}`}
     />
   )
 }
