@@ -2,7 +2,8 @@ import { APP_DOMAIN } from "@/lib/config"
 
 /**
  * Get the appropriate base URL for OAuth redirects
- * Prioritizes NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL for consistent production URLs
+ * Prioritizes Vercel's production URL environment variables for consistent production URLs
+ * Uses NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL (client) or VERCEL_PROJECT_PRODUCTION_URL (server)
  */
 function getOAuthBaseUrl(): string {
   const isDev = process.env.NODE_ENV === "development"
@@ -11,9 +12,13 @@ function getOAuthBaseUrl(): string {
     return "http://localhost:3000"
   }
 
-  // In production, prioritize NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL for consistent URLs
-  if (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL) {
-    return `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
+  // In production, prioritize Vercel's production URL environment variables for consistent URLs
+  // NEXT_PUBLIC_* is available on client-side, VERCEL_* is server-side only
+  const productionUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
+                       process.env.VERCEL_PROJECT_PRODUCTION_URL
+  
+  if (productionUrl) {
+    return `https://${productionUrl}`
   }
 
   // Fallback to browser origin or configured domain
