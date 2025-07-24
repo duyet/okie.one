@@ -1,7 +1,9 @@
 "use client"
 
-import { toast } from "@/components/ui/toast"
 import { createContext, useContext, useEffect, useState } from "react"
+
+import { toast } from "@/components/ui/toast"
+
 import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../../config"
 import type { Chats } from "../types"
 import {

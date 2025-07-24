@@ -1,5 +1,9 @@
 "use client"
 
+import type { Message as MessageType } from "@ai-sdk/react"
+import { AnimatePresence, motion } from "motion/react"
+import { useCallback, useMemo, useState } from "react"
+
 import { MultiModelConversation } from "@/app/components/multi-chat/multi-conversation"
 import { toast } from "@/components/ui/toast"
 import { getOrCreateGuestUserId } from "@/lib/api"
@@ -10,9 +14,7 @@ import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { useModel } from "@/lib/model-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
-import type { Message as MessageType } from "@ai-sdk/react"
-import { AnimatePresence, motion } from "motion/react"
-import { useCallback, useMemo, useState } from "react"
+
 import { MultiChatInput } from "./multi-chat-input"
 import { useMultiChat } from "./use-multi-chat"
 

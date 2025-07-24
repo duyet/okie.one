@@ -1,6 +1,7 @@
+import { NextResponse } from "next/server"
+
 import { PROVIDERS } from "@/lib/providers"
 import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
 
 const SUPPORTED_PROVIDERS = PROVIDERS.map((p) => p.id)
 

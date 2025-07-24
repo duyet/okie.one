@@ -2,13 +2,13 @@ import { APP_DOMAIN } from "@/lib/config"
 
 /**
  * Get the appropriate base URL for OAuth redirects based on environment
- * 
+ *
  * Environment detection priority:
  * 1. Local development: localhost:3000
  * 2. Vercel production (VERCEL_ENV=production): Uses VERCEL_PROJECT_PRODUCTION_URL
  * 3. Vercel preview (VERCEL_ENV=preview): Uses VERCEL_URL for branch previews
  * 4. Fallback: window.location.origin or APP_DOMAIN
- * 
+ *
  * Environment Variables:
  * - VERCEL_ENV: "production" | "preview" | "development"
  * - VERCEL_PROJECT_PRODUCTION_URL / NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL: Custom production domain
@@ -16,28 +16,31 @@ import { APP_DOMAIN } from "@/lib/config"
  */
 function getOAuthBaseUrl(): string {
   // Always use localhost for local development
-  if (process.env.NODE_ENV === "development" || 
-      (typeof window !== "undefined" && window.location.hostname === "localhost")) {
+  if (
+    process.env.NODE_ENV === "development" ||
+    (typeof window !== "undefined" && window.location.hostname === "localhost")
+  ) {
     return "http://localhost:3000"
   }
 
   // Check if we're running in Vercel environment using VERCEL_ENV
   const vercelEnv = process.env.VERCEL_ENV
-  
+
   if (vercelEnv) {
     if (vercelEnv === "production") {
       // For production deployments, use the custom production domain
-      const productionUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
-                           process.env.VERCEL_PROJECT_PRODUCTION_URL
-      
+      const productionUrl =
+        process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+        process.env.VERCEL_PROJECT_PRODUCTION_URL
+
       if (productionUrl) {
         return `https://${productionUrl}`
       }
     } else if (vercelEnv === "preview") {
       // For preview deployments, use the auto-generated Vercel URL
-      const previewUrl = process.env.NEXT_PUBLIC_VERCEL_URL || 
-                        process.env.VERCEL_URL
-      
+      const previewUrl =
+        process.env.NEXT_PUBLIC_VERCEL_URL || process.env.VERCEL_URL
+
       if (previewUrl) {
         return `https://${previewUrl}`
       }
@@ -46,13 +49,15 @@ function getOAuthBaseUrl(): string {
   }
 
   // Fallback: Check if we're in any Vercel environment (legacy detection)
-  const isVercel = process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_VERCEL_URL
-  
+  const isVercel =
+    process.env.VERCEL === "1" || process.env.NEXT_PUBLIC_VERCEL_URL
+
   if (isVercel) {
     // Legacy fallback - use production URL if available
-    const productionUrl = process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL || 
-                         process.env.VERCEL_PROJECT_PRODUCTION_URL
-    
+    const productionUrl =
+      process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL ||
+      process.env.VERCEL_PROJECT_PRODUCTION_URL
+
     if (productionUrl) {
       return `https://${productionUrl}`
     }
@@ -73,25 +78,36 @@ function getOAuthBaseUrl(): string {
  * Abstracts common OAuth logic to reduce duplication
  */
 async function signInWithOAuth(
-  supabase: SupabaseClient, 
+  supabase: SupabaseClient,
   provider: "google" | "github",
   additionalOptions?: Record<string, any>
 ) {
   try {
     const baseUrl = getOAuthBaseUrl()
     const redirectTo = `${baseUrl}/auth/callback`
-    
+
     // Debug logging for development
     if (process.env.NODE_ENV === "development") {
       console.log(`OAuth ${provider} redirect URL:`, redirectTo)
-      console.log('NODE_ENV:', process.env.NODE_ENV)
-      console.log('VERCEL_ENV:', process.env.VERCEL_ENV)
-      console.log('VERCEL:', process.env.VERCEL)
-      console.log('VERCEL_URL:', process.env.VERCEL_URL)
-      console.log('NEXT_PUBLIC_VERCEL_URL:', process.env.NEXT_PUBLIC_VERCEL_URL)
-      console.log('VERCEL_PROJECT_PRODUCTION_URL:', process.env.VERCEL_PROJECT_PRODUCTION_URL)
-      console.log('NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL:', process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL)
-      console.log('window.location:', typeof window !== "undefined" ? window.location.href : 'N/A (server-side)')
+      console.log("NODE_ENV:", process.env.NODE_ENV)
+      console.log("VERCEL_ENV:", process.env.VERCEL_ENV)
+      console.log("VERCEL:", process.env.VERCEL)
+      console.log("VERCEL_URL:", process.env.VERCEL_URL)
+      console.log("NEXT_PUBLIC_VERCEL_URL:", process.env.NEXT_PUBLIC_VERCEL_URL)
+      console.log(
+        "VERCEL_PROJECT_PRODUCTION_URL:",
+        process.env.VERCEL_PROJECT_PRODUCTION_URL
+      )
+      console.log(
+        "NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL:",
+        process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
+      )
+      console.log(
+        "window.location:",
+        typeof window !== "undefined"
+          ? window.location.href
+          : "N/A (server-side)"
+      )
     }
 
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -112,8 +128,11 @@ async function signInWithOAuth(
     throw err
   }
 }
-import type { UserProfile } from "@/lib/user/types"
+
 import type { SupabaseClient } from "@supabase/supabase-js"
+
+import type { UserProfile } from "@/lib/user/types"
+
 import { fetchClient } from "./fetch"
 import { API_ROUTE_CREATE_GUEST, API_ROUTE_UPDATE_CHAT_MODEL } from "./routes"
 import { createClient } from "./supabase/client"

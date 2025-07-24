@@ -1,13 +1,3 @@
-import { Button } from "@/components/ui/button"
-import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
-import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
-import type { Chats } from "@/lib/chat-store/types"
 import {
   Check,
   MagnifyingGlass,
@@ -18,6 +8,18 @@ import {
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
+
+import { Button } from "@/components/ui/button"
+import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
+import { Input } from "@/components/ui/input"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import type { Chats } from "@/lib/chat-store/types"
+
 import { formatDate, groupChatsByDate } from "./utils"
 
 type DrawerHistoryProps = {

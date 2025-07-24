@@ -1,10 +1,11 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useCallback, useRef } from "react"
+
 import { toast } from "@/components/ui/toast"
 import { fetchClient } from "@/lib/fetch"
 import { useModel } from "@/lib/model-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 import { debounce } from "@/lib/utils"
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useCallback, useRef } from "react"
 
 type FavoriteModelsResponse = {
   favorite_models: string[]

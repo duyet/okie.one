@@ -1,5 +1,8 @@
 "use client"
 
+import { DotsThreeIcon, PencilSimple, Trash } from "@phosphor-icons/react"
+import { useState } from "react"
+
 import { DialogDeleteProject } from "@/app/components/layout/sidebar/dialog-delete-project"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import {
@@ -8,8 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { DotsThreeIcon, PencilSimple, Trash } from "@phosphor-icons/react"
-import { useState } from "react"
 
 type Project = {
   id: string

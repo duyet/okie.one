@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server"
+
 import {
   getAllModels,
   getModelsForUserProviders,
@@ -5,7 +7,6 @@ import {
   refreshModelsCache,
 } from "@/lib/models"
 import { createClient } from "@/lib/supabase/server"
-import { NextResponse } from "next/server"
 
 export async function GET() {
   try {

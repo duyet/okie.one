@@ -204,7 +204,11 @@ export function handleStreamError(err: unknown): ApiError {
         statusCode: 429,
         code: "RATE_LIMIT_EXCEEDED",
       })
-    } else if (aiError.statusCode && aiError.statusCode >= 400 && aiError.statusCode < 500) {
+    } else if (
+      aiError.statusCode &&
+      aiError.statusCode >= 400 &&
+      aiError.statusCode < 500
+    ) {
       // Other client errors
       const message = detailedMessage || aiError.message || "Request failed"
       return Object.assign(new Error(message), {

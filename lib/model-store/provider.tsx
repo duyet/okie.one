@@ -1,7 +1,5 @@
 "use client"
 
-import { fetchClient } from "@/lib/fetch"
-import type { ModelConfig } from "@/lib/models/types"
 import {
   createContext,
   useCallback,
@@ -9,6 +7,9 @@ import {
   useEffect,
   useState,
 } from "react"
+
+import { fetchClient } from "@/lib/fetch"
+import type { ModelConfig } from "@/lib/models/types"
 
 type UserKeyStatus = {
   openrouter: boolean

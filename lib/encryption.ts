@@ -5,15 +5,17 @@ const ALGORITHM = "aes-256-gcm"
 function getEncryptionKey(): Buffer {
   const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
   if (!ENCRYPTION_KEY) {
-    throw new Error("ENCRYPTION_KEY is required. Please set the ENCRYPTION_KEY environment variable.")
+    throw new Error(
+      "ENCRYPTION_KEY is required. Please set the ENCRYPTION_KEY environment variable."
+    )
   }
-  
+
   const key = Buffer.from(ENCRYPTION_KEY, "base64")
-  
+
   if (key.length !== 32) {
     throw new Error("ENCRYPTION_KEY must be 32 bytes long")
   }
-  
+
   return key
 }
 

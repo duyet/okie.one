@@ -2,6 +2,7 @@
 
 import { AnimatePresence } from "motion/react"
 import { memo } from "react"
+
 import { Suggestions } from "../chat-input/suggestions"
 
 type PromptSystemProps = {

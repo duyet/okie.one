@@ -1,3 +1,6 @@
+import type { Message as MessageAISDK } from "@ai-sdk/react"
+import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
+
 import {
   Message,
   MessageAction,
@@ -6,8 +9,7 @@ import {
 } from "@/components/prompt-kit/message"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
-import type { Message as MessageAISDK } from "@ai-sdk/react"
-import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
+
 import { getSources } from "./get-sources"
 import { Reasoning } from "./reasoning"
 import { SearchImages } from "./search-images"

@@ -1,4 +1,5 @@
 import type { Tables } from "@/app/types/database.types"
+
 import type { UserPreferences } from "../user-preference-store/utils"
 
 export type UserProfile = {

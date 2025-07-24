@@ -1,5 +1,8 @@
 "use client"
 
+import { GithubLogoIcon } from "@phosphor-icons/react"
+import { useState } from "react"
+
 import XIcon from "@/components/icons/x"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -15,8 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useUser } from "@/lib/user-store/provider"
-import { GithubLogoIcon } from "@phosphor-icons/react"
-import { useState } from "react"
+
 import { AppInfoTrigger } from "./app-info/app-info-trigger"
 import { FeedbackTrigger } from "./feedback/feedback-trigger"
 import { SettingsTrigger } from "./settings/settings-trigger"

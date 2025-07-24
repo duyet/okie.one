@@ -1,6 +1,5 @@
 "use client"
 
-import { cn } from "@/lib/utils"
 import type { ToolInvocationUIPart } from "@ai-sdk/ui-utils"
 import {
   CaretDown,
@@ -13,6 +12,8 @@ import {
 } from "@phosphor-icons/react"
 import { AnimatePresence, motion, type Transition } from "motion/react"
 import { useMemo, useState } from "react"
+
+import { cn } from "@/lib/utils"
 
 interface ToolInvocationProps {
   toolInvocations: ToolInvocationUIPart[]

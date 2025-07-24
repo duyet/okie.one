@@ -3,6 +3,7 @@
 import { FolderPlusIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
+
 import { DialogCreateProject } from "./dialog-create-project"
 import { SidebarProjectItem } from "./sidebar-project-item"
 

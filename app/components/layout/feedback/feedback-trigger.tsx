@@ -1,14 +1,15 @@
 "use client"
 
+import { Question } from "@phosphor-icons/react"
+import { useState } from "react"
+
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { useUser } from "@/lib/user-store/provider"
 import { FeedbackForm } from "@/components/common/feedback-form"
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { Question } from "@phosphor-icons/react"
-import { useState } from "react"
+import { useUser } from "@/lib/user-store/provider"
 
 export function FeedbackTrigger() {
   const { user } = useUser()

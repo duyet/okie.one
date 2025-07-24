@@ -1,6 +1,8 @@
-import type { Database } from "@/app/types/database.types"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+
+import type { Database } from "@/app/types/database.types"
+
 import { isSupabaseEnabled } from "./config"
 
 export const createClient = async () => {

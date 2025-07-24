@@ -1,4 +1,5 @@
 import type { Chat } from "@/lib/chat-store/types"
+
 import { SidebarItem } from "./sidebar-item"
 
 type SidebarListProps = {

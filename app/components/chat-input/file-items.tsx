@@ -1,5 +1,9 @@
 "use client"
 
+import { X } from "@phosphor-icons/react"
+import Image from "next/image"
+import { useState } from "react"
+
 import {
   HoverCard,
   HoverCardContent,
@@ -10,9 +14,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { X } from "@phosphor-icons/react"
-import Image from "next/image"
-import { useState } from "react"
 
 type FileItemProps = {
   file: File

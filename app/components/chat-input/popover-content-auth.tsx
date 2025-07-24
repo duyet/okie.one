@@ -1,13 +1,14 @@
 "use client"
 
+import Image from "next/image"
+import { useState } from "react"
+
 import { Button } from "@/components/ui/button"
 import { PopoverContent } from "@/components/ui/popover"
-import { signInWithGoogle, signInWithGitHub } from "@/lib/api"
+import { signInWithGitHub, signInWithGoogle } from "@/lib/api"
 import { APP_NAME } from "@/lib/config"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import Image from "next/image"
-import { useState } from "react"
 
 export function PopoverContentAuth() {
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
@@ -112,7 +113,11 @@ export function PopoverContentAuth() {
               height={16}
               className="mr-2"
             />
-            <span>{loadingProvider === "google" ? "Connecting..." : "Continue with Google"}</span>
+            <span>
+              {loadingProvider === "google"
+                ? "Connecting..."
+                : "Continue with Google"}
+            </span>
           </Button>
           <Button
             variant="secondary"
@@ -128,7 +133,11 @@ export function PopoverContentAuth() {
               height={16}
               className="mr-2"
             />
-            <span>{loadingProvider === "github" ? "Connecting..." : "Continue with GitHub"}</span>
+            <span>
+              {loadingProvider === "github"
+                ? "Connecting..."
+                : "Continue with GitHub"}
+            </span>
           </Button>
         </div>
       </div>

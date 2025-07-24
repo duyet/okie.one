@@ -1,3 +1,5 @@
+import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
+
 import {
   FileUpload,
   FileUploadContent,
@@ -17,7 +19,7 @@ import {
 import { getModelInfo } from "@/lib/models"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { cn } from "@/lib/utils"
-import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
+
 import { PopoverContentAuth } from "./popover-content-auth"
 
 type ButtonFileUploadProps = {

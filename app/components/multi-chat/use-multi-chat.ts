@@ -1,9 +1,11 @@
 // todo: fix this
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable-next-line react-hooks/rules-of-hooks */
-import { toast } from "@/components/ui/toast"
+
 import { useChat } from "@ai-sdk/react"
 import { useMemo } from "react"
+
+import { toast } from "@/components/ui/toast"
 
 type ModelConfig = {
   id: string

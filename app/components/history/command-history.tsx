@@ -1,5 +1,9 @@
 "use client"
 
+import { Check, PencilSimple, TrashSimple, X } from "@phosphor-icons/react"
+import { useRouter } from "next/navigation"
+import { useCallback, useMemo, useRef, useState } from "react"
+
 import { useKeyShortcut } from "@/app/hooks/use-key-shortcut"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -29,9 +33,7 @@ import type { Chats } from "@/lib/chat-store/types"
 import { useChatPreview } from "@/lib/hooks/use-chat-preview"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
-import { Check, PencilSimple, TrashSimple, X } from "@phosphor-icons/react"
-import { useRouter } from "next/navigation"
-import { useCallback, useMemo, useRef, useState } from "react"
+
 import { ChatPreviewPanel } from "./chat-preview-panel"
 import { CommandFooter } from "./command-footer"
 import { formatDate, groupChatsByDate } from "./utils"

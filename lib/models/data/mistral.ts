@@ -1,4 +1,5 @@
 import { openproviders } from "@/lib/openproviders"
+
 import type { ModelConfig } from "../types"
 
 const mistralModels: ModelConfig[] = [

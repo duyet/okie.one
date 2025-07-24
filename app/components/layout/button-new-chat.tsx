@@ -1,14 +1,15 @@
 "use client"
 
+import { NotePencilIcon } from "@phosphor-icons/react/dist/ssr"
+import Link from "next/link"
+import { usePathname, useRouter } from "next/navigation"
+
 import { useKeyShortcut } from "@/app/hooks/use-key-shortcut"
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { NotePencilIcon } from "@phosphor-icons/react/dist/ssr"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
 
 export function ButtonNewChat() {
   const pathname = usePathname()

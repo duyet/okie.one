@@ -69,9 +69,7 @@
           "level": "on",
           "options": {
             "groups": [
-              [":BUN:", ":NODE:"],
-              ":BLANK_LINE:",
-              [":PACKAGE:"],
+              [":BUN:", ":NODE:", ":PACKAGE:"],
               ":BLANK_LINE:",
               ["@/**"],
               ":BLANK_LINE:",

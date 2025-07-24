@@ -1,5 +1,8 @@
 "use client"
 
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { usePathname, useRouter } from "next/navigation"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -10,8 +13,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { fetchClient } from "@/lib/fetch"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { usePathname, useRouter } from "next/navigation"
 
 type Project = {
   id: string

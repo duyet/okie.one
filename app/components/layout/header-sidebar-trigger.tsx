@@ -1,5 +1,7 @@
 "use client"
 
+import { SidebarSimpleIcon } from "@phosphor-icons/react"
+
 import { useSidebar } from "@/components/ui/sidebar"
 import {
   Tooltip,
@@ -7,7 +9,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { SidebarSimpleIcon } from "@phosphor-icons/react"
 
 type HeaderSidebarTriggerProps = React.HTMLAttributes<HTMLButtonElement>
 

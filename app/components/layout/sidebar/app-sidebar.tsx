@@ -1,17 +1,5 @@
 "use client"
 
-import { groupChatsByDate } from "@/app/components/history/utils"
-import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { APP_NAME } from "@/lib/config"
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  useSidebar,
-} from "@/components/ui/sidebar"
-import { useChats } from "@/lib/chat-store/chats/provider"
 import {
   ChatTeardropText,
   GithubLogo,
@@ -21,6 +9,20 @@ import {
 } from "@phosphor-icons/react"
 import { useParams, useRouter } from "next/navigation"
 import { useMemo } from "react"
+
+import { groupChatsByDate } from "@/app/components/history/utils"
+import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  useSidebar,
+} from "@/components/ui/sidebar"
+import { useChats } from "@/lib/chat-store/chats/provider"
+import { APP_NAME } from "@/lib/config"
+
 import { HistoryTrigger } from "../../history/history-trigger"
 import { SidebarList } from "./sidebar-list"
 import { SidebarProject } from "./sidebar-project"

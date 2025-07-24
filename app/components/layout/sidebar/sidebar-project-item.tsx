@@ -1,14 +1,16 @@
 "use client"
 
-import { useBreakpoint } from "@/app/hooks/use-breakpoint"
-import useClickOutside from "@/app/hooks/use-click-outside"
-import { fetchClient } from "@/lib/fetch"
-import { cn } from "@/lib/utils"
 import { Check, FolderIcon, X } from "@phosphor-icons/react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useCallback, useMemo, useRef, useState } from "react"
+
+import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import useClickOutside from "@/app/hooks/use-click-outside"
+import { fetchClient } from "@/lib/fetch"
+import { cn } from "@/lib/utils"
+
 import { SidebarProjectMenu } from "./sidebar-project-menu"
 
 type Project = {

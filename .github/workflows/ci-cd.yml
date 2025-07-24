@@ -42,9 +42,19 @@ jobs:
       - name: Run TypeScript checks
         run: pnpm run type-check
 
-      # TODO: Uncomment when tests are added
-      # - name: Run Tests
-      #   run: npm test
+      - name: Run unit tests
+        run: pnpm test:run
+
+      - name: Generate test coverage
+        run: pnpm test:coverage
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          CI: true
 
   build:
     name: Build Application

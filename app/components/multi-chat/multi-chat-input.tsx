@@ -1,5 +1,9 @@
 "use client"
 
+import { ArrowUp, Stop } from "@phosphor-icons/react"
+import type React from "react"
+import { useCallback } from "react"
+
 import { MultiModelSelector } from "@/components/common/multi-model-selector/base"
 import {
   PromptInput,
@@ -8,9 +12,6 @@ import {
   PromptInputTextarea,
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
-import { ArrowUp, Stop } from "@phosphor-icons/react"
-import type React from "react"
-import { useCallback } from "react"
 
 type MultiChatInputProps = {
   value: string
