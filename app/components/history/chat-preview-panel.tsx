@@ -221,6 +221,8 @@ export function ChatPreviewPanel({
       onMouseEnter={() => onHover?.(true)}
       onMouseLeave={() => onHover?.(false)}
       key={chatId}
+      role="region"
+      aria-label="Chat preview"
     >
       <div className="h-[480px]">
         {!chatId && <DefaultState />}

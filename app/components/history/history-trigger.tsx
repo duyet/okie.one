@@ -42,7 +42,7 @@ export function HistoryTrigger({
       setIsOpen(false)
     }
     await deleteMessages()
-    await deleteChat(id, chatId!, () => router.push("/"))
+    await deleteChat(id, chatId ?? "", () => router.push("/"))
   }
 
   const defaultTrigger = (

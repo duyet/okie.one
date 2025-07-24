@@ -7,9 +7,16 @@ export async function createGuestServerClient() {
     return null
   }
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE
+  
+  if (!supabaseUrl || !supabaseServiceRole) {
+    throw new Error("Missing Supabase environment variables")
+  }
+  
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE!,
+    supabaseUrl,
+    supabaseServiceRole,
     {
       cookies: {
         getAll: () => [],

@@ -1,10 +1,9 @@
 import type { NextConfig } from "next"
-
-const withBundleAnalyzer = require("@next/bundle-analyzer")({
-  enabled: process.env.ANALYZE === "true",
-})
+import withBundleAnalyzer from "@next/bundle-analyzer"
 
 const nextConfig: NextConfig = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+})({
   output: "standalone",
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],

@@ -34,7 +34,7 @@ export function SidebarItemMenu({
 
   const handleConfirmDelete = async () => {
     await deleteMessages()
-    await deleteChat(chat.id, chatId!, () => router.push("/"))
+    await deleteChat(chat.id, chatId ?? "", () => router.push("/"))
   }
 
   return (

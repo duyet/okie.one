@@ -64,7 +64,7 @@ export function FeedbackWidget({ authUserId }: FeedbackWidgetProps) {
             }}
             transition={{
               duration: 0,
-              delay: isOpen ? 0 : TRANSITION_POPOVER.duration! / 2,
+              delay: isOpen ? 0 : (TRANSITION_POPOVER.duration ?? 0.3) / 2,
             }}
           >
             <QuestionMark className="size-4 text-foreground" />
