@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { signInWithGoogle, signInWithGitHub } from "@/lib/api"
+import { APP_NAME } from "@/lib/config"
 import { createClient } from "@/lib/supabase/client"
 import Image from "next/image"
 import Link from "next/link"
@@ -76,7 +77,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md space-y-8">
           <div className="text-center">
             <h1 className="font-medium text-3xl text-foreground tracking-tight sm:text-4xl">
-              Welcome to Okie
+              Welcome to {APP_NAME}
             </h1>
             <p className="mt-3 text-muted-foreground">
               Sign in below to increase your message limits.

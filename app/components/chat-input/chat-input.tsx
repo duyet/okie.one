@@ -8,6 +8,7 @@ import {
   PromptInputTextarea,
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
+import { APP_NAME } from "@/lib/config"
 import { getModelInfo } from "@/lib/models"
 import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
 import { useCallback, useMemo } from "react"
@@ -160,7 +161,7 @@ export function ChatInput({
         >
           <FileList files={files} onFileRemove={onFileRemove} />
           <PromptInputTextarea
-            placeholder="Ask Okie"
+            placeholder={`Ask ${APP_NAME}`}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"
