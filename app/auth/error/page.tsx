@@ -67,21 +67,21 @@ function AuthErrorContent() {
 
         {isMultipleAccountsError ? (
           <div className="mt-6 space-y-4">
-            <div className="rounded-md bg-amber-500/10 border border-amber-500/20 p-4">
-              <h3 className="font-medium text-amber-300 text-sm mb-2">
+            <div className="rounded-md border border-amber-500/20 bg-amber-500/10 p-4">
+              <h3 className="mb-2 font-medium text-amber-300 text-sm">
                 Account Linking Issue
               </h3>
-              <p className="text-amber-200 text-sm text-left">
+              <p className="text-left text-amber-200 text-sm">
                 You've tried to sign in with a different provider using an email
                 that's already associated with another account.
               </p>
             </div>
 
             <div className="rounded-md bg-zinc-700/50 p-4 text-left">
-              <h4 className="font-medium text-white text-sm mb-2">
+              <h4 className="mb-2 font-medium text-sm text-white">
                 How to fix this:
               </h4>
-              <ol className="text-zinc-300 text-sm list-decimal list-inside space-y-1">
+              <ol className="list-inside list-decimal space-y-1 text-sm text-zinc-300">
                 <li>Try signing in with the original provider you used</li>
                 <li>
                   If unsure, try both Google and GitHub with the same email
@@ -91,17 +91,17 @@ function AuthErrorContent() {
             </div>
 
             {/* Account Linking Options */}
-            <div className="rounded-md bg-blue-500/10 border border-blue-500/20 p-4">
-              <h4 className="font-medium text-blue-300 text-sm mb-3">
+            <div className="rounded-md border border-blue-500/20 bg-blue-500/10 p-4">
+              <h4 className="mb-3 font-medium text-blue-300 text-sm">
                 Link Your Accounts
               </h4>
-              <p className="text-blue-200 text-sm mb-4">
+              <p className="mb-4 text-blue-200 text-sm">
                 Already signed in? Link your Google or GitHub account to use
                 both providers:
               </p>
 
               {linkingError && (
-                <div className="mb-3 rounded-md bg-red-500/10 border border-red-500/20 p-2">
+                <div className="mb-3 rounded-md border border-red-500/20 bg-red-500/10 p-2">
                   <p className="text-red-300 text-sm">{linkingError}</p>
                 </div>
               )}

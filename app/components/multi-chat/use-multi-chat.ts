@@ -1,7 +1,7 @@
 // todo: fix this
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable-next-line react-hooks/rules-of-hooks */
 
+import type { Message, CreateMessage, ChatRequestOptions } from "@ai-sdk/ui-utils"
 import { useChat } from "@ai-sdk/react"
 import { useMemo } from "react"
 
@@ -15,9 +15,9 @@ type ModelConfig = {
 
 type ModelChat = {
   model: ModelConfig
-  messages: any[]
+  messages: Message[]
   isLoading: boolean
-  append: (message: any, options?: any) => void
+  append: (message: Message | CreateMessage, options?: ChatRequestOptions) => Promise<string | null | undefined>
   stop: () => void
 }
 
@@ -55,7 +55,7 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
         model,
         messages: chatHook.messages,
         isLoading: chatHook.isLoading,
-        append: (message: any, options?: any) => {
+        append: (message: Message | CreateMessage, options?: ChatRequestOptions) => {
           return chatHook.append(message, options)
         },
         stop: chatHook.stop,
@@ -65,7 +65,12 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
     return instances
     // todo: fix this
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [models, ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading])])
+  }, [
+    models,
+    ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading]),
+    // Commenting out problematic dependency that doesn't exist
+    // chatHooks[index],
+  ])
 
   return activeChatInstances
 }

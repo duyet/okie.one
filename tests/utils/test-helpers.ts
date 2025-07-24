@@ -38,7 +38,7 @@ export const createMockProject = (overrides = {}) => ({
 })
 
 // Mock API responses
-export const mockSuccessResponse = (data: any) => ({
+export const mockSuccessResponse = (data: unknown) => ({
   ok: true,
   status: 200,
   json: vi.fn().mockResolvedValue(data),
@@ -56,7 +56,7 @@ export const mockErrorResponse = (
 })
 
 // Test environment helpers
-export const withMockFetch = (mockResponse: any) => {
+export const withMockFetch = (mockResponse: Response | Promise<Response>) => {
   const originalFetch = global.fetch
   global.fetch = vi.fn().mockResolvedValue(mockResponse)
 

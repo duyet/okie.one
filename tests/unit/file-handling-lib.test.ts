@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 
 // Mock dependencies
 vi.mock("file-type", () => ({
@@ -22,9 +22,7 @@ vi.mock("@/lib/supabase/config", () => ({
 }))
 
 describe("File Handling Library", () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+  // Test setup is handled inline per test
 
   describe("validateFile()", () => {
     it("should validate file size correctly", async () => {
@@ -173,7 +171,7 @@ describe("File Handling Library", () => {
       const file = new File(["test content"], "test.txt", {
         type: "text/plain",
       })
-      const url = await uploadFile(mockSupabase as any, file)
+      const url = await uploadFile(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>, file)
 
       expect(url).toBe(
         "https://storage.supabase.co/object/public/chat-attachments/uploads/abc123.txt"
@@ -198,7 +196,7 @@ describe("File Handling Library", () => {
         type: "text/plain",
       })
 
-      await expect(uploadFile(mockSupabase as any, file)).rejects.toThrow(
+      await expect(uploadFile(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>, file)).rejects.toThrow(
         "Error uploading file: Storage quota exceeded"
       )
     })
@@ -219,7 +217,7 @@ describe("File Handling Library", () => {
 
       const file = new File(["test"], "original.txt", { type: "text/plain" })
 
-      await uploadFile(mockSupabase as any, file)
+      await uploadFile(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>, file)
 
       const uploadCall = mockSupabase.storage.from().upload
       expect(uploadCall).toHaveBeenCalled()
@@ -294,21 +292,29 @@ describe("File Handling Library", () => {
     })
 
     it("should check file upload count correctly", async () => {
+      const mockGte = vi.fn().mockResolvedValue({
+        count: 5,
+        error: null,
+      })
+      const mockEq = vi.fn().mockReturnValue({
+        gte: mockGte,
+      })
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      })
+      const mockFrom = vi.fn().mockReturnValue({
+        select: mockSelect,
+      })
       const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              gte: vi.fn().mockResolvedValue({
-                count: 5,
-                error: null,
-              }),
-            }),
-          }),
-        }),
+        from: mockFrom,
       }
 
       vi.doMock("@/lib/supabase/client", () => ({
         createClient: vi.fn().mockReturnValue(mockSupabase),
+      }))
+
+      vi.doMock("@/lib/supabase/config", () => ({
+        isSupabaseEnabled: true,
       }))
 
       vi.resetModules()
@@ -317,25 +323,36 @@ describe("File Handling Library", () => {
       const result = await checkFileUploadLimit("user-123")
 
       expect(result).toBe(5)
-      expect(mockSupabase.from).toHaveBeenCalledWith("chat_attachments")
+      expect(mockFrom).toHaveBeenCalledWith("chat_attachments")
+      expect(mockSelect).toHaveBeenCalledWith("*", { count: "exact", head: true })
+      expect(mockEq).toHaveBeenCalledWith("user_id", "user-123")
+      expect(mockGte).toHaveBeenCalledWith("created_at", expect.any(String))
     })
 
     it("should throw FileUploadLimitError when limit exceeded", async () => {
+      const mockGte = vi.fn().mockResolvedValue({
+        count: 10, // Equal to DAILY_FILE_UPLOAD_LIMIT
+        error: null,
+      })
+      const mockEq = vi.fn().mockReturnValue({
+        gte: mockGte,
+      })
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      })
+      const mockFrom = vi.fn().mockReturnValue({
+        select: mockSelect,
+      })
       const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              gte: vi.fn().mockResolvedValue({
-                count: 10, // Equal to DAILY_FILE_UPLOAD_LIMIT
-                error: null,
-              }),
-            }),
-          }),
-        }),
+        from: mockFrom,
       }
 
       vi.doMock("@/lib/supabase/client", () => ({
         createClient: vi.fn().mockReturnValue(mockSupabase),
+      }))
+
+      vi.doMock("@/lib/supabase/config", () => ({
+        isSupabaseEnabled: true,
       }))
 
       vi.resetModules()
@@ -352,21 +369,29 @@ describe("File Handling Library", () => {
     })
 
     it("should handle database errors", async () => {
+      const mockGte = vi.fn().mockResolvedValue({
+        count: null,
+        error: { message: "Database connection failed" },
+      })
+      const mockEq = vi.fn().mockReturnValue({
+        gte: mockGte,
+      })
+      const mockSelect = vi.fn().mockReturnValue({
+        eq: mockEq,
+      })
+      const mockFrom = vi.fn().mockReturnValue({
+        select: mockSelect,
+      })
       const mockSupabase = {
-        from: vi.fn().mockReturnValue({
-          select: vi.fn().mockReturnValue({
-            eq: vi.fn().mockReturnValue({
-              gte: vi.fn().mockResolvedValue({
-                count: null,
-                error: { message: "Database connection failed" },
-              }),
-            }),
-          }),
-        }),
+        from: mockFrom,
       }
 
       vi.doMock("@/lib/supabase/client", () => ({
         createClient: vi.fn().mockReturnValue(mockSupabase),
+      }))
+
+      vi.doMock("@/lib/supabase/config", () => ({
+        isSupabaseEnabled: true,
       }))
 
       vi.resetModules()
@@ -405,22 +430,35 @@ describe("File Handling Library", () => {
         ext: "txt",
       })
 
+      // Mock storage operations
+      const mockGetPublicUrl = vi.fn().mockReturnValue({
+        data: { publicUrl: "https://storage.supabase.co/test.txt" },
+      })
+      const mockUpload = vi.fn().mockResolvedValue({ error: null })
+      const mockStorageFrom = vi.fn().mockReturnValue({
+        upload: mockUpload,
+        getPublicUrl: mockGetPublicUrl,
+      })
+
+      // Mock database operations  
+      const mockInsert = vi.fn().mockResolvedValue({ error: null })
+      const mockDbFrom = vi.fn().mockReturnValue({
+        insert: mockInsert,
+      })
+
       const mockSupabase = {
         storage: {
-          from: vi.fn().mockReturnValue({
-            upload: vi.fn().mockResolvedValue({ error: null }),
-            getPublicUrl: vi.fn().mockReturnValue({
-              data: { publicUrl: "https://storage.supabase.co/test.txt" },
-            }),
-          }),
+          from: mockStorageFrom,
         },
-        from: vi.fn().mockReturnValue({
-          insert: vi.fn().mockResolvedValue({ error: null }),
-        }),
+        from: mockDbFrom,
       }
 
       vi.doMock("@/lib/supabase/client", () => ({
         createClient: vi.fn().mockReturnValue(mockSupabase),
+      }))
+
+      vi.doMock("@/lib/supabase/config", () => ({
+        isSupabaseEnabled: true,
       }))
 
       vi.resetModules()
@@ -450,6 +488,8 @@ describe("File Handling Library", () => {
         contentType: "text/plain",
         url: "https://storage.supabase.co/test.txt",
       })
+      expect(mockStorageFrom).toHaveBeenCalledWith("chat-attachments")
+      expect(mockDbFrom).toHaveBeenCalledWith("chat_attachments")
     })
 
     it("should skip invalid files and continue processing", async () => {
@@ -461,22 +501,35 @@ describe("File Handling Library", () => {
         .mockResolvedValueOnce(undefined) // Invalid file type
         .mockResolvedValueOnce({ mime: "text/plain", ext: "txt" }) // Valid file type
 
+      // Mock storage operations
+      const mockGetPublicUrl = vi.fn().mockReturnValue({
+        data: { publicUrl: "https://storage.supabase.co/valid.txt" },
+      })
+      const mockUpload = vi.fn().mockResolvedValue({ error: null })
+      const mockStorageFrom = vi.fn().mockReturnValue({
+        upload: mockUpload,
+        getPublicUrl: mockGetPublicUrl,
+      })
+
+      // Mock database operations  
+      const mockInsert = vi.fn().mockResolvedValue({ error: null })
+      const mockDbFrom = vi.fn().mockReturnValue({
+        insert: mockInsert,
+      })
+
       const mockSupabase = {
         storage: {
-          from: vi.fn().mockReturnValue({
-            upload: vi.fn().mockResolvedValue({ error: null }),
-            getPublicUrl: vi.fn().mockReturnValue({
-              data: { publicUrl: "https://storage.supabase.co/valid.txt" },
-            }),
-          }),
+          from: mockStorageFrom,
         },
-        from: vi.fn().mockReturnValue({
-          insert: vi.fn().mockResolvedValue({ error: null }),
-        }),
+        from: mockDbFrom,
       }
 
       vi.doMock("@/lib/supabase/client", () => ({
         createClient: vi.fn().mockReturnValue(mockSupabase),
+      }))
+
+      vi.doMock("@/lib/supabase/config", () => ({
+        isSupabaseEnabled: true,
       }))
 
       vi.resetModules()

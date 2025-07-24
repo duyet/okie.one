@@ -1,6 +1,11 @@
 "use client"
 
-import type { Message as MessageType } from "@ai-sdk/react"
+import type { Message as MessageTypeBase } from "@ai-sdk/react"
+
+// Extended message type with model property
+type MessageType = MessageTypeBase & {
+  model?: string
+}
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useMemo, useState } from "react"
 
@@ -55,8 +60,8 @@ export function MultiChat() {
 
   const modelsFromPersisted = useMemo(() => {
     return persistedMessages
-      .filter((msg) => (msg as any).model)
-      .map((msg) => (msg as any).model)
+      .filter((msg): msg is MessageType & { model: string } => Boolean((msg as MessageType).model))
+      .map((msg) => (msg as MessageType & { model: string }).model)
   }, [persistedMessages])
 
   const modelsFromLastGroup = useMemo(() => {
@@ -70,8 +75,11 @@ export function MultiChat() {
     for (let i = lastUserIndex + 1; i < persistedMessages.length; i++) {
       const msg = persistedMessages[i]
       if (msg.role === "user") break
-      if (msg.role === "assistant" && (msg as any).model) {
-        modelsInLastGroup.push((msg as any).model)
+      if (msg.role === "assistant" && (msg as MessageType).model) {
+        const modelId = (msg as MessageType).model
+        if (modelId) {
+          modelsInLastGroup.push(modelId)
+        }
       }
     }
     return modelsInLastGroup
@@ -144,7 +152,7 @@ export function MultiChat() {
           userMessage: group.userMessage,
           responses: group.assistantMessages.map((msg, index) => {
             const model =
-              (msg as any).model || selectedModelIds[index] || `model-${index}`
+              (msg as MessageType).model || selectedModelIds[index] || `model-${index}`
             const provider =
               models.find((m) => m.id === model)?.provider || "unknown"
 

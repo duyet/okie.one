@@ -5,7 +5,7 @@
  * This script generates a base64-encoded 32-byte key for AES-256 encryption
  */
 
-const crypto = require("crypto")
+const crypto = require("node:crypto")
 
 // Generate 32 random bytes (256 bits) for AES-256
 const key = crypto.randomBytes(32)

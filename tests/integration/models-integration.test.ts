@@ -49,16 +49,16 @@ describe("Models Integration", () => {
       const module = await import(modulePath)
       const models = Object.values(module).find((val) =>
         Array.isArray(val)
-      ) as any[]
+      ) as unknown[]
 
       if (models && models.length > 0) {
-        models.forEach((model) => {
+        models.forEach((model: unknown) => {
           expect(model).toHaveProperty("id")
           expect(model).toHaveProperty("name")
           expect(model).toHaveProperty("provider")
           expect(model).toHaveProperty("providerId")
-          expect(typeof model.contextWindow).toBe("number")
-          expect(model.contextWindow).toBeGreaterThan(0)
+          expect(typeof (model as { contextWindow: number }).contextWindow).toBe("number")
+          expect((model as { contextWindow: number }).contextWindow).toBeGreaterThan(0)
         })
       }
     }

@@ -1,5 +1,5 @@
-import crypto from "crypto"
-import { describe, expect, it, vi } from "vitest"
+import crypto from "node:crypto"
+import { describe, expect, it } from "vitest"
 
 describe("Encryption Utilities", () => {
   describe("AES-256-GCM Encryption", () => {
@@ -43,8 +43,8 @@ describe("Encryption Utilities", () => {
 
   describe("Key Validation", () => {
     it("should validate API key formats", () => {
-      const openaiKey = "sk-" + "x".repeat(40) + "test-key"
-      const anthropicKey = "sk-ant-api03-" + "x".repeat(20) + "test"
+      const openaiKey = `sk-${"x".repeat(40)}test-key`
+      const anthropicKey = `sk-ant-api03-${"x".repeat(20)}test`
       const invalidKey = "invalid-key"
 
       expect(openaiKey.startsWith("sk-")).toBe(true)
@@ -54,8 +54,8 @@ describe("Encryption Utilities", () => {
 
     it("should validate key lengths", () => {
       const shortKey = "sk-123"
-      const validKey = "sk-" + "x".repeat(40) + "test-key"
-      const longKey = "sk-" + "a".repeat(100)
+      const validKey = `sk-${"x".repeat(40)}test-key`
+      const longKey = `sk-${"a".repeat(100)}`
 
       expect(shortKey.length).toBeLessThan(20)
       expect(validKey.length).toBeGreaterThan(20)
