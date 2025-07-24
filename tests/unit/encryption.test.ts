@@ -43,8 +43,8 @@ describe("Encryption Utilities", () => {
 
   describe("Key Validation", () => {
     it("should validate API key formats", () => {
-      const openaiKey = "sk-1234567890abcdef1234567890abcdef12345678"
-      const anthropicKey = "sk-ant-api03-1234567890abcdef"
+      const openaiKey = "sk-" + "x".repeat(40) + "test-key"
+      const anthropicKey = "sk-ant-api03-" + "x".repeat(20) + "test"
       const invalidKey = "invalid-key"
 
       expect(openaiKey.startsWith("sk-")).toBe(true)
@@ -54,7 +54,7 @@ describe("Encryption Utilities", () => {
 
     it("should validate key lengths", () => {
       const shortKey = "sk-123"
-      const validKey = "sk-1234567890abcdef1234567890abcdef12345678"
+      const validKey = "sk-" + "x".repeat(40) + "test-key"
       const longKey = "sk-" + "a".repeat(100)
 
       expect(shortKey.length).toBeLessThan(20)
@@ -76,8 +76,8 @@ describe("Encryption Utilities", () => {
     it("should validate environment variables", () => {
       // Mock environment validation
       const mockEnv = {
-        ENCRYPTION_KEY: "test-encryption-key-32-characters",
-        CSRF_SECRET: "test-csrf-secret",
+        ENCRYPTION_KEY: "test-encryption-key-32-chars-xxxx",
+        CSRF_SECRET: "test-csrf-secret-mock",
       }
 
       expect(mockEnv.ENCRYPTION_KEY).toBeDefined()
