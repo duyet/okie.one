@@ -20,12 +20,12 @@ export const defaultPreferences: UserPreferences = {
 
 // API format type definition
 type ApiUserPreferences = {
-  layout?: LayoutType
-  prompt_suggestions?: boolean
-  show_tool_invocations?: boolean
-  show_conversation_previews?: boolean
-  multi_model_enabled?: boolean
-  hidden_models?: string[]
+  layout?: LayoutType | null
+  prompt_suggestions?: boolean | null
+  show_tool_invocations?: boolean | null
+  show_conversation_previews?: boolean | null
+  multi_model_enabled?: boolean | null
+  hidden_models?: string[] | null
 }
 
 // Helper functions to convert between API format (snake_case) and frontend format (camelCase)
@@ -33,12 +33,12 @@ export function convertFromApiFormat(
   apiData: ApiUserPreferences
 ): UserPreferences {
   return {
-    layout: apiData.layout || "fullscreen",
+    layout: apiData.layout ?? "fullscreen",
     promptSuggestions: apiData.prompt_suggestions ?? true,
     showToolInvocations: apiData.show_tool_invocations ?? true,
     showConversationPreviews: apiData.show_conversation_previews ?? true,
     multiModelEnabled: apiData.multi_model_enabled ?? false,
-    hiddenModels: apiData.hidden_models || [],
+    hiddenModels: apiData.hidden_models ?? [],
   }
 }
 
