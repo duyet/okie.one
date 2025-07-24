@@ -350,19 +350,19 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       enableSearch,
     }),
     [
-      input, 
-      handleInputChange, 
-      submit, 
-      isSubmitting, 
-      files, 
-      handleFileUpload, 
-      handleFileRemove, 
-      handleModelChange, 
-      selectedModel, 
-      isAuthenticated, 
-      stop, 
-      status, 
-      enableSearch
+      input,
+      handleInputChange,
+      submit,
+      isSubmitting,
+      files,
+      handleFileUpload,
+      handleFileRemove,
+      handleModelChange,
+      selectedModel,
+      isAuthenticated,
+      stop,
+      status,
+      enableSearch,
     ]
   )
 

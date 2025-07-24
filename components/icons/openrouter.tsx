@@ -1,4 +1,3 @@
-
 import type { SVGProps } from "react"
 
 const OpenRouterIcon = (props: SVGProps<SVGSVGElement>) => (

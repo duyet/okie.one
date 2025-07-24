@@ -151,9 +151,7 @@ export const getOrCreateGuestUserId = async (
   }
 
   const existingGuestSessionUser = await supabase.auth.getUser()
-  if (
-    existingGuestSessionUser.data?.user?.is_anonymous
-  ) {
+  if (existingGuestSessionUser.data?.user?.is_anonymous) {
     const anonUserId = existingGuestSessionUser.data.user.id
 
     const profileCreationAttempted = localStorage.getItem(

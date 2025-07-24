@@ -29,7 +29,9 @@ type ApiUserPreferences = {
 }
 
 // Helper functions to convert between API format (snake_case) and frontend format (camelCase)
-export function convertFromApiFormat(apiData: ApiUserPreferences): UserPreferences {
+export function convertFromApiFormat(
+  apiData: ApiUserPreferences
+): UserPreferences {
   return {
     layout: apiData.layout || "fullscreen",
     promptSuggestions: apiData.prompt_suggestions ?? true,
@@ -40,7 +42,9 @@ export function convertFromApiFormat(apiData: ApiUserPreferences): UserPreferenc
   }
 }
 
-export function convertToApiFormat(preferences: Partial<UserPreferences>): ApiUserPreferences {
+export function convertToApiFormat(
+  preferences: Partial<UserPreferences>
+): ApiUserPreferences {
   const apiData: ApiUserPreferences = {}
   if (preferences.layout !== undefined) apiData.layout = preferences.layout
   if (preferences.promptSuggestions !== undefined)

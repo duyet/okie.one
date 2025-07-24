@@ -106,9 +106,7 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             {/* Mobile tabs content */}
             <TabsContent value="general" className="space-y-6 px-6">
               <UserProfile />
-              {isSupabaseEnabled && (
-                <AccountManagement />
-              )}
+              {isSupabaseEnabled && <AccountManagement />}
             </TabsContent>
 
             <TabsContent value="appearance" className="space-y-6 px-6">
@@ -191,9 +189,7 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             <div className="flex-1 overflow-auto px-6 pt-4">
               <TabsContent value="general" className="mt-0 space-y-6">
                 <UserProfile />
-                {isSupabaseEnabled && (
-                  <AccountManagement />
-                )}
+                {isSupabaseEnabled && <AccountManagement />}
               </TabsContent>
 
               <TabsContent value="appearance" className="mt-0 space-y-6">

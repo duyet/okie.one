@@ -17,13 +17,13 @@ export const PromptSystem = memo(function PromptSystem({
 }: PromptSystemProps) {
   return (
     <div className="relative order-1 w-full md:absolute md:bottom-[-70px] md:order-2 md:h-[70px]">
-        <AnimatePresence mode="popLayout">
-          <Suggestions
-            onValueChange={onValueChange}
-            onSuggestion={onSuggestion}
-            value={value}
-          />
-        </AnimatePresence>
-      </div>
+      <AnimatePresence mode="popLayout">
+        <Suggestions
+          onValueChange={onValueChange}
+          onSuggestion={onSuggestion}
+          value={value}
+        />
+      </AnimatePresence>
+    </div>
   )
 })

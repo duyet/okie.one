@@ -1,4 +1,3 @@
-
 import type { SVGProps } from "react"
 
 export default function MetaIcon(props: SVGProps<SVGSVGElement>) {

@@ -196,24 +196,24 @@ function MorphingPopoverContent({
     <AnimatePresence>
       {context.isOpen && (
         <motion.div
-            {...props}
-            ref={ref}
-            layoutId={`popover-trigger-${context.uniqueId}`}
-            key={context.uniqueId}
-            id={`popover-content-${context.uniqueId}`}
-            role="dialog"
-            aria-modal="true"
-            className={cn(
-              "absolute overflow-hidden rounded-md border-input bg-popover p-2 text-popover-foreground shadow-md backdrop-blur-xl",
-              className
-            )}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            variants={context.variants}
-          >
-            {children}
-          </motion.div>
+          {...props}
+          ref={ref}
+          layoutId={`popover-trigger-${context.uniqueId}`}
+          key={context.uniqueId}
+          id={`popover-content-${context.uniqueId}`}
+          role="dialog"
+          aria-modal="true"
+          className={cn(
+            "absolute overflow-hidden rounded-md border-input bg-popover p-2 text-popover-foreground shadow-md backdrop-blur-xl",
+            className
+          )}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+          variants={context.variants}
+        >
+          {children}
+        </motion.div>
       )}
     </AnimatePresence>
   )

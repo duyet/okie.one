@@ -216,26 +216,26 @@ export function useChatCore({
       setIsSubmitting(false)
     }
   }, [
-    user, 
-    files, 
-    createOptimisticAttachments, 
-    input, 
-    setMessages, 
-    setInput, 
-    setFiles, 
-    checkLimitsAndNotify, 
-    cleanupOptimisticAttachments, 
-    ensureChatExists, 
-    handleFileUploads, 
-    selectedModel, 
-    isAuthenticated, 
-    systemPrompt, 
-    enableSearch, 
-    handleSubmit, 
-    cacheAndAddMessage, 
-    clearDraft, 
-    messages.length, 
-    bumpChat
+    user,
+    files,
+    createOptimisticAttachments,
+    input,
+    setMessages,
+    setInput,
+    setFiles,
+    checkLimitsAndNotify,
+    cleanupOptimisticAttachments,
+    ensureChatExists,
+    handleFileUploads,
+    selectedModel,
+    isAuthenticated,
+    systemPrompt,
+    enableSearch,
+    handleSubmit,
+    cacheAndAddMessage,
+    clearDraft,
+    messages.length,
+    bumpChat,
   ])
 
   // Handle suggestion
@@ -299,13 +299,13 @@ export function useChatCore({
       }
     },
     [
-      ensureChatExists, 
-      selectedModel, 
-      user, 
-      append, 
-      checkLimitsAndNotify, 
-      isAuthenticated, 
-      setMessages
+      ensureChatExists,
+      selectedModel,
+      user,
+      append,
+      checkLimitsAndNotify,
+      isAuthenticated,
+      setMessages,
     ]
   )
 
