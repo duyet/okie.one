@@ -380,7 +380,7 @@ export function MultiChat() {
             layoutId="onboarding"
             transition={{ layout: { duration: 0 } }}
           >
-            <h1 className="mb-6 text-3xl font-medium tracking-tight">
+            <h1 className="mb-6 font-medium text-3xl tracking-tight">
               What's on your mind?
             </h1>
           </motion.div>

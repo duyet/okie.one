@@ -41,7 +41,7 @@ export function AppInfoTrigger({ trigger }: AppInfoTriggerProps) {
     return (
       <Drawer>
         <DrawerTrigger asChild>{trigger || defaultTrigger}</DrawerTrigger>
-        <DrawerContent className="bg-background border-border">
+        <DrawerContent className="border-border bg-background">
           <DrawerHeader>
             <Image
               src="/banner_ocean.jpg"
@@ -66,7 +66,7 @@ export function AppInfoTrigger({ trigger }: AppInfoTriggerProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>{trigger || defaultTrigger}</DialogTrigger>
-      <DialogContent className="[&>button:last-child]:bg-background gap-0 overflow-hidden rounded-3xl p-0 shadow-xs sm:max-w-md [&>button:last-child]:rounded-full [&>button:last-child]:p-1">
+      <DialogContent className="gap-0 overflow-hidden rounded-3xl p-0 shadow-xs sm:max-w-md [&>button:last-child]:rounded-full [&>button:last-child]:bg-background [&>button:last-child]:p-1">
         <DialogHeader className="p-0">
           <Image
             src="/banner_ocean.jpg"

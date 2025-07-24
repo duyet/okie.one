@@ -59,7 +59,7 @@ export function DeveloperTools() {
     <div className="space-y-6 pb-8">
       {/* Header */}
       <div>
-        <h3 className="mb-2 text-lg font-medium">Developer Tool connections</h3>
+        <h3 className="mb-2 font-medium text-lg">Developer Tool connections</h3>
         <p className="text-muted-foreground text-sm">
           Add API keys in .env.local to enable tools like Exa and GitHub. These
           keys follow specific formats and are only used in development mode.
@@ -69,7 +69,7 @@ export function DeveloperTools() {
       {/* Tools List */}
       <div className="space-y-6">
         {tools.map((tool) => (
-          <div key={tool.id} className="border-border rounded-lg border p-3">
+          <div key={tool.id} className="rounded-lg border border-border p-3">
             <div className="space-y-4">
               {/* Tool Header */}
               <div className="flex items-start gap-3">
@@ -77,17 +77,17 @@ export function DeveloperTools() {
                   <div className="mb-1 flex items-center gap-2">
                     <h4 className="font-medium">{tool.name}</h4>
                     {tool.connected ? (
-                      <span className="bg-secondary text-secondary-foreground flex items-center gap-1 rounded-full px-2 py-0.5 text-xs">
+                      <span className="flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-secondary-foreground text-xs">
                         Connected
                       </span>
                     ) : (
-                      <span className="bg-destructive/10 text-destructive flex items-center gap-1 rounded-full px-2 py-0.5 text-xs">
+                      <span className="flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-0.5 text-destructive text-xs">
                         Not connected
                       </span>
                     )}
                   </div>
 
-                  <p className="text-muted-foreground mb-3 text-sm">
+                  <p className="mb-3 text-muted-foreground text-sm">
                     {tool.description}
                   </p>
 
@@ -97,7 +97,7 @@ export function DeveloperTools() {
                       <div className="text-muted-foreground text-sm">
                         Key detected:
                       </div>
-                      <div className="text-muted-foreground bg-secondary mb-3 rounded px-3 py-2 font-mono text-xs">
+                      <div className="mb-3 rounded bg-secondary px-3 py-2 font-mono text-muted-foreground text-xs">
                         {tool.maskedKey}
                       </div>
                     </div>
@@ -107,9 +107,9 @@ export function DeveloperTools() {
 
               {/* Required Keys Section - Always Show */}
               <div className="space-y-2">
-                <p className="text-sm font-medium">Required keys:</p>
+                <p className="font-medium text-sm">Required keys:</p>
                 <div className="relative">
-                  <pre className="bg-muted text-foreground overflow-x-auto rounded-md border p-3 font-mono text-xs">
+                  <pre className="overflow-x-auto rounded-md border bg-muted p-3 font-mono text-foreground text-xs">
                     {tool.sampleEnv}
                   </pre>
                   <Button

@@ -41,7 +41,7 @@ function ResponseCard({ response, group }: ResponseCardProps) {
 
   return (
     <div className="relative">
-      <div className="bg-background pointer-events-auto relative rounded border p-3">
+      <div className="pointer-events-auto relative rounded border bg-background p-3">
         {/* <button
           className="bg-background absolute top-2 right-2 z-30 cursor-grab p-1 active:cursor-grabbing"
           type="button"
@@ -50,11 +50,11 @@ function ResponseCard({ response, group }: ResponseCardProps) {
           <DotsSixVerticalIcon className="text-muted-foreground size-4" />
         </button> */}
 
-        <div className="text-muted-foreground mb-2 flex items-center gap-1">
+        <div className="mb-2 flex items-center gap-1 text-muted-foreground">
           <span>
             {providerIcon?.icon && <providerIcon.icon className="size-4" />}
           </span>
-          <span className="text-xs font-medium">{model?.name}</span>
+          <span className="font-medium text-xs">{model?.name}</span>
         </div>
 
         {response.message ? (
@@ -79,7 +79,7 @@ function ResponseCard({ response, group }: ResponseCardProps) {
           </Message>
         ) : response.isLoading ? (
           <div className="space-y-2">
-            <div className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            <div className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
               assistant
             </div>
             <Loader />
@@ -166,7 +166,7 @@ export function MultiModelConversation({
                               return (
                                 <div
                                   key={response.model}
-                                  className="max-w-[420px] min-w-[320px] flex-shrink-0"
+                                  className="min-w-[320px] max-w-[420px] flex-shrink-0"
                                 >
                                   <ResponseCard
                                     response={response}

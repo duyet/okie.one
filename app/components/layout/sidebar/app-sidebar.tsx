@@ -3,6 +3,7 @@
 import { groupChatsByDate } from "@/app/components/history/utils"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { APP_NAME } from "@/lib/config"
 import {
   Sidebar,
   SidebarContent,
@@ -46,7 +47,7 @@ export function AppSidebar() {
             <button
               type="button"
               onClick={() => setOpenMobile(false)}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted inline-flex size-9 items-center justify-center rounded-md bg-transparent transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+              className="inline-flex size-9 items-center justify-center rounded-md bg-transparent text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
             >
               <X size={24} />
             </button>
@@ -56,10 +57,10 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
       <SidebarContent className="mask-t-from-98% mask-t-to-100% mask-b-from-98% mask-b-to-100% px-3">
-        <ScrollArea className="flex h-full [&>div>div]:!block">
+        <ScrollArea className="[&>div>div]:!block flex h-full">
           <div className="mt-3 mb-5 flex w-full flex-col items-start gap-0">
             <button
-              className="hover:bg-accent/80 hover:text-foreground text-primary group/new-chat relative inline-flex w-full items-center rounded-md bg-transparent px-2 py-2 text-sm transition-colors"
+              className="group/new-chat relative inline-flex w-full items-center rounded-md bg-transparent px-2 py-2 text-primary text-sm transition-colors hover:bg-accent/80 hover:text-foreground"
               type="button"
               onClick={() => router.push("/")}
             >
@@ -67,7 +68,7 @@ export function AppSidebar() {
                 <NotePencilIcon size={20} />
                 New Chat
               </div>
-              <div className="text-muted-foreground ml-auto text-xs opacity-0 duration-150 group-hover/new-chat:opacity-100">
+              <div className="ml-auto text-muted-foreground text-xs opacity-0 duration-150 group-hover/new-chat:opacity-100">
                 ⌘⇧U
               </div>
             </button>
@@ -78,7 +79,7 @@ export function AppSidebar() {
               label={
                 <div className="flex w-full items-center gap-2">
                   <span>Search</span>
-                  <div className="text-muted-foreground ml-auto text-xs opacity-0 duration-150 group-hover/search:opacity-100">
+                  <div className="ml-auto text-muted-foreground text-xs opacity-0 duration-150 group-hover/search:opacity-100">
                     ⌘+K
                   </div>
                 </div>
@@ -104,10 +105,10 @@ export function AppSidebar() {
             <div className="flex h-[calc(100vh-160px)] flex-col items-center justify-center">
               <ChatTeardropText
                 size={24}
-                className="text-muted-foreground mb-1 opacity-40"
+                className="mb-1 text-muted-foreground opacity-40"
               />
-              <div className="text-muted-foreground text-center">
-                <p className="mb-1 text-base font-medium">No chats yet</p>
+              <div className="text-center text-muted-foreground">
+                <p className="mb-1 font-medium text-base">No chats yet</p>
                 <p className="text-sm opacity-70">Start a new conversation</p>
               </div>
             </div>
@@ -117,7 +118,7 @@ export function AppSidebar() {
       <SidebarFooter className="mb-2 p-3">
         <a
           href="https://github.com/ibelick/zola"
-          className="hover:bg-muted flex items-center gap-2 rounded-md p-2"
+          className="flex items-center gap-2 rounded-md p-2 hover:bg-muted"
           target="_blank"
           aria-label="Star the repo on GitHub"
           rel="noopener"
@@ -126,8 +127,8 @@ export function AppSidebar() {
             <GithubLogo className="size-4" />
           </div>
           <div className="flex flex-col">
-            <div className="text-sidebar-foreground text-sm font-medium">
-              Okie is open source
+            <div className="font-medium text-sidebar-foreground text-sm">
+              {APP_NAME} is open source
             </div>
             <div className="text-sidebar-foreground/70 text-xs">
               Star the repo on GitHub!

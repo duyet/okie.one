@@ -362,7 +362,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       isAuthenticated,
       stop,
       status,
-      setEnableSearch,
       enableSearch,
     ]
   )
@@ -373,7 +372,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   return (
     <div
       className={cn(
-        "relative flex h-full w-full flex-col items-center overflow-x-hidden overflow-y-auto",
+        "relative flex h-full w-full flex-col items-center overflow-y-auto overflow-x-hidden",
         showOnboarding && chats.length === 0
           ? "justify-center pt-0"
           : showOnboarding && chats.length > 0
@@ -399,7 +398,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           >
             <div className="mb-6 flex items-center justify-center gap-2">
               <ChatCircleIcon className="text-muted-foreground" size={24} />
-              <h1 className="text-center text-3xl font-medium tracking-tight">
+              <h1 className="text-center font-medium text-3xl tracking-tight">
                 {project?.name || ""}
               </h1>
             </div>
@@ -426,7 +425,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
 
       {showOnboarding && chats.length > 0 ? (
         <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-20">
-          <h2 className="text-muted-foreground mb-3 text-sm font-medium">
+          <h2 className="mb-3 font-medium text-muted-foreground text-sm">
             Recent chats
           </h2>
           <div className="space-y-2">
@@ -441,7 +440,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         </div>
       ) : showOnboarding && chats.length === 0 ? (
         <div className="mx-auto w-full max-w-3xl px-4 pt-6 pb-20">
-          <h2 className="text-muted-foreground mb-3 text-sm font-medium">
+          <h2 className="mb-3 font-medium text-muted-foreground text-sm">
             No chats yet
           </h2>
         </div>

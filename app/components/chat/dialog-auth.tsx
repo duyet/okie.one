@@ -1,6 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 import {
   Dialog,
   DialogContent,
@@ -9,10 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { signInWithGoogle } from "@/lib/api"
+import { signInWithGoogle, signInWithGitHub } from "@/lib/api"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import Image from "next/image"
 import { useState } from "react"
 
 type DialogAuthProps = {
@@ -21,7 +21,7 @@ type DialogAuthProps = {
 }
 
 export function DialogAuth({ open, setOpen }: DialogAuthProps) {
-  const [isLoading, setIsLoading] = useState(false)
+  const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   if (!isSupabaseEnabled) {
@@ -36,7 +36,7 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
 
   const handleSignInWithGoogle = async () => {
     try {
-      setIsLoading(true)
+      setLoadingProvider("google")
       setError(null)
 
       const data = await signInWithGoogle(supabase)
@@ -52,7 +52,29 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
           "An unexpected error occurred. Please try again."
       )
     } finally {
-      setIsLoading(false)
+      setLoadingProvider(null)
+    }
+  }
+
+  const handleSignInWithGitHub = async () => {
+    try {
+      setLoadingProvider("github")
+      setError(null)
+
+      const data = await signInWithGitHub(supabase)
+
+      // Redirect to the provider URL
+      if (data?.url) {
+        window.location.href = data.url
+      }
+    } catch (err: unknown) {
+      console.error("Error signing in with GitHub:", err)
+      setError(
+        (err as Error).message ||
+          "An unexpected error occurred. Please try again."
+      )
+    } finally {
+      setLoadingProvider(null)
     }
   }
 
@@ -68,27 +90,45 @@ export function DialogAuth({ open, setOpen }: DialogAuthProps) {
           </DialogDescription>
         </DialogHeader>
         {error && (
-          <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+          <div className="rounded-md bg-destructive/10 p-3 text-destructive text-sm">
             {error}
           </div>
         )}
         <DialogFooter className="mt-6 sm:justify-center">
-          <Button
-            variant="secondary"
-            className="w-full text-base"
-            size="lg"
-            onClick={handleSignInWithGoogle}
-            disabled={isLoading}
-          >
-            <img
-              src="https://www.google.com/favicon.ico"
-              alt="Google logo"
-              width={20}
-              height={20}
-              className="mr-2 size-4"
-            />
-            <span>{isLoading ? "Connecting..." : "Continue with Google"}</span>
-          </Button>
+          <div className="w-full space-y-3">
+            <Button
+              variant="secondary"
+              className="w-full text-base"
+              size="lg"
+              onClick={handleSignInWithGoogle}
+              disabled={loadingProvider === "google"}
+            >
+              <Image
+                src="https://www.google.com/favicon.ico"
+                alt="Google logo"
+                width={16}
+                height={16}
+                className="mr-2"
+              />
+              <span>{loadingProvider === "google" ? "Connecting..." : "Continue with Google"}</span>
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full text-base"
+              size="lg"
+              onClick={handleSignInWithGitHub}
+              disabled={loadingProvider === "github"}
+            >
+              <Image
+                src="https://github.com/favicon.ico"
+                alt="GitHub logo"
+                width={16}
+                height={16}
+                className="mr-2"
+              />
+              <span>{loadingProvider === "github" ? "Connecting..." : "Continue with GitHub"}</span>
+            </Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -236,7 +236,6 @@ export function useChatCore({
     clearDraft,
     messages.length,
     bumpChat,
-    setIsSubmitting,
   ])
 
   // Handle suggestion
@@ -307,7 +306,6 @@ export function useChatCore({
       checkLimitsAndNotify,
       isAuthenticated,
       setMessages,
-      setIsSubmitting,
     ]
   )
 

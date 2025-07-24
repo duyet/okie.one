@@ -166,7 +166,7 @@ function getProviderFromFamily(family: string): string {
 
 function generateTags(
   modelName: string,
-  family: string,
+  _family: string,
   parameterSize: string,
   sizeInGB: number
 ): string[] {
@@ -232,7 +232,7 @@ function checkReasoningCapability(family: string): boolean {
 }
 
 function estimateSpeed(
-  parameterSize: string,
+  _parameterSize: string,
   sizeInGB: number
 ): "Fast" | "Medium" | "Slow" {
   if (sizeInGB < 5) return "Fast"
@@ -241,12 +241,12 @@ function estimateSpeed(
 }
 
 function estimateIntelligence(
-  family: string,
+  _family: string,
   parameterSize: string
 ): "Low" | "Medium" | "High" {
   const sizeNum = parseFloat(parameterSize.replace(/[^0-9.]/g, ""))
 
-  if (isNaN(sizeNum)) return "Medium"
+  if (Number.isNaN(sizeNum)) return "Medium"
 
   // Size-based intelligence estimation
   if (sizeNum < 3) return "Medium"

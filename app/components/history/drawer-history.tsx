@@ -112,7 +112,7 @@ export function DrawerHistory({
       <div key={chat.id}>
         <div className="space-y-1.5">
           {editingId === chat.id ? (
-            <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2.5">
+            <div className="flex items-center justify-between rounded-lg bg-accent px-2 py-2.5">
               <form
                 className="flex w-full items-center justify-between"
                 onSubmit={(e) => {
@@ -154,7 +154,7 @@ export function DrawerHistory({
               </form>
             </div>
           ) : deletingId === chat.id ? (
-            <div className="bg-accent flex items-center justify-between rounded-lg px-2 py-2.5">
+            <div className="flex items-center justify-between rounded-lg bg-accent px-2 py-2.5">
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
@@ -163,11 +163,10 @@ export function DrawerHistory({
                 className="flex w-full items-center justify-between"
               >
                 <div className="flex flex-1 items-center">
-                  <span className="text-base font-normal">{chat.title}</span>
+                  <span className="font-normal text-base">{chat.title}</span>
                   <input
                     type="text"
                     className="sr-only"
-                    autoFocus
                     onKeyDown={(e) => {
                       if (e.key === "Escape") {
                         e.preventDefault()
@@ -183,7 +182,7 @@ export function DrawerHistory({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="text-muted-foreground hover:text-destructive size-8"
+                    className="size-8 text-muted-foreground hover:text-destructive"
                     type="submit"
                   >
                     <Check className="size-4" />
@@ -191,7 +190,7 @@ export function DrawerHistory({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="text-muted-foreground hover:text-destructive size-8"
+                    className="size-8 text-muted-foreground hover:text-destructive"
                     onClick={handleCancelDelete}
                     type="button"
                   >
@@ -208,6 +207,13 @@ export function DrawerHistory({
                   handleOpenChange(false)
                 }
               }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  if (params.chatId === chat.id) {
+                    handleOpenChange(false)
+                  }
+                }
+              }}
             >
               <Link
                 href={`/c/${chat.id}`}
@@ -215,10 +221,10 @@ export function DrawerHistory({
                 className="flex flex-1 flex-col items-start"
                 prefetch
               >
-                <span className="line-clamp-1 text-base font-normal">
+                <span className="line-clamp-1 font-normal text-base">
                   {chat.title || "Untitled Chat"}
                 </span>
-                <span className="mr-2 text-xs font-normal text-gray-500">
+                <span className="mr-2 font-normal text-gray-500 text-xs">
                   {formatDate(chat?.created_at)}
                 </span>
               </Link>
@@ -227,7 +233,7 @@ export function DrawerHistory({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="text-muted-foreground hover:text-foreground size-8"
+                    className="size-8 text-muted-foreground hover:text-foreground"
                     onClick={(e) => {
                       e.preventDefault()
                       handleEdit(chat)
@@ -239,7 +245,7 @@ export function DrawerHistory({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="text-muted-foreground hover:text-destructive size-8"
+                    className="size-8 text-muted-foreground hover:text-destructive"
                     onClick={(e) => {
                       e.preventDefault()
                       handleDelete(chat.id)
@@ -288,14 +294,14 @@ export function DrawerHistory({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
-              <MagnifyingGlass className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 transform text-gray-400" />
+              <MagnifyingGlass className="-translate-y-1/2 absolute top-1/2 left-2.5 h-3.5 w-3.5 transform text-gray-400" />
             </div>
           </div>
 
           <ScrollArea className="flex-1 overflow-auto">
             <div className="flex flex-col space-y-6 px-4 pt-4 pb-8">
               {filteredChat.length === 0 ? (
-                <div className="text-muted-foreground py-4 text-center text-sm">
+                <div className="py-4 text-center text-muted-foreground text-sm">
                   No chat history found.
                 </div>
               ) : searchQuery ? (
@@ -307,7 +313,7 @@ export function DrawerHistory({
                 // When not searching, display grouped by date
                 groupedChats?.map((group) => (
                   <div key={group.name} className="space-y-0.5">
-                    <h3 className="text-muted-foreground pl-2 text-sm font-medium">
+                    <h3 className="pl-2 font-medium text-muted-foreground text-sm">
                       {group.name}
                     </h3>
                     <div className="space-y-2">

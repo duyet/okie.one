@@ -40,7 +40,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       return (
         <span
           className={cn(
-            "bg-primary-foreground rounded-sm px-1 font-mono text-sm",
+            "rounded-sm bg-primary-foreground px-1 font-mono text-sm",
             className
           )}
           {...props}
@@ -55,7 +55,7 @@ const INITIAL_COMPONENTS: Partial<Components> = {
     return (
       <CodeBlock className={className}>
         <CodeBlockGroup className="flex h-9 items-center justify-between px-4">
-          <div className="text-muted-foreground py-1 pr-2 font-mono text-xs">
+          <div className="py-1 pr-2 font-mono text-muted-foreground text-xs">
             {language}
           </div>
         </CodeBlockGroup>

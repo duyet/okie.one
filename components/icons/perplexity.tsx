@@ -1,4 +1,3 @@
-import * as React from "react"
 import type { SVGProps } from "react"
 
 export default function PerplexityIcon(props: SVGProps<SVGSVGElement>) {

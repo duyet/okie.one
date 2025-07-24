@@ -122,6 +122,10 @@ Models are defined in `lib/models/data/[provider].ts` with this structure:
 
 ### Environment Variables
 ```bash
+# App Configuration (for multi-domain deployments)
+NEXT_PUBLIC_APP_NAME=Okie
+NEXT_PUBLIC_VERCEL_URL=okie.one
+
 # Required for Supabase
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=

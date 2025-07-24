@@ -11,7 +11,6 @@ import {
 import { Drawer, DrawerContent, DrawerTrigger } from "@/components/ui/drawer"
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { User } from "@phosphor-icons/react"
-import type React from "react"
 import { useState } from "react"
 import { SettingsContent } from "./settings-content"
 

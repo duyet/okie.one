@@ -1,11 +1,11 @@
 import {
-  BookOpenText,
-  Brain,
-  Code,
-  Lightbulb,
-  Notepad,
-  PaintBrush,
-  Sparkle,
+  BookOpenTextIcon,
+  BrainIcon,
+  CodeIcon,
+  LightbulbIcon,
+  NotepadIcon,
+  PaintBrushIcon,
+  SparkleIcon,
 } from "@phosphor-icons/react/dist/ssr"
 
 export const NON_AUTH_DAILY_MESSAGE_LIMIT = 5
@@ -17,17 +17,23 @@ export const DAILY_LIMIT_PRO_MODELS = 500
 export const NON_AUTH_ALLOWED_MODELS = ["gpt-4.1-nano"]
 
 export const FREE_MODELS_IDS = [
+  "openrouter:moonshotai/kimi-k2:free",
   "openrouter:deepseek/deepseek-r1:free",
   "openrouter:meta-llama/llama-3.3-8b-instruct:free",
+  "openrouter:qwen/qwen3-235b-a22b-07-25:free",
+  "openrouter:google/gemini-2.5-flash",
   "pixtral-large-latest",
   "mistral-large-latest",
   "gpt-4.1-nano",
+  "gpt-4.1-mini",
 ]
 
 export const MODEL_DEFAULT = "gpt-4.1-nano"
 
-export const APP_NAME = "Okie"
-export const APP_DOMAIN = "https://okie.one"
+export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Okie"
+export const APP_DOMAIN = process.env.NEXT_PUBLIC_VERCEL_URL
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  : "https://localhost:3000"
 
 export const SUGGESTIONS = [
   {
@@ -40,10 +46,10 @@ export const SUGGESTIONS = [
       "Summarize World War II in 5 sentences",
       "Summarize the benefits of meditation",
     ],
-    icon: Notepad,
+    icon: NotepadIcon,
   },
   {
-    label: "Code",
+    label: "CodeIcon",
     highlight: "Help me",
     prompt: `Help me`,
     items: [
@@ -52,7 +58,7 @@ export const SUGGESTIONS = [
       "Help me write a SQL query to find duplicate emails",
       "Help me convert this Python function to JavaScript",
     ],
-    icon: Code,
+    icon: CodeIcon,
   },
   {
     label: "Design",
@@ -64,7 +70,7 @@ export const SUGGESTIONS = [
       "Design 5 great font pairings for a landing page",
       "Design better CTAs with useful tips",
     ],
-    icon: PaintBrush,
+    icon: PaintBrushIcon,
   },
   {
     label: "Research",
@@ -76,7 +82,7 @@ export const SUGGESTIONS = [
       "Research best practices for password security",
       "Research the latest trends in renewable energy",
     ],
-    icon: BookOpenText,
+    icon: BookOpenTextIcon,
   },
   {
     label: "Get inspired",
@@ -88,7 +94,7 @@ export const SUGGESTIONS = [
       "Inspire me with a poetic way to start a newsletter",
       "Inspire me by describing a peaceful morning in nature",
     ],
-    icon: Sparkle,
+    icon: SparkleIcon,
   },
   {
     label: "Think deeply",
@@ -100,7 +106,7 @@ export const SUGGESTIONS = [
       "Reflect on the concept of time in a simple way",
       "Reflect on what it means to live intentionally",
     ],
-    icon: Brain,
+    icon: BrainIcon,
   },
   {
     label: "Learn gently",
@@ -112,10 +118,10 @@ export const SUGGESTIONS = [
       "Explain how a neural network works",
       "Explain the difference between AI and AGI",
     ],
-    icon: Lightbulb,
+    icon: LightbulbIcon,
   },
 ]
 
-export const SYSTEM_PROMPT_DEFAULT = `You are Okie, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don't try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.`
+export const SYSTEM_PROMPT_DEFAULT = `You are ${APP_NAME}, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don't try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.`
 
 export const MESSAGE_MAX_LENGTH = 10000

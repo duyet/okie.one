@@ -8,6 +8,7 @@ import {
   PromptInputTextarea,
 } from "@/components/prompt-kit/prompt-input"
 import { Button } from "@/components/ui/button"
+import { APP_NAME } from "@/lib/config"
 import { getModelInfo } from "@/lib/models"
 import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
 import { useCallback, useMemo } from "react"
@@ -92,7 +93,8 @@ export function ChatInput({
         onSend()
       }
     },
-    [isSubmitting, onSend, status, value]
+    // biome-ignore lint/correctness/useExhaustiveDependencies: todo
+    [isSubmitting, onSend, status, value, isOnlyWhitespace]
   )
 
   const handlePaste = useCallback(
@@ -152,14 +154,14 @@ export function ChatInput({
       )}
       <div className="relative order-2 px-2 pb-3 sm:pb-4 md:order-1">
         <PromptInput
-          className="bg-popover relative z-10 p-0 pt-1 shadow-xs backdrop-blur-xl"
+          className="relative z-10 bg-popover p-0 pt-1 shadow-xs backdrop-blur-xl"
           maxHeight={200}
           value={value}
           onValueChange={onValueChange}
         >
           <FileList files={files} onFileRemove={onFileRemove} />
           <PromptInputTextarea
-            placeholder="Ask Okie"
+            placeholder={`Ask ${APP_NAME}`}
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             className="min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base"

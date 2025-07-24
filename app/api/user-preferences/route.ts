@@ -114,6 +114,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Prepare update object with only provided fields
+    // biome-ignore lint/suspicious/noExplicitAny: will update this
     const updateData: any = {}
     if (layout !== undefined) updateData.layout = layout
     if (prompt_suggestions !== undefined)

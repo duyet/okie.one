@@ -22,6 +22,7 @@ import { ConnectionsPlaceholder } from "./connections/connections-placeholder"
 import { DeveloperTools } from "./connections/developer-tools"
 import { OllamaSection } from "./connections/ollama-section"
 import { AccountManagement } from "./general/account-management"
+import { SignInMethods } from "./general/sign-in-methods"
 import { UserProfile } from "./general/user-profile"
 import { ModelsSettings } from "./models/models-settings"
 
@@ -42,8 +43,8 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
       )}
     >
       {isDrawer && (
-        <div className="border-border mb-2 flex items-center justify-between border-b px-4 pb-2">
-          <h2 className="text-lg font-medium">Settings</h2>
+        <div className="mb-2 flex items-center justify-between border-border border-b px-4 pb-2">
+          <h2 className="font-medium text-lg">Settings</h2>
           <DrawerClose asChild>
             <Button variant="ghost" size="icon">
               <XIcon className="size-4" />
@@ -106,11 +107,8 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             {/* Mobile tabs content */}
             <TabsContent value="general" className="space-y-6 px-6">
               <UserProfile />
-              {isSupabaseEnabled && (
-                <>
-                  <AccountManagement />
-                </>
-              )}
+              {isSupabaseEnabled && <SignInMethods />}
+              {isSupabaseEnabled && <AccountManagement />}
             </TabsContent>
 
             <TabsContent value="appearance" className="space-y-6 px-6">
@@ -193,11 +191,8 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             <div className="flex-1 overflow-auto px-6 pt-4">
               <TabsContent value="general" className="mt-0 space-y-6">
                 <UserProfile />
-                {isSupabaseEnabled && (
-                  <>
-                    <AccountManagement />
-                  </>
-                )}
+                {isSupabaseEnabled && <SignInMethods />}
+                {isSupabaseEnabled && <AccountManagement />}
               </TabsContent>
 
               <TabsContent value="appearance" className="mt-0 space-y-6">

@@ -1,4 +1,4 @@
-import { encryptKey } from "@/lib/encryption"
+import { encryptKey, isEncryptionAvailable } from "@/lib/encryption"
 import { getModelsForProvider } from "@/lib/models"
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
@@ -11,6 +11,14 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Provider and API key are required" },
         { status: 400 }
+      )
+    }
+
+    // Check if encryption is available
+    if (!isEncryptionAvailable()) {
+      return NextResponse.json(
+        { error: "ENCRYPTION_KEY not configured. User API keys cannot be stored without encryption." },
+        { status: 500 }
       )
     }
 
@@ -27,7 +35,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { encrypted, iv } = encryptKey(apiKey)
+    let encrypted: string, iv: string
+    try {
+      const result = encryptKey(apiKey)
+      encrypted = result.encrypted
+      iv = result.iv
+    } catch (error) {
+      console.error("Encryption error:", error)
+      return NextResponse.json(
+        { error: "Failed to encrypt API key" },
+        { status: 500 }
+      )
+    }
 
     // Check if this is a new API key (not an update)
     const { data: existingKey } = await supabase

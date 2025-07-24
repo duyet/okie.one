@@ -29,15 +29,15 @@ export function SourcesList({ sources, className }: SourcesListProps) {
 
   return (
     <div className={cn("my-4", className)}>
-      <div className="border-border flex flex-col gap-0 overflow-hidden rounded-md border">
+      <div className="flex flex-col gap-0 overflow-hidden rounded-md border border-border">
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           type="button"
-          className="hover:bg-accent flex w-full flex-row items-center rounded-t-md px-3 py-2 transition-colors"
+          className="flex w-full flex-row items-center rounded-t-md px-3 py-2 transition-colors hover:bg-accent"
         >
           <div className="flex flex-1 flex-row items-center gap-2 text-left text-sm">
             Sources
-            <div className="flex -space-x-1">
+            <div className="-space-x-1 flex">
               {sources?.map((source, index) => {
                 const faviconUrl = getFavicon(source.url)
                 const showFallback =
@@ -46,7 +46,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                 return showFallback ? (
                   <div
                     key={`${source.url}-${index}`}
-                    className="bg-muted border-background h-4 w-4 rounded-full border"
+                    className="h-4 w-4 rounded-full border border-background bg-muted"
                   />
                 ) : (
                   <Image
@@ -55,13 +55,13 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                     alt={`Favicon for ${source.title}`}
                     width={16}
                     height={16}
-                    className="border-background h-4 w-4 rounded-sm border"
+                    className="h-4 w-4 rounded-sm border border-background"
                     onError={() => handleFaviconError(source.url)}
                   />
                 )
               })}
               {sources.length > 3 && (
-                <span className="text-muted-foreground ml-1 text-xs">
+                <span className="ml-1 text-muted-foreground text-xs">
                   +{sources.length - 3}
                 </span>
               )}
@@ -97,10 +97,10 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                           href={addUTM(source.url)}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-primary group line-clamp-1 flex items-center gap-1 hover:underline"
+                          className="group line-clamp-1 flex items-center gap-1 text-primary hover:underline"
                         >
                           {showFallback ? (
-                            <div className="bg-muted h-4 w-4 flex-shrink-0 rounded-full" />
+                            <div className="h-4 w-4 flex-shrink-0 rounded-full bg-muted" />
                           ) : (
                             <Image
                               src={faviconUrl}
@@ -114,7 +114,7 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                           <span className="truncate">{source.title}</span>
                           <Link className="inline h-3 w-3 flex-shrink-0 opacity-70 transition-opacity group-hover:opacity-100" />
                         </a>
-                        <div className="text-muted-foreground line-clamp-1 text-xs">
+                        <div className="line-clamp-1 text-muted-foreground text-xs">
                           {formatUrl(source.url)}
                         </div>
                       </div>

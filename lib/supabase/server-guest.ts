@@ -7,14 +7,18 @@ export async function createGuestServerClient() {
     return null
   }
 
-  return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE!,
-    {
-      cookies: {
-        getAll: () => [],
-        setAll: () => {},
-      },
-    }
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  // Support both SUPABASE_SERVICE_ROLE_KEY (from Supabase Integration) and SUPABASE_SERVICE_ROLE
+  const supabaseServiceRole = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE
+
+  if (!supabaseUrl || !supabaseServiceRole) {
+    throw new Error("Missing Supabase environment variables")
+  }
+
+  return createServerClient<Database>(supabaseUrl, supabaseServiceRole, {
+    cookies: {
+      getAll: () => [],
+      setAll: () => {},
+    },
+  })
 }

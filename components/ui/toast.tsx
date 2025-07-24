@@ -17,21 +17,21 @@ type ToastProps = {
 
 function Toast({ title, description, button, id, status }: ToastProps) {
   return (
-    <div className="border-input bg-popover flex items-center overflow-hidden rounded-xl border p-4 shadow-xs backdrop-blur-xl">
+    <div className="flex items-center overflow-hidden rounded-xl border border-input bg-popover p-4 shadow-xs backdrop-blur-xl">
       <div className="flex flex-1 items-center">
         {status === "error" ? (
-          <Warning className="text-primary mr-3 size-4" />
+          <Warning className="mr-3 size-4 text-primary" />
         ) : null}
         {status === "info" ? (
-          <Info className="text-primary mr-3 size-4" />
+          <Info className="mr-3 size-4 text-primary" />
         ) : null}
         {status === "success" ? (
-          <CheckCircle className="text-primary mr-3 size-4" />
+          <CheckCircle className="mr-3 size-4 text-primary" />
         ) : null}
         <div className="w-full">
-          <p className="text-foreground text-sm font-medium">{title}</p>
+          <p className="font-medium text-foreground text-sm">{title}</p>
           {description && (
-            <p className="text-muted-foreground mt-1 text-sm">{description}</p>
+            <p className="mt-1 text-muted-foreground text-sm">{description}</p>
           )}
         </div>
       </div>

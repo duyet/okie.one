@@ -150,8 +150,14 @@ export function handleStreamError(err: unknown): ApiError {
   console.error("🛑 streamText error:", err)
 
   // Extract error details from the AI SDK error
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const aiError = (err as { error?: any })?.error
+  interface AISDKError {
+    error?: {
+      statusCode?: number
+      responseBody?: string
+      message?: string
+    }
+  }
+  const aiError = (err as AISDKError)?.error
 
   if (aiError) {
     // Try to extract detailed error message from response body
@@ -198,7 +204,7 @@ export function handleStreamError(err: unknown): ApiError {
         statusCode: 429,
         code: "RATE_LIMIT_EXCEEDED",
       })
-    } else if (aiError.statusCode >= 400 && aiError.statusCode < 500) {
+    } else if (aiError.statusCode && aiError.statusCode >= 400 && aiError.statusCode < 500) {
       // Other client errors
       const message = detailedMessage || aiError.message || "Request failed"
       return Object.assign(new Error(message), {
@@ -267,8 +273,14 @@ export function extractErrorMessage(error: unknown): string {
   }
 
   // Handle AI SDK error objects
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const aiError = (error as any)?.error
+  interface AISDKError {
+    error?: {
+      statusCode?: number
+      responseBody?: string
+      message?: string
+    }
+  }
+  const aiError = (error as AISDKError)?.error
   if (aiError) {
     if (aiError.statusCode === 401) {
       return "Invalid API key or authentication failed. Please check your API key in settings."

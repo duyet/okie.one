@@ -52,7 +52,7 @@ const getOllamaBaseURL = () => {
 
   // Server-side: check environment variables
   return (
-    process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") + "/v1" ||
+    `${process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "")}/v1` ||
     "http://localhost:11434/v1"
   )
 }

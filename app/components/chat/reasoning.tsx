@@ -27,7 +27,7 @@ export function Reasoning({ reasoning, isStreaming }: ReasoningProps) {
   return (
     <div>
       <button
-        className="text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
+        className="flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
         onClick={() => setIsExpanded(!isExpanded)}
         type="button"
       >
@@ -49,7 +49,7 @@ export function Reasoning({ reasoning, isStreaming }: ReasoningProps) {
             exit={{ height: 0, opacity: 0 }}
             transition={TRANSITION}
           >
-            <div className="text-muted-foreground border-muted-foreground/20 flex flex-col border-l pl-4 text-sm">
+            <div className="flex flex-col border-muted-foreground/20 border-l pl-4 text-muted-foreground text-sm">
               <Markdown>{reasoning}</Markdown>
             </div>
           </motion.div>

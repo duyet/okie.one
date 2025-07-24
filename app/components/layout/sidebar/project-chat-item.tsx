@@ -149,27 +149,26 @@ export function ProjectChatItem({ chat, formatDate }: ProjectChatItemProps) {
         <div className="flex items-center p-3">
           <ChatCircleIcon
             size={16}
-            className="text-muted-foreground mr-3 flex-shrink-0"
+            className="mr-3 flex-shrink-0 text-muted-foreground"
           />
           <input
             ref={inputRef}
             value={editTitle}
             onChange={handleInputChange}
-            className="text-primary flex-1 bg-transparent text-sm font-medium focus:outline-none"
+            className="flex-1 bg-transparent font-medium text-primary text-sm focus:outline-none"
             onKeyDown={handleKeyDown}
-            autoFocus
           />
           <div className="ml-2 flex gap-1">
             <button
               onClick={handleSaveClick}
-              className="hover:bg-secondary text-muted-foreground hover:text-primary flex size-6 items-center justify-center rounded-md p-1 transition-colors duration-150"
+              className="flex size-6 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-secondary hover:text-primary"
               type="button"
             >
               <Check size={12} weight="bold" />
             </button>
             <button
               onClick={handleCancelClick}
-              className="hover:bg-secondary text-muted-foreground hover:text-primary flex size-6 items-center justify-center rounded-md p-1 transition-colors duration-150"
+              className="flex size-6 items-center justify-center rounded-md p-1 text-muted-foreground transition-colors duration-150 hover:bg-secondary hover:text-primary"
               type="button"
             >
               <X size={12} weight="bold" />
@@ -195,7 +194,7 @@ export function ProjectChatItem({ chat, formatDate }: ProjectChatItemProps) {
         <div className="flex items-start justify-between">
           <div className="min-w-0 flex-1">
             <h3 className="truncate font-medium">{displayTitle}</h3>
-            <p className="text-muted-foreground mt-1 text-sm">
+            <p className="mt-1 text-muted-foreground text-sm">
               {chat.updated_at
                 ? formatDate(chat.updated_at)
                 : chat.created_at

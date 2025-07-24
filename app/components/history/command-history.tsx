@@ -88,7 +88,7 @@ function CommandItemEdit({
       <Input
         value={editTitle}
         onChange={(e) => setEditTitle(e.target.value)}
-        className="border-input h-8 flex-1 rounded border bg-transparent px-3 py-1 text-sm"
+        className="h-8 flex-1 rounded border border-input bg-transparent px-3 py-1 text-sm"
         autoFocus
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -103,11 +103,11 @@ function CommandItemEdit({
             <Button
               size="icon"
               variant="ghost"
-              className="group/edit-confirm text-muted-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              className="group/edit-confirm size-8 text-muted-foreground transition-colors duration-150 hover:bg-primary/10"
               type="submit"
               aria-label="Confirm"
             >
-              <Check className="group-hover/edit-confirm:text-primary size-4 transition-colors duration-150" />
+              <Check className="size-4 transition-colors duration-150 group-hover/edit-confirm:text-primary" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Confirm</TooltipContent>
@@ -117,12 +117,12 @@ function CommandItemEdit({
             <Button
               size="icon"
               variant="ghost"
-              className="group/edit-cancel text-muted-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              className="group/edit-cancel size-8 text-muted-foreground transition-colors duration-150 hover:bg-primary/10"
               type="button"
               onClick={onCancel}
               aria-label="Cancel"
             >
-              <X className="group-hover/edit-cancel:text-primary size-4 transition-colors duration-150" />
+              <X className="size-4 transition-colors duration-150 group-hover/edit-cancel:text-primary" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Cancel</TooltipContent>
@@ -147,11 +147,10 @@ function CommandItemDelete({
       className="flex w-full items-center justify-between"
     >
       <div className="flex flex-1 items-center">
-        <span className="line-clamp-1 text-base font-normal">{chat.title}</span>
+        <span className="line-clamp-1 font-normal text-base">{chat.title}</span>
         <input
           type="text"
           className="sr-only hidden"
-          autoFocus
           onKeyDown={(e) => {
             if (e.key === "Escape") {
               e.preventDefault()
@@ -169,11 +168,11 @@ function CommandItemDelete({
             <Button
               size="icon"
               variant="ghost"
-              className="group/delete-confirm text-muted-foreground hover:text-destructive-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              className="group/delete-confirm size-8 text-muted-foreground transition-colors duration-150 hover:bg-primary/10 hover:text-destructive-foreground"
               type="submit"
               aria-label="Confirm"
             >
-              <Check className="group-hover/delete-confirm:text-primary size-4 transition-colors duration-150" />
+              <Check className="size-4 transition-colors duration-150 group-hover/delete-confirm:text-primary" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Confirm</TooltipContent>
@@ -183,12 +182,12 @@ function CommandItemDelete({
             <Button
               size="icon"
               variant="ghost"
-              className="group/delete-cancel text-muted-foreground hover:text-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+              className="group/delete-cancel size-8 text-muted-foreground transition-colors duration-150 hover:bg-primary/10 hover:text-foreground"
               onClick={onCancel}
               type="button"
               aria-label="Cancel"
             >
-              <X className="group-hover/delete-cancel:text-primary size-4 transition-colors duration-150" />
+              <X className="size-4 transition-colors duration-150 group-hover/delete-cancel:text-primary" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Cancel</TooltipContent>
@@ -212,14 +211,14 @@ function CommandItemRow({
   return (
     <>
       <div className="flex min-w-0 flex-1 items-center gap-2">
-        <span className="line-clamp-1 text-base font-normal">
+        <span className="line-clamp-1 font-normal text-base">
           {chat?.title || "Untitled Chat"}
         </span>
         {isCurrentChat && <Badge variant="outline">current</Badge>}
       </div>
 
       <div className="relative flex min-w-[140px] flex-shrink-0 items-center justify-end">
-        <div className="text-muted-foreground mr-2 text-xs transition-opacity duration-200 group-hover:opacity-0">
+        <div className="mr-2 text-muted-foreground text-xs transition-opacity duration-200 group-hover:opacity-0">
           {formatDate(chat.created_at)}
         </div>
 
@@ -229,7 +228,7 @@ function CommandItemRow({
               <Button
                 size="icon"
                 variant="ghost"
-                className="group/edit text-muted-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+                className="group/edit size-8 text-muted-foreground transition-colors duration-150 hover:bg-primary/10"
                 onClick={(e) => {
                   e.stopPropagation()
                   onEdit(chat)
@@ -237,7 +236,7 @@ function CommandItemRow({
                 disabled={!!editingId || !!deletingId}
                 aria-label="Edit"
               >
-                <PencilSimple className="group-hover/edit:text-primary size-4 transition-colors duration-150" />
+                <PencilSimple className="size-4 transition-colors duration-150 group-hover/edit:text-primary" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Edit</TooltipContent>
@@ -248,7 +247,7 @@ function CommandItemRow({
               <Button
                 size="icon"
                 variant="ghost"
-                className="group/delete text-muted-foreground hover:text-destructive-foreground hover:bg-primary/10 size-8 transition-colors duration-150"
+                className="group/delete size-8 text-muted-foreground transition-colors duration-150 hover:bg-primary/10 hover:text-destructive-foreground"
                 onClick={(e) => {
                   e.stopPropagation()
                   onDelete(chat.id)
@@ -256,7 +255,7 @@ function CommandItemRow({
                 disabled={!!editingId || !!deletingId}
                 aria-label="Delete"
               >
-                <TrashSimple className="group-hover/delete:text-primary size-4 transition-colors duration-150" />
+                <TrashSimple className="size-4 transition-colors duration-150 group-hover/delete:text-primary" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Delete</TooltipContent>
@@ -293,7 +292,7 @@ function CustomCommandDialog({
       <DialogContent
         className={cn("overflow-hidden border-none p-0", className)}
       >
-        <Command className="[&_[cmdk-group-heading]]:text-muted-foreground border-none **:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group]]:px-2 [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5 [&_[cmdk-item]_svg]:border-none">
+        <Command className="border-none **:data-[slot=command-input-wrapper]:h-12 [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5 [&_[cmdk-item]_svg]:border-none">
           {children}
         </Command>
       </DialogContent>
@@ -468,7 +467,7 @@ export function CommandHistory({
             }
           }}
           className={cn(
-            "group group data-[selected=true]:bg-accent flex w-full items-center justify-between rounded-md",
+            "group group flex w-full items-center justify-between rounded-md data-[selected=true]:bg-accent",
             isCurrentChatEditOrDelete ? "!py-2" : "py-2",
             isCurrentChatEditOrDelete &&
               "bg-accent data-[selected=true]:bg-accent",

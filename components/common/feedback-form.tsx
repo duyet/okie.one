@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
+import { APP_NAME } from "@/lib/config"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import {
@@ -107,11 +108,11 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
             <div className="rounded-full bg-green-500/10 p-1">
               <SealCheckIcon className="size-6 text-green-500" />
             </div>
-            <p className="text-foreground mt-3 mb-1 text-center text-sm font-medium">
+            <p className="mt-3 mb-1 text-center font-medium text-foreground text-sm">
               Thank you for your time!
             </p>
             <p className="text-muted-foreground text-sm">
-              Your feedback makes Okie better.
+              Your feedback makes {APP_NAME} better.
             </p>
           </motion.div>
         ) : (
@@ -135,13 +136,12 @@ export function FeedbackForm({ authUserId, onClose }: FeedbackFormProps) {
               transition={{
                 duration: 0,
               }}
-              className="text-muted-foreground pointer-events-none absolute top-3.5 left-4 text-sm leading-[1.4] select-none"
+              className="pointer-events-none absolute top-3.5 left-4 select-none text-muted-foreground text-sm leading-[1.4]"
             >
-              What would make Okie better for you?
+              What would make {APP_NAME} better for you?
             </motion.span>
             <textarea
-              className="text-foreground h-full w-full resize-none rounded-md bg-transparent px-4 py-3.5 text-sm outline-hidden"
-              autoFocus
+              className="h-full w-full resize-none rounded-md bg-transparent px-4 py-3.5 text-foreground text-sm outline-hidden"
               onChange={(e) => setFeedback(e.target.value)}
               disabled={status === "submitting"}
             />

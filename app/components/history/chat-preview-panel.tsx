@@ -34,7 +34,7 @@ function MessageBubble({ content, role }: MessageBubbleProps) {
       <div className="flex justify-end">
         <div className="max-w-[70%]">
           <MessageContent
-            className="bg-accent relative rounded-3xl px-5 py-2.5"
+            className="relative rounded-3xl bg-accent px-5 py-2.5"
             markdown={true}
             components={{
               code: ({ children }) => <>{children}</>,
@@ -62,36 +62,36 @@ function MessageBubble({ content, role }: MessageBubbleProps) {
     <div className="flex justify-start">
       <div className="max-w-[400px]">
         <MessageContent
-          className="text-foreground bg-transparent p-0 text-sm"
+          className="bg-transparent p-0 text-foreground text-sm"
           markdown={true}
           components={{
             h1: ({ children }) => (
-              <div className="mb-1 text-base font-semibold">{children}</div>
+              <div className="mb-1 font-semibold text-base">{children}</div>
             ),
             h2: ({ children }) => (
-              <div className="mb-1 text-sm font-medium">{children}</div>
+              <div className="mb-1 font-medium text-sm">{children}</div>
             ),
             h3: ({ children }) => (
-              <div className="mb-1 text-sm font-medium">{children}</div>
+              <div className="mb-1 font-medium text-sm">{children}</div>
             ),
             h4: ({ children }) => (
-              <div className="text-sm font-medium">{children}</div>
+              <div className="font-medium text-sm">{children}</div>
             ),
             h5: ({ children }) => (
-              <div className="text-sm font-medium">{children}</div>
+              <div className="font-medium text-sm">{children}</div>
             ),
             h6: ({ children }) => (
-              <div className="text-sm font-medium">{children}</div>
+              <div className="font-medium text-sm">{children}</div>
             ),
             p: ({ children }) => <div className="mb-1">{children}</div>,
             li: ({ children }) => <div>• {children}</div>,
             ul: ({ children }) => <div className="space-y-0.5">{children}</div>,
             ol: ({ children }) => <div className="space-y-0.5">{children}</div>,
             code: ({ children }) => (
-              <code className="bg-muted rounded px-1 text-xs">{children}</code>
+              <code className="rounded bg-muted px-1 text-xs">{children}</code>
             ),
             pre: ({ children }) => (
-              <div className="bg-muted overflow-x-auto rounded p-2 text-xs">
+              <div className="overflow-x-auto rounded bg-muted p-2 text-xs">
                 {children}
               </div>
             ),
@@ -107,7 +107,7 @@ function MessageBubble({ content, role }: MessageBubbleProps) {
 function LoadingState() {
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="text-muted-foreground flex items-center gap-2">
+      <div className="flex items-center gap-2 text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
         <span className="text-sm">Loading messages...</span>
       </div>
@@ -130,13 +130,13 @@ function ErrorState({
 
   return (
     <div className="flex h-full items-center justify-center p-4">
-      <div className="text-muted-foreground max-w-[300px] space-y-3 text-center">
+      <div className="max-w-[300px] space-y-3 text-center text-muted-foreground">
         <div className="flex justify-center">
-          <AlertCircle className="text-muted-foreground/50 h-8 w-8" />
+          <AlertCircle className="h-8 w-8 text-muted-foreground/50" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-medium">Failed to load preview</p>
-          <p className="text-xs break-words opacity-70">{error}</p>
+          <p className="font-medium text-sm">Failed to load preview</p>
+          <p className="break-words text-xs opacity-70">{error}</p>
         </div>
         {isNetworkError && onRetry && (
           <Button
@@ -157,7 +157,7 @@ function ErrorState({
 function EmptyState() {
   return (
     <div className="flex h-32 items-center justify-center p-4">
-      <p className="text-muted-foreground text-center text-sm">
+      <p className="text-center text-muted-foreground text-sm">
         No messages in this conversation yet
       </p>
     </div>
@@ -167,7 +167,7 @@ function EmptyState() {
 function DefaultState() {
   return (
     <div className="flex h-full items-center justify-center p-4">
-      <div className="text-muted-foreground space-y-2 text-center">
+      <div className="space-y-2 text-center text-muted-foreground">
         <p className="text-sm opacity-60">Select a conversation to preview</p>
       </div>
     </div>
@@ -217,10 +217,12 @@ export function ChatPreviewPanel({
 
   return (
     <div
-      className="bg-background col-span-3 border-l"
+      className="col-span-3 border-l bg-background"
       onMouseEnter={() => onHover?.(true)}
       onMouseLeave={() => onHover?.(false)}
       key={chatId}
+      role="region"
+      aria-label="Chat preview"
     >
       <div className="h-[480px]">
         {!chatId && <DefaultState />}
@@ -238,7 +240,7 @@ export function ChatPreviewPanel({
           <ScrollArea ref={scrollAreaRef} className="h-full">
             <div className="space-y-4 p-6">
               <div className="flex justify-center">
-                <div className="text-muted-foreground bg-muted/50 rounded-full px-2 py-1 text-xs">
+                <div className="rounded-full bg-muted/50 px-2 py-1 text-muted-foreground text-xs">
                   Last {messages.length} messages
                 </div>
               </div>
