@@ -4,6 +4,8 @@ on:
   push:
     branches: [main, develop]
     tags: ["v*"]
+  pull_request:
+    branches: [main, develop]
 
 env:
   REGISTRY: ghcr.io
@@ -24,8 +26,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -86,8 +86,6 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
