@@ -20,7 +20,7 @@ First, you'll need to set up your environment variables. Create a `.env.local` f
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-SUPABASE_SERVICE_ROLE=your_supabase_service_role_key
+SUPABASE_SERVICE_ROLE=your_supabase_service_role_key  # Must be SUPABASE_SERVICE_ROLE, not SUPABASE_SERVICE_ROLE_KEY
 
 # OpenAI
 OPENAI_API_KEY=your_openai_api_key
