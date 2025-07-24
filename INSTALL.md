@@ -88,7 +88,10 @@ Okie supports BYOK functionality, allowing users to securely store and use their
 The `ENCRYPTION_KEY` is used to encrypt user API keys before storing them in the database. Generate a 32-byte base64-encoded key:
 
 ```bash
-# Using Node.js
+# Using the provided script (recommended)
+node scripts/generate-encryption-key.js
+
+# Using Node.js directly
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
 # Using OpenSSL
@@ -108,6 +111,7 @@ ENCRYPTION_KEY=your_generated_base64_encryption_key
 **Important**:
 
 - Keep this key secure and backed up - losing it will make existing user API keys unrecoverable
+- The app can build without this key, but user API key storage (BYOK) will be disabled at runtime until configured
 - Use the same key across all your deployment environments
 - The key must be exactly 32 bytes when base64 decoded
 

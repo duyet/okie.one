@@ -1,21 +1,27 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "node:crypto"
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
-if (!ENCRYPTION_KEY) {
-  throw new Error("ENCRYPTION_KEY is required")
-}
 const ALGORITHM = "aes-256-gcm"
 
-const key = Buffer.from(ENCRYPTION_KEY!, "base64")
-
-if (key.length !== 32) {
-  throw new Error("ENCRYPTION_KEY must be 32 bytes long")
+function getEncryptionKey(): Buffer {
+  const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY
+  if (!ENCRYPTION_KEY) {
+    throw new Error("ENCRYPTION_KEY is required. Please set the ENCRYPTION_KEY environment variable.")
+  }
+  
+  const key = Buffer.from(ENCRYPTION_KEY, "base64")
+  
+  if (key.length !== 32) {
+    throw new Error("ENCRYPTION_KEY must be 32 bytes long")
+  }
+  
+  return key
 }
 
 export function encryptKey(plaintext: string): {
   encrypted: string
   iv: string
 } {
+  const key = getEncryptionKey()
   const iv = randomBytes(16)
   const cipher = createCipheriv(ALGORITHM, key, iv)
 
@@ -32,6 +38,7 @@ export function encryptKey(plaintext: string): {
 }
 
 export function decryptKey(encryptedData: string, ivHex: string): string {
+  const key = getEncryptionKey()
   const [encrypted, authTagHex] = encryptedData.split(":")
   const iv = Buffer.from(ivHex, "hex")
   const authTag = Buffer.from(authTagHex, "hex")
@@ -43,6 +50,15 @@ export function decryptKey(encryptedData: string, ivHex: string): string {
   decrypted += decipher.final("utf8")
 
   return decrypted
+}
+
+export function isEncryptionAvailable(): boolean {
+  try {
+    getEncryptionKey()
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function maskKey(key: string): string {

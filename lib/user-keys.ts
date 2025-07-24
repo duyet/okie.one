@@ -1,4 +1,4 @@
-import { decryptKey } from "./encryption"
+import { decryptKey, isEncryptionAvailable } from "./encryption"
 import { env } from "./openproviders/env"
 import type { Provider } from "./openproviders/types"
 import { createClient } from "./supabase/server"
@@ -11,6 +11,12 @@ export async function getUserKey(
   provider: Provider
 ): Promise<string | null> {
   try {
+    // Check if encryption is available
+    if (!isEncryptionAvailable()) {
+      console.warn("ENCRYPTION_KEY not available, cannot decrypt user keys")
+      return null
+    }
+
     const supabase = await createClient()
     if (!supabase) return null
 
@@ -23,7 +29,12 @@ export async function getUserKey(
 
     if (error || !data) return null
 
-    return decryptKey(data.encrypted_key, data.iv)
+    try {
+      return decryptKey(data.encrypted_key, data.iv)
+    } catch (decryptError) {
+      console.error("Error decrypting user key:", decryptError)
+      return null
+    }
   } catch (error) {
     console.error("Error retrieving user key:", error)
     return null
