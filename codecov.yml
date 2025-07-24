@@ -1,0 +1,31 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 70%
+        threshold: 1%
+        base: auto
+    patch:
+      default:
+        target: 70%
+        threshold: 1%
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: false
+  require_base: no
+  require_head: yes
+
+ignore:
+  - "tests/"
+  - "**/*.test.*"
+  - "**/*.spec.*"
+  - "**/*.config.*"
+  - "**/*.d.ts"
+  - ".next/"
+  - "coverage/"
+  - "playwright.config.ts"
+  - "vitest.config.mts"
+  - "tailwind.config.ts"
+  - "postcss.config.mjs"
