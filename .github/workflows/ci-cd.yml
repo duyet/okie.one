@@ -73,6 +73,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Generate ENCRYPTION_KEY for build
+        run: echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
+
       - name: Generate build cache key
         id: build-cache
         run: echo "key=build-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', 'package-lock.json') }}" >> $GITHUB_OUTPUT
