@@ -17,11 +17,15 @@ export const DAILY_LIMIT_PRO_MODELS = 500
 export const NON_AUTH_ALLOWED_MODELS = ["gpt-4.1-nano"]
 
 export const FREE_MODELS_IDS = [
+  "openrouter:moonshotai/kimi-k2:free",
   "openrouter:deepseek/deepseek-r1:free",
   "openrouter:meta-llama/llama-3.3-8b-instruct:free",
+  "openrouter:qwen/qwen3-235b-a22b-07-25:free",
+  "openrouter:google/gemini-2.5-flash",
   "pixtral-large-latest",
   "mistral-large-latest",
   "gpt-4.1-nano",
+  "gpt-4.1-mini",
 ]
 
 export const MODEL_DEFAULT = "gpt-4.1-nano"
