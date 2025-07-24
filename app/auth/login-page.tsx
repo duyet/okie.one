@@ -9,7 +9,6 @@ import { useState } from "react"
 import { HeaderGoBack } from "../components/header-go-back"
 
 export default function LoginPage() {
-  const [isLoading, setIsLoading] = useState(false)
   const [loadingProvider, setLoadingProvider] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -21,7 +20,6 @@ export default function LoginPage() {
     }
 
     try {
-      setIsLoading(true)
       setLoadingProvider("google")
       setError(null)
 
@@ -38,7 +36,6 @@ export default function LoginPage() {
           "An unexpected error occurred. Please try again."
       )
     } finally {
-      setIsLoading(false)
       setLoadingProvider(null)
     }
   }
@@ -51,7 +48,6 @@ export default function LoginPage() {
     }
 
     try {
-      setIsLoading(true)
       setLoadingProvider("github")
       setError(null)
 
@@ -68,7 +64,6 @@ export default function LoginPage() {
           "An unexpected error occurred. Please try again."
       )
     } finally {
-      setIsLoading(false)
       setLoadingProvider(null)
     }
   }
@@ -98,7 +93,7 @@ export default function LoginPage() {
               className="w-full text-base sm:text-base"
               size="lg"
               onClick={handleSignInWithGoogle}
-              disabled={isLoading}
+              disabled={loadingProvider === "google"}
             >
               <Image
                 src="https://www.google.com/favicon.ico"
@@ -116,7 +111,7 @@ export default function LoginPage() {
               className="w-full text-base sm:text-base"
               size="lg"
               onClick={handleSignInWithGitHub}
-              disabled={isLoading}
+              disabled={loadingProvider === "github"}
             >
               <Image
                 src="https://github.com/favicon.ico"

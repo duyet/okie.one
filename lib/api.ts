@@ -26,7 +26,44 @@ function getOAuthBaseUrl(): string {
     return window.location.origin
   }
 
+  // Add validation for APP_DOMAIN fallback
+  if (!APP_DOMAIN || APP_DOMAIN === "https://localhost:3000") {
+    console.warn("APP_DOMAIN not properly configured, OAuth redirects may fail")
+    return "https://okie.one" // Safe fallback to production domain
+  }
+
   return APP_DOMAIN
+}
+
+/**
+ * Generic OAuth sign-in function
+ * Abstracts common OAuth logic to reduce duplication
+ */
+async function signInWithOAuth(
+  supabase: SupabaseClient, 
+  provider: "google" | "github",
+  additionalOptions?: Record<string, any>
+) {
+  try {
+    const baseUrl = getOAuthBaseUrl()
+
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${baseUrl}/auth/callback`,
+        ...additionalOptions,
+      },
+    })
+
+    if (error) {
+      throw error
+    }
+
+    return data
+  } catch (err) {
+    console.error(`Error signing in with ${provider}:`, err)
+    throw err
+  }
 }
 import type { UserProfile } from "@/lib/user/types"
 import type { SupabaseClient } from "@supabase/supabase-js"
@@ -132,56 +169,19 @@ export async function updateChatModel(chatId: string, model: string) {
  * Signs in user with Google OAuth via Supabase
  */
 export async function signInWithGoogle(supabase: SupabaseClient) {
-  try {
-    const baseUrl = getOAuthBaseUrl()
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${baseUrl}/auth/callback`,
-        queryParams: {
-          access_type: "offline",
-          prompt: "consent",
-        },
-      },
-    })
-
-    if (error) {
-      throw error
-    }
-
-    // Return the provider URL
-    return data
-  } catch (err) {
-    console.error("Error signing in with Google:", err)
-    throw err
-  }
+  return signInWithOAuth(supabase, "google", {
+    queryParams: {
+      access_type: "offline",
+      prompt: "consent",
+    },
+  })
 }
 
 /**
  * Signs in user with GitHub OAuth via Supabase
  */
 export async function signInWithGitHub(supabase: SupabaseClient) {
-  try {
-    const baseUrl = getOAuthBaseUrl()
-
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
-      options: {
-        redirectTo: `${baseUrl}/auth/callback`,
-      },
-    })
-
-    if (error) {
-      throw error
-    }
-
-    // Return the provider URL
-    return data
-  } catch (err) {
-    console.error("Error signing in with GitHub:", err)
-    throw err
-  }
+  return signInWithOAuth(supabase, "github")
 }
 
 export const getOrCreateGuestUserId = async (
