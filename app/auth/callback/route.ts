@@ -8,11 +8,26 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get("code")
   const next = searchParams.get("next") ?? "/"
+  
+  // Check for direct error parameters (from OAuth provider)
+  const oauthError = searchParams.get("error")
+  const errorCode = searchParams.get("error_code")
+  const errorDescription = searchParams.get("error_description")
 
   if (!isSupabaseEnabled) {
     return NextResponse.redirect(
       `${origin}/auth/error?message=${encodeURIComponent("Supabase is not enabled in this deployment.")}`
     )
+  }
+
+  // Handle direct error parameters from OAuth provider
+  if (oauthError) {
+    const errorParams = new URLSearchParams()
+    errorParams.set("message", oauthError)
+    if (errorCode) errorParams.set("error_code", errorCode)
+    if (errorDescription) errorParams.set("error_description", decodeURIComponent(errorDescription))
+    
+    return NextResponse.redirect(`${origin}/auth/error?${errorParams.toString()}`)
   }
 
   if (!code) {
