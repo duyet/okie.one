@@ -22,6 +22,7 @@ import { ConnectionsPlaceholder } from "./connections/connections-placeholder"
 import { DeveloperTools } from "./connections/developer-tools"
 import { OllamaSection } from "./connections/ollama-section"
 import { AccountManagement } from "./general/account-management"
+import { SignInMethods } from "./general/sign-in-methods"
 import { UserProfile } from "./general/user-profile"
 import { ModelsSettings } from "./models/models-settings"
 
@@ -106,6 +107,7 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             {/* Mobile tabs content */}
             <TabsContent value="general" className="space-y-6 px-6">
               <UserProfile />
+              {isSupabaseEnabled && <SignInMethods />}
               {isSupabaseEnabled && <AccountManagement />}
             </TabsContent>
 
@@ -189,6 +191,7 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             <div className="flex-1 overflow-auto px-6 pt-4">
               <TabsContent value="general" className="mt-0 space-y-6">
                 <UserProfile />
+                {isSupabaseEnabled && <SignInMethods />}
                 {isSupabaseEnabled && <AccountManagement />}
               </TabsContent>
 

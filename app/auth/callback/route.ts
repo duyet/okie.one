@@ -5,14 +5,38 @@ import { createGuestServerClient } from "@/lib/supabase/server-guest"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams, origin, hash } = new URL(request.url)
   const code = searchParams.get("code")
   const next = searchParams.get("next") ?? "/"
+  
+  // Check for direct error parameters (from OAuth provider)
+  // Can be in query params or hash fragments
+  let oauthError = searchParams.get("error")
+  let errorCode = searchParams.get("error_code")
+  let errorDescription = searchParams.get("error_description")
+  
+  // Also check hash fragments if no query params found
+  if (!oauthError && hash) {
+    const hashParams = new URLSearchParams(hash.substring(1))
+    oauthError = hashParams.get("error")
+    errorCode = hashParams.get("error_code")
+    errorDescription = hashParams.get("error_description")
+  }
 
   if (!isSupabaseEnabled) {
     return NextResponse.redirect(
       `${origin}/auth/error?message=${encodeURIComponent("Supabase is not enabled in this deployment.")}`
     )
+  }
+
+  // Handle direct error parameters from OAuth provider
+  if (oauthError) {
+    const errorParams = new URLSearchParams()
+    errorParams.set("message", oauthError)
+    if (errorCode) errorParams.set("error_code", errorCode)
+    if (errorDescription) errorParams.set("error_description", decodeURIComponent(errorDescription))
+    
+    return NextResponse.redirect(`${origin}/auth/error?${errorParams.toString()}`)
   }
 
   if (!code) {

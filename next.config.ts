@@ -17,6 +17,14 @@ const nextConfig: NextConfig = withBundleAnalyzer({
         port: "",
         pathname: "/storage/v1/object/public/**",
       },
+      {
+        protocol: "https",
+        hostname: "*.google.com",
+      },
+      {
+        protocol: "https",
+        hostname: "github.com",
+      },
     ],
   },
   eslint: {
