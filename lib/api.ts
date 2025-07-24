@@ -111,9 +111,7 @@ export async function signInWithGoogle(supabase: SupabaseClient) {
       ? "http://localhost:3000"
       : typeof window !== "undefined"
         ? window.location.origin
-        : process.env.NEXT_PUBLIC_VERCEL_URL
-          ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-          : APP_DOMAIN
+        : APP_DOMAIN
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",

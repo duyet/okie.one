@@ -27,7 +27,9 @@ export const FREE_MODELS_IDS = [
 export const MODEL_DEFAULT = "gpt-4.1-nano"
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Okie"
-export const APP_DOMAIN = process.env.NEXT_PUBLIC_APP_DOMAIN || "https://okie.one"
+export const APP_DOMAIN = process.env.NEXT_PUBLIC_VERCEL_URL 
+  ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  : "https://localhost:3000"
 
 export const SUGGESTIONS = [
   {
