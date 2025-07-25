@@ -5,9 +5,9 @@ export interface ToolInvocationPart {
   type: "tool-invocation"
   toolInvocation?: {
     state: string
-    step: number
-    toolCallId: string
-    toolName: string
+    step?: number
+    toolCallId?: string
+    toolName?: string
     args?: any
     result?: any
   }
@@ -32,6 +32,7 @@ export type MessagePart =
   | { type: "text"; text?: string }
   | { type: "file"; [key: string]: any }
   | { type: "step-start"; [key: string]: any }
+  | any // Allow any type to handle AI SDK compatibility
 
 // Type guards
 export function isArtifactPart(part: MessagePart): part is ContentPart {

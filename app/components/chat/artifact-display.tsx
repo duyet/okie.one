@@ -66,7 +66,7 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
     // Replace only filesystem-unsafe characters with underscores for better readability
     const slugifyFilename = (title: string) =>
       title
-        .replace(/[\/\\?%*:|"<>]/g, "_") // Replace unsafe characters
+        .replace(/[/\\?%*:|"<>]/g, "_") // Replace unsafe characters
         .replace(/\s+/g, "_") // Optionally replace spaces with underscores
         .replace(/_+/g, "_") // Collapse multiple underscores
         .replace(/^_+|_+$/g, "") // Trim leading/trailing underscores

@@ -40,7 +40,7 @@ describe("Message Part Type Guards", () => {
       const invalidArtifactPart = {
         type: "artifact",
         artifact: null,
-      }
+      } as any
       expect(isArtifactPart(invalidArtifactPart)).toBe(false)
     })
 
@@ -138,7 +138,7 @@ describe("Message Part Type Guards", () => {
       const partWithNullTool = {
         type: "tool-invocation",
         toolInvocation: null,
-      }
+      } as any
       expect(hasToolInvocation(partWithNullTool)).toBe(false)
     })
   })

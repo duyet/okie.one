@@ -90,7 +90,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
         writeToIndexedDB("messages", { id: chatId, messages: updated })
         return updated
       })
-      
+
       // Then refresh from database to get any server-added parts (artifacts, etc.)
       // Wait a bit to ensure the server has finished processing
       setTimeout(async () => {

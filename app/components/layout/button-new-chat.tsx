@@ -1,7 +1,6 @@
 "use client"
 
 import { NotePencilIcon } from "@phosphor-icons/react/dist/ssr"
-import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 
 import { useKeyShortcut } from "@/app/hooks/use-key-shortcut"
@@ -24,14 +23,14 @@ export function ButtonNewChat() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Link
-          href="/"
+        <button
+          onClick={() => router.push("/")}
           className="rounded-full bg-background p-1.5 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          prefetch
           aria-label="New Chat"
+          type="button"
         >
           <NotePencilIcon size={24} />
-        </Link>
+        </button>
       </TooltipTrigger>
       <TooltipContent>New Chat ⌘⇧U</TooltipContent>
     </Tooltip>
