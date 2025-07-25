@@ -9,11 +9,10 @@ import {
   Download,
 } from "@phosphor-icons/react"
 import { useState } from "react"
-import ReactMarkdown from "react-markdown"
-import rehypeSanitize from "rehype-sanitize"
 
 import type { ContentPart } from "@/app/types/api.types"
 import { CodeBlock, CodeBlockCode } from "@/components/prompt-kit/code-block"
+import { Markdown } from "@/components/prompt-kit/markdown"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -30,10 +29,14 @@ import {
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
+import { useArtifact } from "./artifact-context"
+
 interface ArtifactDisplayProps {
   artifact: NonNullable<ContentPart["artifact"]>
   className?: string
   isInPanel?: boolean
+  viewMode?: "source" | "preview"
+  reloadKey?: number
 }
 
 const ARTIFACT_ICONS = {
@@ -49,9 +52,21 @@ export function ArtifactDisplay({
   artifact,
   className,
   isInPanel = false,
+  viewMode = "source",
+  reloadKey = 0,
 }: ArtifactDisplayProps) {
+  // Determine if this artifact can be previewed
+  const canPreview =
+    artifact.type === "html" ||
+    artifact.type === "document" ||
+    (artifact.type === "code" &&
+      (artifact.language === "html" || artifact.language === "markdown"))
+
+  // Force source mode for non-previewable artifacts
+  const effectiveViewMode = canPreview ? viewMode : "source"
   const [expanded, setExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
+  const { openArtifact } = useArtifact()
 
   const toggleExpanded = () => setExpanded(!expanded)
 
@@ -89,9 +104,8 @@ export function ArtifactDisplay({
     URL.revokeObjectURL(url)
   }
 
-  const openFullscreen = () => {
-    // This could open a modal or new window - for now just expand
-    setExpanded(true)
+  const openInPanel = () => {
+    openArtifact(artifact)
   }
 
   const shouldTruncate = artifact.content.length > TRUNCATE_LENGTH
@@ -104,90 +118,134 @@ export function ArtifactDisplay({
     <TooltipProvider>
       <div
         className={cn(
-          "artifact-container rounded-lg border bg-muted/30 p-4",
-          !isInPanel && "my-3",
+          "artifact-container",
+          isInPanel ? "h-full w-full" : "my-3 border bg-muted/30 p-4",
           className
         )}
       >
-        {/* Header */}
-        <div className="mb-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-base" role="img" aria-label={artifact.type}>
-              {ARTIFACT_ICONS[artifact.type]}
-            </span>
-            <h3
-              className="max-w-xs truncate font-medium text-sm"
-              title={artifact.title}
-            >
-              {artifact.title}
-            </h3>
-            <Badge variant="secondary" className="text-xs">
-              {artifact.language || artifact.type}
-            </Badge>
-          </div>
+        {/* Header - only show for inline artifacts, not in panel */}
+        {!isInPanel && (
+          <div className="mb-3 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-base" role="img" aria-label={artifact.type}>
+                {ARTIFACT_ICONS[artifact.type]}
+              </span>
+              <h3
+                className="max-w-xs truncate font-medium text-sm"
+                title={artifact.title}
+              >
+                {artifact.title}
+              </h3>
+              <Badge variant="secondary" className="text-xs">
+                {artifact.language || artifact.type}
+              </Badge>
+            </div>
 
-          <div className="flex items-center gap-1">
-            {shouldTruncate && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm" variant="ghost" onClick={toggleExpanded}>
-                    {expanded ? (
-                      <CaretUp className="h-4 w-4" />
-                    ) : (
-                      <CaretDown className="h-4 w-4" />
-                    )}
+            <div className="flex items-center gap-1">
+              {shouldTruncate && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button size="sm" variant="ghost" onClick={toggleExpanded}>
+                      {expanded ? (
+                        <CaretUp className="h-4 w-4" />
+                      ) : (
+                        <CaretDown className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {expanded ? "Collapse" : "Expand"}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="sm" variant="ghost">
+                    <DotsThreeIcon className="h-4 w-4" />
                   </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  {expanded ? "Collapse" : "Expand"}
-                </TooltipContent>
-              </Tooltip>
-            )}
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="ghost">
-                  <DotsThreeIcon className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={copyContent}>
-                  <Copy className="mr-2 h-4 w-4" />
-                  {copied ? "Copied!" : "Copy"}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={downloadFile}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Download
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={openFullscreen}>
-                  <ArrowSquareOut className="mr-2 h-4 w-4" />
-                  Open
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={copyContent}>
+                    <Copy className="mr-2 h-4 w-4" />
+                    {copied ? "Copied!" : "Copy"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={downloadFile}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={openInPanel}>
+                    <ArrowSquareOut className="mr-2 h-4 w-4" />
+                    Open in panel
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Content */}
-        <div className="relative">
-          {artifact.type === "code" && (
-            <CodeBlock
-              className={cn(
-                "max-h-96 overflow-y-auto",
-                !expanded && shouldTruncate && "max-h-48"
-              )}
-            >
-              <CodeBlockCode
-                language={artifact.language || "text"}
-                code={displayContent}
+        <div className={cn("relative", isInPanel && "h-full")}>
+          {artifact.type === "code" &&
+            (!isInPanel || effectiveViewMode === "source" ? (
+              <CodeBlock
+                className={cn(
+                  "border-none",
+                  isInPanel
+                    ? "h-full overflow-y-auto"
+                    : "max-h-96 overflow-y-auto",
+                  !isInPanel && !expanded && shouldTruncate && "max-h-48"
+                )}
+              >
+                <CodeBlockCode
+                  language={artifact.language || "text"}
+                  code={isInPanel ? artifact.content : displayContent}
+                />
+              </CodeBlock>
+            ) : // Preview mode for code artifacts with HTML or Markdown content
+            artifact.language === "html" ? (
+              <iframe
+                key={`preview-${reloadKey}`}
+                srcDoc={artifact.content}
+                className="h-full w-full border-none"
+                title={artifact.title}
+                sandbox="allow-scripts allow-same-origin"
               />
-            </CodeBlock>
-          )}
+            ) : artifact.language === "markdown" ? (
+              <div
+                key={`markdown-preview-${reloadKey}`}
+                className={cn(
+                  "prose prose-sm dark:prose-invert h-full max-w-none overflow-y-auto p-4",
+                  "prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2"
+                )}
+              >
+                <Markdown className="prose prose-sm dark:prose-invert prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2 max-w-none">
+                  {artifact.content}
+                </Markdown>
+              </div>
+            ) : null)}
 
           {artifact.type === "html" && (
-            <div className="overflow-hidden rounded-md border">
-              {expanded ? (
+            <div className={cn("overflow-hidden", isInPanel && "h-full")}>
+              {isInPanel ? (
+                // In panel: respect effectiveViewMode
+                effectiveViewMode === "preview" ? (
+                  <iframe
+                    key={`html-preview-${reloadKey}`}
+                    srcDoc={artifact.content}
+                    className="h-full w-full border-none"
+                    title={artifact.title}
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                ) : (
+                  <CodeBlock className="h-full overflow-y-auto border-none">
+                    <CodeBlockCode language="html" code={artifact.content} />
+                  </CodeBlock>
+                )
+              ) : // Inline: original behavior
+              expanded ? (
                 <iframe
+                  key={`inline-preview-${reloadKey}`}
                   srcDoc={artifact.content}
                   className="h-96 w-full border-none"
                   title={artifact.title}
@@ -207,18 +265,45 @@ export function ArtifactDisplay({
           )}
 
           {artifact.type === "document" && (
-            <div
-              className={cn(
-                "prose prose-sm dark:prose-invert max-w-none",
-                "prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2",
-                !expanded && shouldTruncate && "max-h-48 overflow-hidden"
-              )}
-            >
-              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
-                {displayContent}
-              </ReactMarkdown>
-              {!expanded && shouldTruncate && (
-                <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-8 bg-gradient-to-t from-muted/30 to-transparent" />
+            <div className={cn("overflow-hidden", isInPanel && "h-full")}>
+              {isInPanel ? (
+                // In panel: respect effectiveViewMode
+                effectiveViewMode === "preview" ? (
+                  <div
+                    key={`document-preview-${reloadKey}`}
+                    className={cn(
+                      "prose prose-sm dark:prose-invert h-full max-w-none overflow-y-auto p-4",
+                      "prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2"
+                    )}
+                  >
+                    <Markdown className="prose prose-sm dark:prose-invert prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2 max-w-none">
+                      {artifact.content}
+                    </Markdown>
+                  </div>
+                ) : (
+                  <CodeBlock className="h-full overflow-y-auto border-none">
+                    <CodeBlockCode
+                      language="markdown"
+                      code={artifact.content}
+                    />
+                  </CodeBlock>
+                )
+              ) : (
+                // Inline: original behavior
+                <div
+                  className={cn(
+                    "prose prose-sm dark:prose-invert max-w-none",
+                    "prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2",
+                    !expanded && shouldTruncate && "max-h-48 overflow-hidden"
+                  )}
+                >
+                  <Markdown className="prose prose-sm dark:prose-invert prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2 max-w-none">
+                    {displayContent}
+                  </Markdown>
+                  {!expanded && shouldTruncate && (
+                    <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-8 bg-gradient-to-t from-muted/30 to-transparent" />
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -227,10 +312,12 @@ export function ArtifactDisplay({
             <pre
               className={cn(
                 "overflow-x-auto whitespace-pre-wrap rounded bg-muted/50 p-3 text-sm",
-                !expanded && shouldTruncate && "max-h-48 overflow-y-hidden"
+                isInPanel
+                  ? "h-full overflow-y-auto"
+                  : !expanded && shouldTruncate && "max-h-48 overflow-y-hidden"
               )}
             >
-              {displayContent}
+              {isInPanel ? artifact.content : displayContent}
             </pre>
           )}
         </div>

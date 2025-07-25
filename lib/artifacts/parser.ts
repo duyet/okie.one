@@ -13,10 +13,12 @@ export interface ArtifactCandidate {
 
 // Configuration for artifact detection
 const ARTIFACT_CONFIG = {
-  MIN_CODE_LINES: 15,  // Reduced from 20 to show artifacts more frequently
-  MIN_DOCUMENT_CHARS: 1000,
-  MIN_HTML_CHARS: 100,  // Reduced from 200 as requested
+  MIN_CODE_LINES: 10, // Lowered for better streaming artifact creation
+  MIN_DOCUMENT_CHARS: 300,
+  MIN_HTML_CHARS: 100, // Lowered for responsive examples
   MAX_TITLE_LENGTH: 60,
+  STREAMING_MIN_CODE_LINES: 8, // Much lower threshold for early detection during streaming
+  STREAMING_MIN_CHARS: 150, // Lower threshold for early artifact detection
 } as const
 
 // Language detection patterns
@@ -28,17 +30,24 @@ const LANGUAGE_PATTERNS = {
   python: /def\s+\w+|class\s+\w+|import\s+\w+|from\s+\w+\s+import/,
   json: /^\s*\{[\s\S]*\}\s*$|^\s*\[[\s\S]*\]\s*$/,
   sql: /SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|DROP/i,
+  markdown: /^#+\s+.+|\*\*.*\*\*|\*.*\*|\[.*\]\(.*\)|```/m,
 } as const
 
 /**
  * Detects and parses artifacts from AI response text
  */
-export function parseArtifacts(responseText: string): ContentPart[] {
+export function parseArtifacts(
+  responseText: string,
+  isStreaming = false
+): ContentPart[] {
   const artifacts: ContentPart[] = []
   const candidates = extractArtifactCandidates(responseText)
 
-  for (const candidate of candidates) {
-    if (shouldCreateArtifact(candidate)) {
+  // Filter candidates to prefer comprehensive documents over individual code blocks
+  const filteredCandidates = prioritizeComprehensiveArtifacts(candidates)
+
+  for (const candidate of filteredCandidates) {
+    if (shouldCreateArtifact(candidate, isStreaming)) {
       const artifact = createArtifactPart(candidate)
       if (artifact) {
         artifacts.push(artifact)
@@ -118,20 +127,88 @@ function extractArtifactCandidates(text: string): ArtifactCandidate[] {
 }
 
 /**
+ * Prioritize comprehensive artifacts over multiple small code blocks
+ * If we detect a document-like structure, prefer that over individual code blocks
+ */
+function prioritizeComprehensiveArtifacts(
+  candidates: ArtifactCandidate[]
+): ArtifactCandidate[] {
+  // If we have a document candidate that's substantial, prefer it over code blocks
+  const documentCandidates = candidates.filter((c) => c.type === "document")
+  const codeCandidates = candidates.filter((c) => c.type === "code")
+
+  // If we have a substantial document (>1000 chars) with multiple headings,
+  // prefer it over individual code blocks
+  const substantialDocs = documentCandidates.filter((doc) => {
+    const headingCount = (doc.content.match(/^#+\s+/gm) || []).length
+    return doc.content.length > 1000 && headingCount >= 2
+  })
+
+  if (substantialDocs.length > 0) {
+    // Return the document plus any HTML/standalone artifacts
+    return [
+      ...substantialDocs,
+      ...candidates.filter((c) => c.type === "html" || c.type === "data"),
+    ]
+  }
+
+  // If we have many small code blocks (>2) in a response that looks like documentation,
+  // try to detect if this should be a single markdown document instead
+  if (codeCandidates.length > 2) {
+    const totalContent = candidates.map((c) => c.content).join("\n\n")
+    const hasMarkdownStructure =
+      /^#+\s+/m.test(totalContent) &&
+      totalContent.includes("```") &&
+      totalContent.length > 800
+
+    if (hasMarkdownStructure) {
+      // Create a comprehensive markdown document from the entire response
+      const fullContent = totalContent
+      return [
+        {
+          type: "document" as const,
+          content: fullContent,
+          title: extractDocumentTitle(fullContent) || "Comprehensive Guide",
+          startIndex: 0,
+          endIndex: fullContent.length,
+        },
+      ]
+    }
+  }
+
+  // Otherwise return all candidates
+  return candidates
+}
+
+/**
  * Determine if a candidate should become an artifact
  */
-function shouldCreateArtifact(candidate: ArtifactCandidate): boolean {
+function shouldCreateArtifact(
+  candidate: ArtifactCandidate,
+  isStreaming = false
+): boolean {
   switch (candidate.type) {
     case "code": {
       const lines = candidate.content.split("\n").length
-      return lines >= ARTIFACT_CONFIG.MIN_CODE_LINES
+      const threshold = isStreaming
+        ? ARTIFACT_CONFIG.STREAMING_MIN_CODE_LINES
+        : ARTIFACT_CONFIG.MIN_CODE_LINES
+      return lines >= threshold
     }
 
-    case "document":
-      return candidate.content.length >= ARTIFACT_CONFIG.MIN_DOCUMENT_CHARS
+    case "document": {
+      const threshold = isStreaming
+        ? ARTIFACT_CONFIG.STREAMING_MIN_CHARS
+        : ARTIFACT_CONFIG.MIN_DOCUMENT_CHARS
+      return candidate.content.length >= threshold
+    }
 
-    case "html":
-      return candidate.content.length >= ARTIFACT_CONFIG.MIN_HTML_CHARS
+    case "html": {
+      const threshold = isStreaming
+        ? ARTIFACT_CONFIG.STREAMING_MIN_CHARS
+        : ARTIFACT_CONFIG.MIN_HTML_CHARS
+      return candidate.content.length >= threshold
+    }
 
     case "data":
       return candidate.content.length > 100
@@ -209,6 +286,7 @@ function generateCodeTitle(content: string, language?: string): string {
     css: "CSS Styles",
     sql: "SQL Query",
     json: "JSON Data",
+    markdown: "Markdown Document",
   } as const
 
   return langTitles[language as keyof typeof langTitles] || "Code Snippet"
@@ -263,4 +341,116 @@ function isInsideCodeBlock(text: string, position: number): boolean {
   const beforeText = text.substring(0, position)
   const codeBlockStarts = (beforeText.match(/```/g) || []).length
   return codeBlockStarts % 2 === 1
+}
+
+/**
+ * Replace inline code blocks with artifact placeholders during streaming
+ * This enables the transition from inline code to artifacts that the user expects
+ */
+export function replaceCodeBlocksWithArtifacts(
+  text: string,
+  artifacts: ContentPart[]
+): string {
+  if (artifacts.length === 0) return text
+
+  let result = text
+  const codeBlockRegex = /```(?:(\w+)\s*)?\n?([\s\S]*?)\n?```/g
+
+  // Create a map of artifacts by content for better matching
+  const artifactsByContent = new Map<string, ContentPart>()
+  artifacts.forEach((artifact) => {
+    if (artifact.artifact) {
+      const normalizedContent = artifact.artifact.content
+        .trim()
+        .replace(/\s+/g, " ")
+      artifactsByContent.set(normalizedContent, artifact)
+    }
+  })
+
+  result = result.replace(codeBlockRegex, (match, _language, content) => {
+    const normalizedContent = content.trim().replace(/\s+/g, " ")
+
+    // Try to find a matching artifact
+    let matchingArtifact: ContentPart | undefined
+
+    // First try exact match
+    matchingArtifact = artifactsByContent.get(normalizedContent)
+
+    // If no exact match, try partial matching for streaming scenarios
+    if (!matchingArtifact) {
+      for (const [artifactContent, artifact] of artifactsByContent) {
+        if (
+          // Check if artifact content includes the code block content (streaming case)
+          (artifactContent.includes(normalizedContent) &&
+            normalizedContent.length > 100) ||
+          // Check if code block content includes the artifact content (completion case)
+          (normalizedContent.includes(artifactContent) &&
+            artifactContent.length > 100) ||
+          // Match if both are substantial and similar (fuzzy match)
+          (normalizedContent.length > 200 &&
+            artifactContent.length > 200 &&
+            calculateSimilarity(normalizedContent, artifactContent) > 0.8)
+        ) {
+          matchingArtifact = artifact
+          break
+        }
+      }
+    }
+
+    if (matchingArtifact?.artifact) {
+      console.log(
+        `🔄 Replacing code block with artifact preview: ${matchingArtifact.artifact.id}`
+      )
+      // Return a special marker that will be replaced with ArtifactPreview component
+      return `\n\n[ARTIFACT_PREVIEW:${matchingArtifact.artifact.id}]\n\n`
+    }
+
+    return match
+  })
+
+  return result
+}
+
+/**
+ * Calculate similarity between two strings using a simple ratio
+ */
+function calculateSimilarity(str1: string, str2: string): number {
+  const shorter = str1.length < str2.length ? str1 : str2
+  const longer = str1.length < str2.length ? str2 : str1
+
+  if (longer.length === 0) return 1.0
+
+  const editDistance = levenshteinDistance(shorter, longer)
+  return (longer.length - editDistance) / longer.length
+}
+
+/**
+ * Calculate Levenshtein distance between two strings (simplified version)
+ */
+function levenshteinDistance(str1: string, str2: string): number {
+  const matrix: number[][] = []
+
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i]
+  }
+
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j
+  }
+
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1]
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1, // insertion
+          matrix[i - 1][j] + 1 // deletion
+        )
+      }
+    }
+  }
+
+  return matrix[str2.length][str1.length]
 }
