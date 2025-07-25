@@ -137,7 +137,7 @@ export function UserPreferencesProvider({
       },
       enabled: typeof window !== "undefined",
       staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: (failureCount, _error) => {
+      retry: (failureCount) => {
         // Only retry for authenticated users and network errors
         return isAuthenticated && failureCount < 2
       },

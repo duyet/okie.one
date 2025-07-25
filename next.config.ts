@@ -8,7 +8,6 @@ const nextConfig: NextConfig = withBundleAnalyzer({
   poweredByHeader: false,
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
-    optimizeCss: true,
   },
   serverExternalPackages: ["shiki", "vscode-oniguruma"],
   compress: true,

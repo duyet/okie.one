@@ -128,8 +128,8 @@ export function useFavoriteModels() {
 
   // Debounced version of the mutation for reordering
   const debouncedUpdateFavoriteModels = useRef(
-    debounce((favoriteModels: string[]) => {
-      updateFavoriteModelsMutation.mutate(favoriteModels)
+    debounce((...args: unknown[]) => {
+      updateFavoriteModelsMutation.mutate(args[0] as string[])
     }, 500)
   ).current
 

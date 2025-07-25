@@ -80,7 +80,7 @@ function getOAuthBaseUrl(): string {
 async function signInWithOAuth(
   supabase: SupabaseClient,
   provider: "google" | "github",
-  additionalOptions?: Record<string, any>
+  additionalOptions?: Record<string, unknown>
 ) {
   try {
     const baseUrl = getOAuthBaseUrl()

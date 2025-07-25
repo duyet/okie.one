@@ -40,7 +40,7 @@ export function MultiChatInput({
   status,
   anyLoading,
 }: MultiChatInputProps) {
-  const isOnlyWhitespace = (text: string) => !/[^\s]/.test(text)
+  const isOnlyWhitespace = useCallback((text: string) => !/[^\s]/.test(text), [])
 
   const handleSend = useCallback(() => {
     if (isSubmitting || anyLoading) {
