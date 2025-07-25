@@ -84,11 +84,24 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     if (!chatId) return
 
     try {
+      // First add the message to local state
       setMessages((prev) => {
         const updated = [...prev, message]
         writeToIndexedDB("messages", { id: chatId, messages: updated })
         return updated
       })
+      
+      // Then refresh from database to get any server-added parts (artifacts, etc.)
+      // Wait a bit to ensure the server has finished processing
+      setTimeout(async () => {
+        try {
+          const fresh = await getMessagesFromDb(chatId)
+          setMessages(fresh)
+          cacheMessages(chatId, fresh)
+        } catch (error) {
+          console.error("Failed to refresh messages after caching:", error)
+        }
+      }, 1000) // 1 second delay to allow server processing
     } catch {
       toast({ title: "Failed to save message", status: "error" })
     }

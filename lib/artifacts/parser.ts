@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from "uuid"
 import type { ContentPart } from "@/app/types/api.types"
 
 export interface ArtifactCandidate {
@@ -53,8 +54,8 @@ export function parseArtifacts(responseText: string): ContentPart[] {
 function extractArtifactCandidates(text: string): ArtifactCandidate[] {
   const candidates: ArtifactCandidate[] = []
 
-  // Extract code blocks
-  const codeBlockRegex = /```(?:(\w+)\s*)?\n([\s\S]*?)\n```/g
+  // Extract code blocks (make trailing newline optional)
+  const codeBlockRegex = /```(?:(\w+)\s*)?\n?([\s\S]*?)\n?```/g
   let match
   while ((match = codeBlockRegex.exec(text)) !== null) {
     const [fullMatch, language, content] = match
@@ -88,17 +89,19 @@ function extractArtifactCandidates(text: string): ArtifactCandidate[] {
   }
 
   // Extract large structured text (potential documents)
-  // Look for sections with headers, multiple paragraphs
-  const documentRegex = /(^|\n)#+\s+.+[\s\S]*?(?=\n#+\s+|\n```|\n<|$)/gm
-  while ((match = documentRegex.exec(text)) !== null) {
+  // Look for documents that start with a main heading and contain substantial markdown content
+  const documentRegex = /^#+\s+[^\n]+[\s\S]*$/m
+  match = documentRegex.exec(text)
+  if (match && !isInsideCodeBlock(text, match.index)) {
     const content = match[0].trim()
     const startIndex = match.index
     const endIndex = match.index + match[0].length
 
-    // Skip if it's inside a code block or too short
+    // Check if it's long enough and has structure (multiple headings)
+    const headingCount = (content.match(/^#+\s+/gm) || []).length
     if (
       content.length >= ARTIFACT_CONFIG.MIN_DOCUMENT_CHARS &&
-      !isInsideCodeBlock(text, startIndex)
+      headingCount >= 2
     ) {
       candidates.push({
         type: "document",
@@ -168,10 +171,10 @@ function createArtifactPart(candidate: ArtifactCandidate): ContentPart | null {
 }
 
 /**
- * Generate a unique artifact ID
+ * Generate a unique artifact ID using UUID
  */
 function generateArtifactId(): string {
-  return `art_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  return `art_${uuidv4()}`
 }
 
 /**

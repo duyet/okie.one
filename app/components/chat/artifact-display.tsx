@@ -1,8 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { CaretDown, CaretUp, Copy, Download, ArrowSquareOut, DotsThreeIcon } from "@phosphor-icons/react"
+import {
+  CaretDown,
+  CaretUp,
+  Copy,
+  Download,
+  ArrowSquareOut,
+  DotsThreeIcon,
+} from "@phosphor-icons/react"
 import ReactMarkdown from "react-markdown"
+import rehypeSanitize from "rehype-sanitize"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -12,7 +20,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 import { CodeBlock, CodeBlockCode } from "@/components/prompt-kit/code-block"
@@ -25,7 +38,7 @@ interface ArtifactDisplayProps {
 
 const ARTIFACT_ICONS = {
   code: "👨‍💻",
-  document: "📄", 
+  document: "📄",
   html: "🌐",
   data: "📊",
 } as const
@@ -50,11 +63,19 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
 
   const downloadFile = () => {
     const extension = getFileExtension(artifact.type, artifact.language)
-    const filename = `${artifact.title.replace(/[^a-zA-Z0-9]/g, "_")}${extension}`
-    
+    // Replace only filesystem-unsafe characters with underscores for better readability
+    const slugifyFilename = (title: string) =>
+      title
+        .replace(/[\/\\?%*:|"<>]/g, "_") // Replace unsafe characters
+        .replace(/\s+/g, "_") // Optionally replace spaces with underscores
+        .replace(/_+/g, "_") // Collapse multiple underscores
+        .replace(/^_+|_+$/g, "") // Trim leading/trailing underscores
+
+    const filename = `${slugifyFilename(artifact.title)}${extension}`
+
     const blob = new Blob([artifact.content], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
-    
+
     const a = document.createElement("a")
     a.href = url
     a.download = filename
@@ -70,36 +91,46 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
   }
 
   const shouldTruncate = artifact.content.length > TRUNCATE_LENGTH
-  const displayContent = expanded || !shouldTruncate 
-    ? artifact.content 
-    : `${artifact.content.substring(0, TRUNCATE_LENGTH)}...`
+  const displayContent =
+    expanded || !shouldTruncate
+      ? artifact.content
+      : `${artifact.content.substring(0, TRUNCATE_LENGTH)}...`
 
   return (
     <TooltipProvider>
-      <div className={cn(
-        "artifact-container my-3 rounded-lg border bg-muted/30 p-4",
-        className
-      )}>
+      <div
+        className={cn(
+          "artifact-container my-3 rounded-lg border bg-muted/30 p-4",
+          className
+        )}
+      >
         {/* Header */}
         <div className="mb-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-base" role="img" aria-label={artifact.type}>
               {ARTIFACT_ICONS[artifact.type]}
             </span>
-            <h3 className="max-w-xs truncate font-medium text-sm" title={artifact.title}>
+            <h3
+              className="max-w-xs truncate font-medium text-sm"
+              title={artifact.title}
+            >
               {artifact.title}
             </h3>
             <Badge variant="secondary" className="text-xs">
               {artifact.language || artifact.type}
             </Badge>
           </div>
-          
+
           <div className="flex items-center gap-1">
             {shouldTruncate && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button size="sm" variant="ghost" onClick={toggleExpanded}>
-                    {expanded ? <CaretUp className="h-4 w-4" /> : <CaretDown className="h-4 w-4" />}
+                    {expanded ? (
+                      <CaretUp className="h-4 w-4" />
+                    ) : (
+                      <CaretDown className="h-4 w-4" />
+                    )}
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -107,7 +138,7 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
                 </TooltipContent>
               </Tooltip>
             )}
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" variant="ghost">
@@ -135,17 +166,19 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
         {/* Content */}
         <div className="relative">
           {artifact.type === "code" && (
-            <CodeBlock className={cn(
-              "max-h-96 overflow-y-auto",
-              !expanded && shouldTruncate && "max-h-48"
-            )}>
+            <CodeBlock
+              className={cn(
+                "max-h-96 overflow-y-auto",
+                !expanded && shouldTruncate && "max-h-48"
+              )}
+            >
               <CodeBlockCode
                 language={artifact.language || "text"}
                 code={displayContent}
               />
             </CodeBlock>
           )}
-          
+
           {artifact.type === "html" && (
             <div className="overflow-hidden rounded-md border">
               {expanded ? (
@@ -156,7 +189,7 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
                   sandbox="allow-scripts allow-same-origin"
                 />
               ) : (
-                <button 
+                <button
                   className="flex h-24 w-full cursor-pointer items-center justify-center border-0 bg-gradient-to-br from-blue-50 to-purple-50 text-muted-foreground transition-colors hover:bg-gradient-to-br hover:from-blue-100 hover:to-purple-100 dark:from-blue-950 dark:to-purple-950 dark:hover:from-blue-900 dark:hover:to-purple-900"
                   onClick={() => setExpanded(true)}
                   type="button"
@@ -169,12 +202,16 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
           )}
 
           {artifact.type === "document" && (
-            <div className={cn(
-              "prose prose-sm dark:prose-invert max-w-none",
-              "prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2",
-              !expanded && shouldTruncate && "max-h-48 overflow-hidden"
-            )}>
-              <ReactMarkdown>{displayContent}</ReactMarkdown>
+            <div
+              className={cn(
+                "prose prose-sm dark:prose-invert max-w-none",
+                "prose-headings:my-3 prose-ol:my-2 prose-p:my-2 prose-ul:my-2",
+                !expanded && shouldTruncate && "max-h-48 overflow-hidden"
+              )}
+            >
+              <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                {displayContent}
+              </ReactMarkdown>
               {!expanded && shouldTruncate && (
                 <div className="pointer-events-none absolute right-0 bottom-0 left-0 h-8 bg-gradient-to-t from-muted/30 to-transparent" />
               )}
@@ -182,10 +219,12 @@ export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
           )}
 
           {artifact.type === "data" && (
-            <pre className={cn(
-              "overflow-x-auto whitespace-pre-wrap rounded bg-muted/50 p-3 text-sm",
-              !expanded && shouldTruncate && "max-h-48 overflow-y-hidden"
-            )}>
+            <pre
+              className={cn(
+                "overflow-x-auto whitespace-pre-wrap rounded bg-muted/50 p-3 text-sm",
+                !expanded && shouldTruncate && "max-h-48 overflow-y-hidden"
+              )}
+            >
               {displayContent}
             </pre>
           )}
@@ -236,13 +275,13 @@ function getFileExtension(type: string, language?: string): string {
     }
     return extensions[language] || ".txt"
   }
-  
+
   const typeExtensions: Record<string, string> = {
     html: ".html",
     document: ".md",
     data: ".txt",
     code: ".txt",
   }
-  
+
   return typeExtensions[type] || ".txt"
 }

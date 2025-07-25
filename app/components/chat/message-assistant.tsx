@@ -1,5 +1,11 @@
 import type { Message as MessageAISDK } from "@ai-sdk/react"
 import type { ContentPart } from "@/app/types/api.types"
+import {
+  isArtifactPart,
+  isToolInvocationPart,
+  isReasoningPart,
+  type MessagePart,
+} from "@/lib/type-guards/message-parts"
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 
 import {
@@ -25,7 +31,7 @@ type MessageAssistantProps = {
   copied?: boolean
   copyToClipboard?: () => void
   onReload?: () => void
-  parts?: MessageAISDK["parts"] | ContentPart[]
+  parts?: MessagePart[]
   status?: "streaming" | "ready" | "submitted" | "error"
   className?: string
 }
@@ -42,16 +48,11 @@ export function MessageAssistant({
   className,
 }: MessageAssistantProps) {
   const { preferences } = useUserPreferences()
-  // Handle mixed types safely by checking properties before using
+  // Use proper type guards for safe type checking
   const sources = parts ? getSources(parts as any) : undefined
-  const toolInvocationParts = parts?.filter(
-    (part) => part.type === "tool-invocation"
-  ) as any
-  const reasoningParts = parts?.find((part) => part.type === "reasoning")
-  const artifactParts = parts?.filter(
-    (part): part is ContentPart => 
-      part.type === "artifact" && "artifact" in part && part.artifact != null
-  ) || []
+  const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
+  const reasoningParts = parts?.find(isReasoningPart)
+  const artifactParts = parts?.filter(isArtifactPart) || []
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
   const searchImageResults =
@@ -81,7 +82,7 @@ export function MessageAssistant({
       )}
     >
       <div className={cn("flex min-w-full flex-col gap-2", isLast && "pb-8")}>
-        {reasoningParts && "reasoning" in reasoningParts && reasoningParts.reasoning && (
+        {reasoningParts && (
           <Reasoning
             reasoning={reasoningParts.reasoning}
             isStreaming={status === "streaming"}
@@ -112,7 +113,7 @@ export function MessageAssistant({
 
         {artifactParts && artifactParts.length > 0 && (
           <div className="artifacts-container">
-            {artifactParts.map((part) => 
+            {artifactParts.map((part) =>
               part.artifact ? (
                 <ArtifactDisplay
                   key={part.artifact.id}
