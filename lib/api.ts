@@ -259,55 +259,100 @@ export const getOrCreateGuestUserId = async (
 
   if (!supabase) {
     console.warn("Supabase is not available in this deployment.")
-    return null
-  }
-
-  const existingGuestSessionUser = await supabase.auth.getUser()
-  if (existingGuestSessionUser.data?.user?.is_anonymous) {
-    const anonUserId = existingGuestSessionUser.data.user.id
-
-    const profileCreationAttempted = localStorage.getItem(
-      `guestProfileAttempted_${anonUserId}`
-    )
-
-    if (!profileCreationAttempted) {
-      try {
-        await createGuestUser(anonUserId)
-        localStorage.setItem(`guestProfileAttempted_${anonUserId}`, "true")
-      } catch (error) {
-        console.error(
-          "Failed to ensure guest user profile exists for existing anonymous auth user:",
-          error
-        )
-        return null
-      }
+    // Return a consistent guest user ID for non-Supabase deployments
+    // Use localStorage to maintain consistent ID across sessions
+    let fallbackGuestId = localStorage.getItem("fallback-guest-id")
+    if (!fallbackGuestId) {
+      fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
+      localStorage.setItem("fallback-guest-id", fallbackGuestId)
     }
-    return anonUserId
+    return fallbackGuestId
   }
 
+  // Test if Supabase is actually accessible by trying to get existing user
   try {
+    const existingGuestSessionUser = await supabase.auth.getUser()
+
+    if (existingGuestSessionUser.data?.user?.is_anonymous) {
+      const anonUserId = existingGuestSessionUser.data.user.id
+
+      const profileCreationAttempted = localStorage.getItem(
+        `guestProfileAttempted_${anonUserId}`
+      )
+
+      if (!profileCreationAttempted) {
+        try {
+          await createGuestUser(anonUserId)
+          localStorage.setItem(`guestProfileAttempted_${anonUserId}`, "true")
+        } catch (error) {
+          console.error(
+            "Failed to ensure guest user profile exists for existing anonymous auth user:",
+            error
+          )
+          // Fall back to manual guest ID
+          let fallbackGuestId = localStorage.getItem("fallback-guest-id")
+          if (!fallbackGuestId) {
+            fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
+            localStorage.setItem("fallback-guest-id", fallbackGuestId)
+          }
+          return fallbackGuestId
+        }
+      }
+      return anonUserId
+    }
+
+    // Try to create a new anonymous user
     const { data: anonAuthData, error: anonAuthError } =
       await supabase.auth.signInAnonymously()
 
     if (anonAuthError) {
       console.error("Error during anonymous sign-in:", anonAuthError)
-      return null
+      // Fall back to manual guest ID
+      let fallbackGuestId = localStorage.getItem("fallback-guest-id")
+      if (!fallbackGuestId) {
+        fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
+        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+      }
+      return fallbackGuestId
     }
 
     if (!anonAuthData || !anonAuthData.user) {
       console.error("Anonymous sign-in did not return a user.")
-      return null
+      // Fall back to manual guest ID
+      let fallbackGuestId = localStorage.getItem("fallback-guest-id")
+      if (!fallbackGuestId) {
+        fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
+        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+      }
+      return fallbackGuestId
     }
 
     const guestIdFromAuth = anonAuthData.user.id
-    await createGuestUser(guestIdFromAuth)
-    localStorage.setItem(`guestProfileAttempted_${guestIdFromAuth}`, "true")
-    return guestIdFromAuth
+    try {
+      await createGuestUser(guestIdFromAuth)
+      localStorage.setItem(`guestProfileAttempted_${guestIdFromAuth}`, "true")
+      return guestIdFromAuth
+    } catch (error) {
+      console.error("Error creating guest user profile:", error)
+      // Fall back to manual guest ID
+      let fallbackGuestId = localStorage.getItem("fallback-guest-id")
+      if (!fallbackGuestId) {
+        fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
+        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+      }
+      return fallbackGuestId
+    }
   } catch (error) {
     console.error(
-      "Error in getOrCreateGuestUserId during anonymous sign-in or profile creation:",
+      "Supabase connection failed, falling back to manual guest ID:",
       error
     )
-    return null
+    // Supabase is configured but not accessible - use fallback
+    let fallbackGuestId = localStorage.getItem("fallback-guest-id")
+    if (!fallbackGuestId) {
+      fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
+      localStorage.setItem("fallback-guest-id", fallbackGuestId)
+    }
+    return fallbackGuestId
   }
 }

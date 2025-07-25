@@ -2,9 +2,9 @@
 
 import {
   Code,
+  Database,
   FileHtml,
   FileText,
-  Database,
 } from "@phosphor-icons/react/dist/ssr"
 
 import type { ContentPart } from "@/app/types/api.types"

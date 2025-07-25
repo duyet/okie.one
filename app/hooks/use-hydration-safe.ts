@@ -21,9 +21,8 @@ export function useHydrationSafeBreakpoint(
   breakpoint: number,
   defaultValue: boolean = false
 ) {
-  const [isBelowBreakpoint, setIsBelowBreakpoint] = useState<boolean>(
-    defaultValue
-  )
+  const [isBelowBreakpoint, setIsBelowBreakpoint] =
+    useState<boolean>(defaultValue)
   const [isHydrated, setIsHydrated] = useState(false)
 
   useEffect(() => {

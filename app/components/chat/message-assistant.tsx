@@ -1,6 +1,9 @@
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 import type React from "react"
 
+import type { Message as MessageAISDK } from "@ai-sdk/react"
+import type { ToolInvocationUIPart } from "@ai-sdk/ui-utils"
+
 import type { ContentPart } from "@/app/types/api.types"
 import {
   Message,
@@ -63,7 +66,7 @@ export function MessageAssistant({
   const { preferences } = useUserPreferences()
   const { openArtifact } = useArtifact()
   // Use proper type guards for safe type checking  
-  const sources = parts ? getSources(parts as any) : undefined
+  const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
   const reasoningParts = parts?.find(isReasoningPart)
   const artifactParts = parts?.filter(isArtifactPart) || []
@@ -120,7 +123,7 @@ export function MessageAssistant({
         {toolInvocationParts &&
           toolInvocationParts.length > 0 &&
           preferences.showToolInvocations && (
-            <ToolInvocation toolInvocations={toolInvocationParts as any} />
+            <ToolInvocation toolInvocations={toolInvocationParts as ToolInvocationUIPart[]} />
           )}
 
         {searchImageResults.length > 0 && (

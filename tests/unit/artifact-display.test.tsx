@@ -2,7 +2,13 @@
  * @vitest-environment jsdom
  */
 
-import { fireEvent, render, screen, waitFor, cleanup } from "@testing-library/react"
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 
 import { ArtifactDisplay } from "@/app/components/chat/artifact-display"
@@ -11,9 +17,9 @@ import type { ContentPart } from "@/app/types/api.types"
 // Set up DOM before each test
 beforeEach(() => {
   // Create a container div if it doesn't exist
-  if (!document.body.querySelector('#test-container')) {
-    const container = document.createElement('div')
-    container.id = 'test-container'
+  if (!document.body.querySelector("#test-container")) {
+    const container = document.createElement("div")
+    container.id = "test-container"
     document.body.appendChild(container)
   }
 })
@@ -21,7 +27,7 @@ beforeEach(() => {
 // Clean up after each test
 afterEach(() => {
   cleanup()
-  const container = document.body.querySelector('#test-container')
+  const container = document.body.querySelector("#test-container")
   if (container) {
     container.remove()
   }
@@ -66,11 +72,11 @@ describe("ArtifactDisplay", () => {
 
   beforeEach(() => {
     // Ensure clean DOM for each test
-    document.body.innerHTML = ''
-    
+    document.body.innerHTML = ""
+
     // Add a div for React to render into
-    const container = document.createElement('div')
-    container.id = 'test-container'
+    const container = document.createElement("div")
+    container.id = "test-container"
     document.body.appendChild(container)
     // Mock clipboard API
     mockClipboard = {
@@ -107,7 +113,7 @@ describe("ArtifactDisplay", () => {
     cleanup()
     vi.clearAllMocks()
     // Clean up container
-    const container = document.getElementById('test-container')
+    const container = document.getElementById("test-container")
     if (container) {
       document.body.removeChild(container)
     }

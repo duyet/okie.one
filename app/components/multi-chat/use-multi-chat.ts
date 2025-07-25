@@ -116,7 +116,11 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
         stop: chatHook.stop,
       }
     })
-  }, [models, ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading])])
+  }, [
+    models,
+    ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading]),
+    chatHooks,
+  ])
 
   return activeChatInstances
 }

@@ -10,7 +10,19 @@ export async function getMessageUsage(
   isAuthenticated: boolean
 ) {
   const supabase = await validateUserIdentity(userId, isAuthenticated)
-  if (!supabase) return null
+  if (!supabase) {
+    // For non-Supabase deployments, return mock usage data to allow operation
+    const dailyLimit = isAuthenticated
+      ? AUTH_DAILY_MESSAGE_LIMIT
+      : NON_AUTH_DAILY_MESSAGE_LIMIT
+    return {
+      dailyCount: 0,
+      dailyProCount: 0,
+      dailyLimit,
+      remaining: dailyLimit,
+      remainingPro: DAILY_LIMIT_PRO_MODELS,
+    }
+  }
 
   const { data, error } = await supabase
     .from("users")

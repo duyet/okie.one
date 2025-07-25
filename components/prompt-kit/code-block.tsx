@@ -47,11 +47,11 @@ function CodeBlockCode({
   useEffect(() => {
     async function highlight() {
       // Ensure code is a string and not empty
-      if (typeof code !== 'string' || !code.trim()) {
-        setHighlightedHtml('')
+      if (typeof code !== "string" || !code.trim()) {
+        setHighlightedHtml("")
         return
       }
-      
+
       try {
         const html = await codeToHtml(code, {
           lang: language,
@@ -59,7 +59,7 @@ function CodeBlockCode({
         })
         setHighlightedHtml(html)
       } catch (error) {
-        console.error('Code highlighting failed:', error)
+        console.error("Code highlighting failed:", error)
         setHighlightedHtml(`<pre><code>${code}</code></pre>`)
       }
     }

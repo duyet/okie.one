@@ -13,6 +13,7 @@ import {
 import { MESSAGE_MAX_LENGTH, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import type { Attachment } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
+import type { MessagePart } from "@/lib/type-guards/message-parts"
 import type { UserProfile } from "@/lib/user/types"
 
 import { useArtifact } from "./artifact-context"
@@ -176,7 +177,7 @@ export function useChatCore({
 
           // Replace any existing artifact parts with new ones
           const nonArtifactParts = (message.parts || []).filter(
-            (part) => (part as any).type !== "artifact"
+            (part) => (part as MessagePart).type !== "artifact"
           )
 
           const updatedMessage = {
@@ -186,8 +187,11 @@ export function useChatCore({
           }
 
           // Store the processed message in cache for consistency across renders
-          processedMessagesCache.current.set(cacheKey, updatedMessage as any)
-          return updatedMessage as any
+          processedMessagesCache.current.set(
+            cacheKey,
+            updatedMessage as Message
+          )
+          return updatedMessage as Message
         }
       }
       return message

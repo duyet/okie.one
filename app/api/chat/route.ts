@@ -104,24 +104,31 @@ export async function POST(req: Request) {
       },
 
       onFinish: async ({ response }) => {
-        if (supabase) {
-          // Parse artifacts from the response text
-          const responseText = response.messages
-            .filter((msg) => msg.role === "assistant")
-            .map((msg) =>
-              typeof msg.content === "string"
+        // Parse artifacts from the response text for all users (not just Supabase users)
+        const responseText = response.messages
+          .filter((msg) => msg.role === "assistant")
+          .map((msg) =>
+            typeof msg.content === "string"
+              ? msg.content
+              : Array.isArray(msg.content)
                 ? msg.content
-                : Array.isArray(msg.content)
-                  ? msg.content
-                      .filter((part) => part.type === "text")
-                      .map((part) => part.text)
-                      .join("\n")
-                  : ""
-            )
-            .join("\n")
+                    .filter((part) => part.type === "text")
+                    .map((part) => part.text)
+                    .join("\n")
+                : ""
+          )
+          .join("\n")
 
-          const artifactParts = parseArtifacts(responseText)
+        const artifactParts = parseArtifacts(responseText, false)
+        console.log(
+          "Parsed artifacts:",
+          artifactParts.length,
+          "from response length:",
+          responseText.length
+        )
 
+        // Store in database only if Supabase is available
+        if (supabase) {
           await storeAssistantMessage({
             supabase,
             chatId,

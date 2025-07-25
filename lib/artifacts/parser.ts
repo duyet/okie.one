@@ -66,8 +66,8 @@ function extractArtifactCandidates(text: string): ArtifactCandidate[] {
 
   // Extract code blocks (make trailing newline optional)
   const codeBlockRegex = /```(?:(\w+)\s*)?\n?([\s\S]*?)\n?```/g
-  let match
-  while ((match = codeBlockRegex.exec(text)) !== null) {
+  let match: RegExpExecArray | null = codeBlockRegex.exec(text)
+  while (match !== null) {
     const [fullMatch, language, content] = match
     const startIndex = match.index
     const endIndex = match.index + fullMatch.length
@@ -80,11 +80,14 @@ function extractArtifactCandidates(text: string): ArtifactCandidate[] {
       startIndex,
       endIndex,
     })
+
+    match = codeBlockRegex.exec(text)
   }
 
   // Extract HTML documents (look for complete HTML structures)
   const htmlRegex = /<!DOCTYPE[\s\S]*?<\/html>/gi
-  while ((match = htmlRegex.exec(text)) !== null) {
+  match = htmlRegex.exec(text)
+  while (match !== null) {
     const content = match[0]
     const startIndex = match.index
     const endIndex = match.index + content.length
@@ -96,6 +99,8 @@ function extractArtifactCandidates(text: string): ArtifactCandidate[] {
       startIndex,
       endIndex,
     })
+
+    match = htmlRegex.exec(text)
   }
 
   // Extract large structured text (potential documents)

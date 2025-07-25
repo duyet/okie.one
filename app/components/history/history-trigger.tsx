@@ -28,7 +28,8 @@ export function HistoryTrigger({
   label,
   hasPopover = true,
 }: HistoryTriggerProps) {
-  const { isBelowBreakpoint: isMobile, isHydrated } = useHydrationSafeBreakpoint(768, false)
+  const { isBelowBreakpoint: isMobile, isHydrated } =
+    useHydrationSafeBreakpoint(768, false)
   const router = useRouter()
   const { chats, updateTitle, deleteChat } = useChats()
   const { deleteMessages } = useMessages()
