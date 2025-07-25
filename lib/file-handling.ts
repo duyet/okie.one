@@ -11,7 +11,7 @@ import {
 } from "./config"
 import { getModelInfo } from "./models"
 import { createClient } from "./supabase/client"
-import { isSupabaseEnabled } from "./supabase/config"
+import { isSupabaseEnabledClient } from "./supabase/config"
 
 export type Attachment = {
   name: string
@@ -80,7 +80,7 @@ export async function processFiles(
   chatId: string,
   userId: string
 ): Promise<Attachment[]> {
-  const supabase = isSupabaseEnabled ? createClient() : null
+  const supabase = isSupabaseEnabledClient ? createClient() : null
   const attachments: Attachment[] = []
 
   for (const file of files) {
@@ -133,7 +133,7 @@ export class FileUploadLimitError extends Error {
 }
 
 export async function checkFileUploadLimit(userId: string) {
-  if (!isSupabaseEnabled) return 0
+  if (!isSupabaseEnabledClient) return 0
 
   const supabase = createClient()
 

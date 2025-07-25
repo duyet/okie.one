@@ -21,7 +21,7 @@ import {
   getModelFileCapabilities,
   validateModelSupportsFiles,
 } from "@/lib/file-handling"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { isSupabaseEnabledClient } from "@/lib/supabase/config"
 
 import { PopoverContentAuth } from "./popover-content-auth"
 
@@ -40,16 +40,6 @@ export function ButtonFileUpload({
   const isFileUploadAvailable = validateModelSupportsFiles(model)
   const fileCapabilities = getModelFileCapabilities(model)
   
-  // Debug logging (remove in production)
-  if (typeof window !== "undefined" && model === "gpt-4.1-mini") {
-    console.log("Debug - ButtonFileUpload:", {
-      model,
-      isFileUploadAvailable,
-      fileCapabilities,
-      isSupabaseEnabled: isSupabaseEnabled,
-      isUserAuthenticated,
-    })
-  }
 
   // Generate accept string from model capabilities
   const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
@@ -85,7 +75,7 @@ export function ButtonFileUpload({
   let isDisabled = false
   let tooltipText = "Add files"
 
-  if (!isSupabaseEnabled) {
+  if (!isSupabaseEnabledClient) {
     popoverContent = (
       <div className="text-secondary-foreground text-sm">
         <div className="font-medium mb-1">File uploads are disabled</div>
