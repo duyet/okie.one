@@ -15,7 +15,8 @@ import {
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
 
-import { ArtifactDisplay } from "./artifact-display"
+import { ArtifactPreview } from "./artifact-preview"
+import { useArtifact } from "./artifact-context"
 import { getSources } from "./get-sources"
 import { Reasoning } from "./reasoning"
 import { SearchImages } from "./search-images"
@@ -46,6 +47,7 @@ export function MessageAssistant({
   className,
 }: MessageAssistantProps) {
   const { preferences } = useUserPreferences()
+  const { openArtifact } = useArtifact()
   // Use proper type guards for safe type checking
   const sources = parts ? getSources(parts as any) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
@@ -115,12 +117,13 @@ export function MessageAssistant({
         )}
 
         {artifactParts && artifactParts.length > 0 && (
-          <div className="artifacts-container">
+          <div className="artifacts-container mt-4 space-y-3">
             {artifactParts.map((part) =>
               part.artifact ? (
-                <ArtifactDisplay
+                <ArtifactPreview
                   key={part.artifact.id}
                   artifact={part.artifact}
+                  onClick={() => openArtifact(part.artifact!)}
                 />
               ) : null
             )}

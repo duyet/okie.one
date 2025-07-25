@@ -17,6 +17,8 @@ import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 
+import { ArtifactPanel } from "./artifact-panel"
+import { ArtifactProvider, useArtifact } from "./artifact-context"
 import { useChatCore } from "./use-chat-core"
 import { useChatOperations } from "./use-chat-operations"
 import { useFileUpload } from "./use-file-upload"
@@ -31,7 +33,7 @@ const DialogAuth = dynamic(
   { ssr: false }
 )
 
-export function Chat() {
+function ChatInner() {
   const { chatId } = useChatSession()
   const {
     createNewChat,
@@ -194,56 +196,75 @@ export function Chat() {
   }
 
   const showOnboarding = !chatId && messages.length === 0
+  const { isOpen, currentArtifact, closeArtifact } = useArtifact()
 
   return (
-    <div
-      className={cn(
-        "@container/main relative flex h-full flex-col items-center justify-end md:justify-center"
-      )}
-    >
-      <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
-
-      <AnimatePresence initial={false} mode="popLayout">
-        {showOnboarding ? (
-          <motion.div
-            key="onboarding"
-            className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            layout="position"
-            layoutId="onboarding"
-            transition={{
-              layout: {
-                duration: 0,
-              },
-            }}
-          >
-            <h1 className="mb-6 font-medium text-3xl tracking-tight">
-              What&apos;s on your mind?
-            </h1>
-          </motion.div>
-        ) : (
-          <Conversation key="conversation" {...conversationProps} />
-        )}
-      </AnimatePresence>
-
-      <motion.div
+    <>
+      <div
         className={cn(
-          "relative inset-x-0 bottom-0 z-50 mx-auto w-full max-w-3xl"
+          "@container/main relative flex h-full flex-col items-center justify-end md:justify-center",
+          isOpen && "pr-[50%]" // Make space for artifact panel
         )}
-        layout="position"
-        layoutId="chat-input-container"
-        transition={{
-          layout: {
-            duration: messages.length === 1 ? 0.3 : 0,
-          },
-        }}
       >
-        <ChatInput {...chatInputProps} />
-      </motion.div>
+        <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
 
-      <FeedbackWidget authUserId={user?.id} />
-    </div>
+        <AnimatePresence initial={false} mode="popLayout">
+          {showOnboarding ? (
+            <motion.div
+              key="onboarding"
+              className="absolute bottom-[60%] mx-auto max-w-[50rem] md:relative md:bottom-auto"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              layout="position"
+              layoutId="onboarding"
+              transition={{
+                layout: {
+                  duration: 0,
+                },
+              }}
+            >
+              <h1 className="mb-6 font-medium text-3xl tracking-tight">
+                What&apos;s on your mind?
+              </h1>
+            </motion.div>
+          ) : (
+            <Conversation key="conversation" {...conversationProps} />
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          className={cn(
+            "relative inset-x-0 bottom-0 z-50 mx-auto w-full max-w-3xl"
+          )}
+          layout="position"
+          layoutId="chat-input-container"
+          transition={{
+            layout: {
+              duration: messages.length === 1 ? 0.3 : 0,
+            },
+          }}
+        >
+          <ChatInput {...chatInputProps} />
+        </motion.div>
+
+        <FeedbackWidget authUserId={user?.id} />
+      </div>
+
+      {/* Artifact Panel */}
+      <ArtifactPanel
+        isOpen={isOpen}
+        onClose={closeArtifact}
+        artifact={currentArtifact}
+      />
+    </>
+  )
+}
+
+export function Chat() {
+  return (
+    <ArtifactProvider>
+      <ChatInner />
+    </ArtifactProvider>
   )
 }

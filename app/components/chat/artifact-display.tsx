@@ -33,6 +33,7 @@ import { cn } from "@/lib/utils"
 interface ArtifactDisplayProps {
   artifact: NonNullable<ContentPart["artifact"]>
   className?: string
+  isInPanel?: boolean
 }
 
 const ARTIFACT_ICONS = {
@@ -44,7 +45,7 @@ const ARTIFACT_ICONS = {
 
 const TRUNCATE_LENGTH = 300
 
-export function ArtifactDisplay({ artifact, className }: ArtifactDisplayProps) {
+export function ArtifactDisplay({ artifact, className, isInPanel = false }: ArtifactDisplayProps) {
   const [expanded, setExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
 
