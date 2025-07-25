@@ -16,6 +16,8 @@ jobs:
   setup:
     name: Setup Dependencies
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [20, 22]
@@ -59,6 +61,8 @@ jobs:
     name: Lint & TypeScript Check
     needs: setup
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [22]
@@ -116,6 +120,8 @@ jobs:
     name: Test
     needs: setup
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [20, 22]
@@ -174,6 +180,8 @@ jobs:
     name: E2E Tests
     needs: setup
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [22]
@@ -235,6 +243,8 @@ jobs:
     name: Build App
     needs: setup
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         node-version: [20, 22]
@@ -313,6 +323,8 @@ jobs:
     name: Validation Complete
     needs: [lint-typescript, test, e2e, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: All checks passed
         run: echo "All validation jobs completed successfully"
