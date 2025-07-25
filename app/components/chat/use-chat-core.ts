@@ -112,7 +112,10 @@ export function useChatCore({
 
         // Return cached processed message if it exists
         if (processedMessagesCache.current.has(cacheKey)) {
-          return processedMessagesCache.current.get(cacheKey)!
+          const cachedMessage = processedMessagesCache.current.get(cacheKey)
+          if (cachedMessage) {
+            return cachedMessage
+          }
         }
 
         // Early detection for sidebar opening - detect potential artifacts sooner
@@ -173,7 +176,7 @@ export function useChatCore({
 
           // Replace any existing artifact parts with new ones
           const nonArtifactParts = (message.parts || []).filter(
-            (part) => part.type !== "artifact"
+            (part) => (part as any).type !== "artifact"
           )
 
           const updatedMessage = {
@@ -183,8 +186,8 @@ export function useChatCore({
           }
 
           // Store the processed message in cache for consistency across renders
-          processedMessagesCache.current.set(cacheKey, updatedMessage)
-          return updatedMessage
+          processedMessagesCache.current.set(cacheKey, updatedMessage as any)
+          return updatedMessage as any
         }
       }
       return message
