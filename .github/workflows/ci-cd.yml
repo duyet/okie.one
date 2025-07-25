@@ -311,7 +311,7 @@ jobs:
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-output
+          name: build-output-node${{ matrix.node-version }}
           path: |
             .next/standalone
             .next/static
@@ -343,7 +343,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-output
+          name: build-output-node22
           path: .
 
       - name: Set up Docker Buildx
