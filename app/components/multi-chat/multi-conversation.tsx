@@ -133,7 +133,10 @@ export function MultiModelConversation({
             ? null
             : messageGroups.map((group, groupIndex) => {
                 return (
-                  <div key={groupIndex} className="mb-10 w-full space-y-3">
+                  <div
+                    key={group.userMessage.id}
+                    className="mb-10 w-full space-y-3"
+                  >
                     <div className="mx-auto w-full max-w-3xl">
                       <Message
                         id={group.userMessage.id}

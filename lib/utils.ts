@@ -16,8 +16,7 @@ export function formatNumber(n: number) {
  * Creates a debounced function that delays invoking the provided function until after
  * the specified wait time has elapsed since the last time it was invoked.
  */
-// biome-ignore lint/suspicious/noExplicitAny: Generic function type needed for flexibility
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

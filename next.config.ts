@@ -5,10 +5,12 @@ const nextConfig: NextConfig = withBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 })({
   output: "standalone",
+  poweredByHeader: false,
   experimental: {
     optimizePackageImports: ["@phosphor-icons/react"],
   },
   serverExternalPackages: ["shiki", "vscode-oniguruma"],
+  compress: true,
   images: {
     remotePatterns: [
       {
@@ -28,8 +30,36 @@ const nextConfig: NextConfig = withBundleAnalyzer({
     ],
   },
   eslint: {
-    // @todo: remove before going live
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    tsconfigPath: "./tsconfig.json",
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(), microphone=(), geolocation=(), gyroscope=(), magnetometer=(), payment=(), usb=(), autoplay=self",
+          },
+        ],
+      },
+    ]
   },
 })
 

@@ -1,6 +1,7 @@
 import type { Attachment } from "@ai-sdk/ui-utils"
 import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
 
+import { parseArtifacts } from "@/lib/artifacts/parser"
 import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
@@ -103,6 +104,30 @@ export async function POST(req: Request) {
       },
 
       onFinish: async ({ response }) => {
+        // Parse artifacts from the response text for all users (not just Supabase users)
+        const responseText = response.messages
+          .filter((msg) => msg.role === "assistant")
+          .map((msg) =>
+            typeof msg.content === "string"
+              ? msg.content
+              : Array.isArray(msg.content)
+                ? msg.content
+                    .filter((part) => part.type === "text")
+                    .map((part) => part.text)
+                    .join("\n")
+                : ""
+          )
+          .join("\n")
+
+        const artifactParts = parseArtifacts(responseText, false)
+        console.log(
+          "Parsed artifacts:",
+          artifactParts.length,
+          "from response length:",
+          responseText.length
+        )
+
+        // Store in database only if Supabase is available
         if (supabase) {
           await storeAssistantMessage({
             supabase,
@@ -111,6 +136,7 @@ export async function POST(req: Request) {
               response.messages as unknown as import("@/app/types/api.types").Message[],
             message_group_id,
             model,
+            artifactParts,
           })
         }
       },

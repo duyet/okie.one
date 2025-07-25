@@ -6,10 +6,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useChatDraft } from "@/app/hooks/use-chat-draft"
 import { toast } from "@/components/ui/toast"
 import { getOrCreateGuestUserId } from "@/lib/api"
+import {
+  parseArtifacts,
+  replaceCodeBlocksWithArtifacts,
+} from "@/lib/artifacts/parser"
 import { MESSAGE_MAX_LENGTH, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import type { Attachment } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
+import type { MessagePart } from "@/lib/type-guards/message-parts"
 import type { UserProfile } from "@/lib/user/types"
+
+import { useArtifact } from "./artifact-context"
 
 type UseChatCoreProps = {
   initialMessages: Message[]
@@ -65,6 +72,9 @@ export function useChatCore({
     [user?.system_prompt]
   )
 
+  // Artifact context for auto-opening sidebar
+  const { openArtifact } = useArtifact()
+
   // Search params handling
   const searchParams = useSearchParams()
   const prompt = searchParams.get("prompt")
@@ -85,6 +95,110 @@ export function useChatCore({
     })
   }, [])
 
+  // Cache for storing processed messages to prevent infinite processing and ensure consistency
+  const processedMessagesCache = useRef<Map<string, Message>>(new Map())
+
+  // Real-time artifact processing during streaming with improved caching
+  const processStreamingArtifacts = useCallback(
+    (message: Message) => {
+      if (message.role === "assistant" && typeof message.content === "string") {
+        // Use a more lenient cache key that allows updates during streaming
+        const contentLength = message.content.length
+        const cacheKey = `${message.id}-${Math.floor(contentLength / 100) * 100}` // Cache per 100 chars
+
+        // Skip processing very short content
+        if (contentLength < 100) {
+          return message
+        }
+
+        // Return cached processed message if it exists
+        if (processedMessagesCache.current.has(cacheKey)) {
+          const cachedMessage = processedMessagesCache.current.get(cacheKey)
+          if (cachedMessage) {
+            return cachedMessage
+          }
+        }
+
+        // Early detection for sidebar opening - detect potential artifacts sooner
+        const hasCodeBlockStart = message.content.includes("```")
+        const hasLargeCode = message.content.length > 300 // Even lower threshold for very early detection
+
+        if (hasCodeBlockStart && hasLargeCode) {
+          // Try to open sidebar early if we detect substantial code content
+          const earlyArtifacts = parseArtifacts(message.content, true)
+          if (earlyArtifacts.length > 0) {
+            const firstArtifact = earlyArtifacts[0]?.artifact
+            if (firstArtifact) {
+              console.log(
+                "🚀 Early artifact detection - opening sidebar:",
+                firstArtifact.title
+              )
+              openArtifact(firstArtifact)
+            }
+          }
+        }
+
+        // Parse artifacts from the current content during streaming with streaming flag
+        const artifactParts = parseArtifacts(message.content, true)
+
+        if (artifactParts.length > 0) {
+          console.log(
+            "🎨 Real-time artifact detected during streaming:",
+            artifactParts.map(
+              (p) =>
+                `${p.artifact?.title} (${p.artifact?.metadata.lines} lines)`
+            )
+          )
+
+          // Auto-open the first artifact in the sidebar during streaming
+          const firstArtifact = artifactParts[0]?.artifact
+          if (firstArtifact) {
+            console.log(
+              "📌 Auto-opening artifact in sidebar:",
+              firstArtifact.title
+            )
+            openArtifact(firstArtifact)
+          }
+
+          // Replace inline code blocks with artifact placeholders in the content
+          const updatedContent = replaceCodeBlocksWithArtifacts(
+            message.content,
+            artifactParts
+          )
+
+          console.log("🔧 processStreamingArtifacts result:", {
+            messageId: message.id,
+            originalLength: message.content.length,
+            updatedLength: updatedContent.length,
+            hasMarkers: updatedContent.includes("[ARTIFACT_PREVIEW:"),
+            artifactCount: artifactParts.length,
+            cacheKey,
+          })
+
+          // Replace any existing artifact parts with new ones
+          const nonArtifactParts = (message.parts || []).filter(
+            (part) => (part as MessagePart).type !== "artifact"
+          )
+
+          const updatedMessage = {
+            ...message,
+            content: updatedContent,
+            parts: [...nonArtifactParts, ...artifactParts],
+          }
+
+          // Store the processed message in cache for consistency across renders
+          processedMessagesCache.current.set(
+            cacheKey,
+            updatedMessage as Message
+          )
+          return updatedMessage as Message
+        }
+      }
+      return message
+    },
+    [openArtifact]
+  )
+
   // Initialize useChat
   const {
     messages,
@@ -101,9 +215,18 @@ export function useChatCore({
     api: API_ROUTE_CHAT,
     initialMessages,
     initialInput: draftValue,
-    onFinish: cacheAndAddMessage,
+    onFinish: (message) => {
+      // Message already processed by streaming, just cache it
+      cacheAndAddMessage(message)
+    },
     onError: handleError,
   })
+
+  // Process artifacts in streaming messages (after useChat initialization)
+  const processedMessages = useMemo(() => {
+    if (!messages) return []
+    return messages.map(processStreamingArtifacts)
+  }, [messages, processStreamingArtifacts])
 
   // Handle search params on mount
   useEffect(() => {
@@ -156,6 +279,7 @@ export function useChatCore({
       if (!allowed) {
         setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
         cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+        setIsSubmitting(false)
         return
       }
 
@@ -163,6 +287,7 @@ export function useChatCore({
       if (!currentChatId) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
         cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+        setIsSubmitting(false)
         return
       }
 
@@ -173,6 +298,7 @@ export function useChatCore({
         })
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
         cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+        setIsSubmitting(false)
         return
       }
 
@@ -184,6 +310,7 @@ export function useChatCore({
           cleanupOptimisticAttachments(
             optimisticMessage.experimental_attachments
           )
+          setIsSubmitting(false)
           return
         }
       }
@@ -258,12 +385,14 @@ export function useChatCore({
 
         if (!uid) {
           setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+          setIsSubmitting(false)
           return
         }
 
         const allowed = await checkLimitsAndNotify(uid)
         if (!allowed) {
           setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
+          setIsSubmitting(false)
           return
         }
 
@@ -271,6 +400,7 @@ export function useChatCore({
 
         if (!currentChatId) {
           setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
+          setIsSubmitting(false)
           return
         }
 
@@ -342,7 +472,7 @@ export function useChatCore({
 
   return {
     // Chat state
-    messages,
+    messages: processedMessages,
     input,
     handleSubmit,
     status,

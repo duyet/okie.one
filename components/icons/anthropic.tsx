@@ -7,8 +7,10 @@ const Icon = (props: SVGProps<SVGSVGElement>) => (
     height={245}
     fill="none"
     viewBox="0 0 245 245"
+    aria-label="Anthropic"
     {...props}
   >
+    <title>Anthropic</title>
     <path
       fill="#000"
       fillRule="evenodd"

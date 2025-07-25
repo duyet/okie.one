@@ -13,8 +13,23 @@ export async function validateUserIdentity(
   userId: string,
   isAuthenticated: boolean
 ) {
+  // Check for fallback guest users first, regardless of Supabase configuration
+  if (!isAuthenticated && userId && userId.startsWith("guest-user-")) {
+    console.log("Accepting fallback guest user:", userId)
+    return null // Signal: valid guest user, no Supabase needed
+  }
+
   if (!isSupabaseEnabled) {
-    return null
+    // For non-Supabase deployments, validate remaining cases
+    if (!userId) {
+      throw new Error("Missing user ID")
+    }
+
+    if (isAuthenticated) {
+      throw new Error("Authentication not available without Supabase")
+    }
+
+    throw new Error("Invalid guest user ID format")
   }
 
   const supabase = isAuthenticated

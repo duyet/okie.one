@@ -10,7 +10,8 @@ export async function saveFinalAssistantMessage(
   chatId: string,
   messages: Message[],
   message_group_id?: string,
-  model?: string
+  model?: string,
+  artifactParts?: ContentPart[]
 ) {
   const parts: ContentPart[] = []
   const toolMap = new Map<string, ContentPart>()
@@ -72,6 +73,11 @@ export async function saveFinalAssistantMessage(
 
   // Merge tool parts at the end
   parts.push(...toolMap.values())
+
+  // Add artifact parts
+  if (artifactParts && artifactParts.length > 0) {
+    parts.push(...artifactParts)
+  }
 
   const finalPlainText = textParts.join("\n\n")
 

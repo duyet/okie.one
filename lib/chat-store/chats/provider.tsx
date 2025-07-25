@@ -160,6 +160,7 @@ export function ChatsProvider({
     } catch {
       setChats(prev)
       toast({ title: "Failed to create chat", status: "error" })
+      return undefined
     }
   }
 

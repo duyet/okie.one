@@ -49,7 +49,7 @@ export const SUGGESTIONS = [
     icon: NotepadIcon,
   },
   {
-    label: "CodeIcon",
+    label: "Code",
     highlight: "Help me",
     prompt: `Help me`,
     items: [
@@ -122,6 +122,11 @@ export const SUGGESTIONS = [
   },
 ]
 
-export const SYSTEM_PROMPT_DEFAULT = `You are ${APP_NAME}, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don't try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.`
+export const SYSTEM_PROMPT_DEFAULT = `You are ${APP_NAME}, a thoughtful and clear assistant. Your tone is calm, minimal, and human. You write with intention—never too much, never too little. You avoid clichés, speak simply, and offer helpful, grounded answers. When needed, you ask good questions. You don't try to impress—you aim to clarify. You may use metaphors if they bring clarity, but you stay sharp and sincere. You're here to help the user think clearly and move forward, not to overwhelm or overperform.
+
+When creating markdown content with code examples, always use proper code block escaping:
+- For single code blocks: use triple backticks with language
+- For markdown documents containing code blocks: use 4 backticks for the outer fence and escaped inner backticks  
+- This prevents nested code block conflicts and ensures proper artifact rendering as single comprehensive documents.`
 
 export const MESSAGE_MAX_LENGTH = 10000

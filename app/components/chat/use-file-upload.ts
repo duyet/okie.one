@@ -27,13 +27,16 @@ export const useFileUpload = () => {
         })
         return null
       }
+      // Re-throw non-limit errors to be handled by outer catch
+      throw err
     }
 
     try {
       const processed = await processFiles(files, chatId, uid)
       setFiles([])
       return processed
-    } catch {
+    } catch (error: unknown) {
+      console.error("Failed to process files:", error)
       toast({ title: "Failed to process files", status: "error" })
       return null
     }

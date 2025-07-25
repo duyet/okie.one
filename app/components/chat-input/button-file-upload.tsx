@@ -1,5 +1,6 @@
-import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
+import { FileArrowUp, Paperclip } from "@phosphor-icons/react/dist/ssr"
 
+import { useHydrationSafe } from "@/app/hooks/use-hydration-safe"
 import {
   FileUpload,
   FileUploadContent,
@@ -33,11 +34,28 @@ export function ButtonFileUpload({
   isUserAuthenticated,
   model,
 }: ButtonFileUploadProps) {
+  const isHydrated = useHydrationSafe()
+
   if (!isSupabaseEnabled) {
     return null
   }
 
   const isFileUploadAvailable = getModelInfo(model)?.vision
+
+  // Prevent hydration mismatches by showing a consistent initial state
+  if (!isHydrated) {
+    return (
+      <Button
+        size="sm"
+        variant="secondary"
+        className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
+        type="button"
+        disabled
+      >
+        <Paperclip className="size-4" />
+      </Button>
+    )
+  }
 
   if (!isFileUploadAvailable) {
     return (

@@ -59,7 +59,8 @@ export function ChatInput({
 }: ChatInputProps) {
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
-  const isOnlyWhitespace = (text: string) => !/[^\s]/.test(text)
+  
+  const isOnlyWhitespace = useCallback((text: string) => !/[^\s]/.test(text), [])
 
   const handleSend = useCallback(() => {
     if (isSubmitting) {

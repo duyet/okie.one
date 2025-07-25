@@ -7,6 +7,7 @@ const Icon = (props: SVGProps<SVGSVGElement>) => (
     height={221}
     fill="none"
     viewBox="0 0 221 221"
+    aria-label="Google"
     {...props}
   >
     <path

@@ -22,6 +22,19 @@ export interface ContentPart {
   }
   reasoning?: string
   details?: Json[]
+  artifact?: {
+    id: string
+    type: "code" | "document" | "html" | "data"
+    title: string
+    content: string
+    language?: string
+    metadata: {
+      size: number
+      lines?: number
+      created: string
+      modified?: string
+    }
+  }
 }
 
 export interface Message {
@@ -53,6 +66,7 @@ export interface StoreAssistantMessageParams {
   messages: Message[]
   message_group_id?: string
   model?: string
+  artifactParts?: ContentPart[]
 }
 
 export interface ApiErrorResponse {

@@ -51,8 +51,10 @@ async function insertMessageToDb(chatId: string, message: MessageAISDK) {
     content: message.content,
     experimental_attachments: message.experimental_attachments,
     created_at: message.createdAt?.toISOString() || new Date().toISOString(),
-    message_group_id: (message as any).message_group_id || null,
-    model: (message as any).model || null,
+    message_group_id:
+      (message as MessageAISDK & { message_group_id?: string })
+        .message_group_id || null,
+    model: (message as MessageAISDK & { model?: string }).model || null,
   })
 }
 
@@ -66,8 +68,10 @@ async function insertMessagesToDb(chatId: string, messages: MessageAISDK[]) {
     content: message.content,
     experimental_attachments: message.experimental_attachments,
     created_at: message.createdAt?.toISOString() || new Date().toISOString(),
-    message_group_id: (message as any).message_group_id || null,
-    model: (message as any).model || null,
+    message_group_id:
+      (message as MessageAISDK & { message_group_id?: string })
+        .message_group_id || null,
+    model: (message as MessageAISDK & { model?: string }).model || null,
   }))
 
   await supabase.from("messages").insert(payload)

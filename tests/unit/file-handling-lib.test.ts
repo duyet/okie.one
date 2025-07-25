@@ -171,7 +171,12 @@ describe("File Handling Library", () => {
       const file = new File(["test content"], "test.txt", {
         type: "text/plain",
       })
-      const url = await uploadFile(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>, file)
+      const url = await uploadFile(
+        mockSupabase as unknown as NonNullable<
+          ReturnType<typeof import("@/lib/supabase/client").createClient>
+        >,
+        file
+      )
 
       expect(url).toBe(
         "https://storage.supabase.co/object/public/chat-attachments/uploads/abc123.txt"
@@ -196,9 +201,14 @@ describe("File Handling Library", () => {
         type: "text/plain",
       })
 
-      await expect(uploadFile(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>, file)).rejects.toThrow(
-        "Error uploading file: Storage quota exceeded"
-      )
+      await expect(
+        uploadFile(
+          mockSupabase as unknown as NonNullable<
+            ReturnType<typeof import("@/lib/supabase/client").createClient>
+          >,
+          file
+        )
+      ).rejects.toThrow("Error uploading file: Storage quota exceeded")
     })
 
     it("should generate unique file names", async () => {
@@ -217,7 +227,12 @@ describe("File Handling Library", () => {
 
       const file = new File(["test"], "original.txt", { type: "text/plain" })
 
-      await uploadFile(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>, file)
+      await uploadFile(
+        mockSupabase as unknown as NonNullable<
+          ReturnType<typeof import("@/lib/supabase/client").createClient>
+        >,
+        file
+      )
 
       const uploadCall = mockSupabase.storage.from().upload
       expect(uploadCall).toHaveBeenCalled()
@@ -324,7 +339,10 @@ describe("File Handling Library", () => {
 
       expect(result).toBe(5)
       expect(mockFrom).toHaveBeenCalledWith("chat_attachments")
-      expect(mockSelect).toHaveBeenCalledWith("*", { count: "exact", head: true })
+      expect(mockSelect).toHaveBeenCalledWith("*", {
+        count: "exact",
+        head: true,
+      })
       expect(mockEq).toHaveBeenCalledWith("user_id", "user-123")
       expect(mockGte).toHaveBeenCalledWith("created_at", expect.any(String))
     })
@@ -440,7 +458,7 @@ describe("File Handling Library", () => {
         getPublicUrl: mockGetPublicUrl,
       })
 
-      // Mock database operations  
+      // Mock database operations
       const mockInsert = vi.fn().mockResolvedValue({ error: null })
       const mockDbFrom = vi.fn().mockReturnValue({
         insert: mockInsert,
@@ -511,7 +529,7 @@ describe("File Handling Library", () => {
         getPublicUrl: mockGetPublicUrl,
       })
 
-      // Mock database operations  
+      // Mock database operations
       const mockInsert = vi.fn().mockResolvedValue({ error: null })
       const mockDbFrom = vi.fn().mockReturnValue({
         insert: mockInsert,

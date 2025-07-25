@@ -1,10 +1,10 @@
 "use client"
 
-import { ListMagnifyingGlass } from "@phosphor-icons/react"
+import { ListMagnifyingGlass } from "@phosphor-icons/react/dist/ssr"
 import { useRouter } from "next/navigation"
 import { useState } from "react"
 
-import { useBreakpoint } from "@/app/hooks/use-breakpoint"
+import { useHydrationSafeBreakpoint } from "@/app/hooks/use-hydration-safe"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
 import { useChatSession } from "@/lib/chat-store/session/provider"
@@ -28,7 +28,8 @@ export function HistoryTrigger({
   label,
   hasPopover = true,
 }: HistoryTriggerProps) {
-  const isMobile = useBreakpoint(768)
+  const { isBelowBreakpoint: isMobile, isHydrated } =
+    useHydrationSafeBreakpoint(768, false)
   const router = useRouter()
   const { chats, updateTitle, deleteChat } = useChats()
   const { deleteMessages } = useMessages()
@@ -57,7 +58,7 @@ export function HistoryTrigger({
       type="button"
       onClick={() => setIsOpen(true)}
       aria-label="Search"
-      tabIndex={isMobile ? -1 : 0}
+      tabIndex={isHydrated ? (isMobile ? -1 : 0) : 0}
     >
       {icon || <ListMagnifyingGlass size={24} />}
       {label}

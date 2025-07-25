@@ -6,6 +6,7 @@ import type { Message as MessageTypeBase } from "@ai-sdk/react"
 type MessageType = MessageTypeBase & {
   model?: string
 }
+
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useMemo, useState } from "react"
 
@@ -60,7 +61,9 @@ export function MultiChat() {
 
   const modelsFromPersisted = useMemo(() => {
     return persistedMessages
-      .filter((msg): msg is MessageType & { model: string } => Boolean((msg as MessageType).model))
+      .filter((msg): msg is MessageType & { model: string } =>
+        Boolean((msg as MessageType).model)
+      )
       .map((msg) => (msg as MessageType & { model: string }).model)
   }, [persistedMessages])
 
@@ -152,7 +155,9 @@ export function MultiChat() {
           userMessage: group.userMessage,
           responses: group.assistantMessages.map((msg, index) => {
             const model =
-              (msg as MessageType).model || selectedModelIds[index] || `model-${index}`
+              (msg as MessageType).model ||
+              selectedModelIds[index] ||
+              `model-${index}`
             const provider =
               models.find((m) => m.id === model)?.provider || "unknown"
 
@@ -292,8 +297,8 @@ export function MultiChat() {
 
       setPrompt("")
       setFiles([])
-    } catch (error) {
-      console.error("Failed to send message:", error)
+    } catch (error: unknown) {
+      console.error("Failed to send multi-chat message:", error)
       toast({
         title: "Failed to send message",
         description: "Please try again.",
@@ -391,7 +396,7 @@ export function MultiChat() {
             transition={{ layout: { duration: 0 } }}
           >
             <h1 className="mb-6 font-medium text-3xl tracking-tight">
-              What's on your mind?
+              What&apos;s on your mind?
             </h1>
           </motion.div>
         ) : (
