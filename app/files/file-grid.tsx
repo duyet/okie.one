@@ -14,15 +14,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import type { FileWithChat } from "./api"
+import { FileStatusIndicator, type FileStatus } from "./file-status-indicator"
 import { formatBytes, getFileIcon, getFileTypeCategory } from "./utils"
 
 interface FileGridProps {
   files: FileWithChat[]
   onDelete: (fileId: string, fileName: string) => void
   onDownload: (fileUrl: string, fileName: string) => void
+  fileStatuses?: Record<string, FileStatus>
 }
 
-export function FileGrid({ files, onDelete, onDownload }: FileGridProps) {
+export function FileGrid({ files, onDelete, onDownload, fileStatuses }: FileGridProps) {
   const isImage = (fileType: string | null) => {
     return fileType?.startsWith("image/") ?? false
   }
@@ -129,6 +131,12 @@ export function FileGrid({ files, onDelete, onDownload }: FileGridProps) {
                     </span>
                   )}
                 </div>
+
+                {fileStatuses?.[file.id] && (
+                  <div className="mb-2">
+                    <FileStatusIndicator status={fileStatuses[file.id]} />
+                  </div>
+                )}
 
                 {file.chat?.title && (
                   <p className="mb-1 truncate text-muted-foreground text-xs">

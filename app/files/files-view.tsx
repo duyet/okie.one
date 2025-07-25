@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { FolderOpen, Grid, List, Search } from "lucide-react"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,7 @@ import { deleteUserFile, downloadFile, getUserFiles } from "./api"
 import { EmptyState } from "./empty-state"
 import { FileGrid } from "./file-grid"
 import { FileList } from "./file-list"
+import type { FileStatus } from "./file-status-indicator"
 import { FileStats } from "./file-stats"
 
 interface FilesViewProps {
@@ -34,6 +35,7 @@ export function FilesView({ userId }: FilesViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [sortBy, setSortBy] = useState<SortBy>("newest")
   const [filterBy, setFilterBy] = useState<FilterBy>("all")
+  const [fileStatuses, setFileStatuses] = useState<Record<string, FileStatus>>({})
 
   const {
     data: files,
@@ -45,6 +47,27 @@ export function FilesView({ userId }: FilesViewProps) {
     queryFn: () => getUserFiles(userId, { sortBy, filterBy }),
     staleTime: 30000, // 30 seconds
   })
+
+  // Demonstration: simulate different file statuses
+  // In a real implementation, these would be set during file upload/processing
+  useEffect(() => {
+    if (files && files.length > 0) {
+      const newStatuses: Record<string, FileStatus> = {}
+      files.forEach((file, index) => {
+        // Demo: show different statuses for first few files
+        if (index === 0) {
+          newStatuses[file.id] = "uploading"
+        } else if (index === 1) {
+          newStatuses[file.id] = "processing"
+        } else if (index === 2) {
+          newStatuses[file.id] = "error"
+        } else {
+          newStatuses[file.id] = "ready"
+        }
+      })
+      setFileStatuses(newStatuses)
+    }
+  }, [files])
 
   const handleDelete = async (fileId: string, fileName: string) => {
     try {
@@ -220,12 +243,14 @@ export function FilesView({ userId }: FilesViewProps) {
                 files={filteredFiles}
                 onDelete={handleDelete}
                 onDownload={handleDownload}
+                fileStatuses={fileStatuses}
               />
             ) : (
               <FileList
                 files={filteredFiles}
                 onDelete={handleDelete}
                 onDownload={handleDownload}
+                fileStatuses={fileStatuses}
               />
             )}
           </div>

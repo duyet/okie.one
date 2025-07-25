@@ -13,15 +13,17 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import type { FileWithChat } from "./api"
+import { FileStatusIndicator, type FileStatus } from "./file-status-indicator"
 import { formatBytes, getFileIcon, getFileTypeCategory } from "./utils"
 
 interface FileListProps {
   files: FileWithChat[]
   onDelete: (fileId: string, fileName: string) => void
   onDownload: (fileUrl: string, fileName: string) => void
+  fileStatuses?: Record<string, FileStatus>
 }
 
-export function FileList({ files, onDelete, onDownload }: FileListProps) {
+export function FileList({ files, onDelete, onDownload, fileStatuses }: FileListProps) {
   const isImage = (fileType: string | null) => {
     return fileType?.startsWith("image/") ?? false
   }
@@ -29,11 +31,12 @@ export function FileList({ files, onDelete, onDownload }: FileListProps) {
   return (
     <div className="rounded-md border">
       {/* Header */}
-      <div className="grid grid-cols-[40px_1fr_80px_80px_120px_100px_40px] gap-4 border-b bg-muted/50 p-4 font-medium text-muted-foreground text-sm">
+      <div className="grid grid-cols-[40px_1fr_80px_80px_100px_120px_100px_40px] gap-4 border-b bg-muted/50 p-4 font-medium text-muted-foreground text-sm">
         <div></div>
         <div>Name</div>
         <div>Type</div>
         <div>Size</div>
+        <div>Status</div>
         <div>Chat</div>
         <div>Uploaded</div>
         <div></div>
@@ -48,7 +51,7 @@ export function FileList({ files, onDelete, onDownload }: FileListProps) {
           return (
             <div
               key={file.id}
-              className="grid grid-cols-[40px_1fr_80px_80px_120px_100px_40px] items-center gap-4 p-4 hover:bg-muted/50"
+              className="grid grid-cols-[40px_1fr_80px_80px_100px_120px_100px_40px] items-center gap-4 p-4 hover:bg-muted/50"
             >
               <div>
                 {isImage(file.file_type) ? (
@@ -83,6 +86,14 @@ export function FileList({ files, onDelete, onDownload }: FileListProps) {
 
               <div className="text-muted-foreground text-sm">
                 {file.file_size ? formatBytes(file.file_size) : "—"}
+              </div>
+
+              <div>
+                {fileStatuses?.[file.id] ? (
+                  <FileStatusIndicator status={fileStatuses[file.id]} className="text-xs" />
+                ) : (
+                  <span className="text-muted-foreground text-sm">—</span>
+                )}
               </div>
 
               <div className="min-w-0">
