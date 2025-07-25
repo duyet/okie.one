@@ -78,7 +78,7 @@ export function ButtonFileUpload({
   if (!isSupabaseEnabledClient) {
     popoverContent = (
       <div className="text-secondary-foreground text-sm">
-        <div className="font-medium mb-1">File uploads are disabled</div>
+        <div className="mb-1 font-medium">File uploads are disabled</div>
         <div className="text-xs">
           File storage requires Supabase configuration.
           <br />
