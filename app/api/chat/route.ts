@@ -12,6 +12,7 @@ import {
   storeAssistantMessage,
   validateAndTrackUsage,
 } from "./api"
+import { parseArtifacts } from "@/lib/artifacts/parser"
 import { createErrorResponse, extractErrorMessage } from "./utils"
 
 export const maxDuration = 60
@@ -104,6 +105,23 @@ export async function POST(req: Request) {
 
       onFinish: async ({ response }) => {
         if (supabase) {
+          // Parse artifacts from the response text
+          const responseText = response.messages
+            .filter((msg) => msg.role === "assistant")
+            .map((msg) =>
+              typeof msg.content === "string"
+                ? msg.content
+                : Array.isArray(msg.content)
+                  ? msg.content
+                      .filter((part) => part.type === "text")
+                      .map((part) => part.text)
+                      .join("\n")
+                  : ""
+            )
+            .join("\n")
+
+          const artifactParts = parseArtifacts(responseText)
+
           await storeAssistantMessage({
             supabase,
             chatId,
@@ -111,6 +129,7 @@ export async function POST(req: Request) {
               response.messages as unknown as import("@/app/types/api.types").Message[],
             message_group_id,
             model,
+            artifactParts,
           })
         }
       },

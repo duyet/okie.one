@@ -28,7 +28,15 @@ vi.mock("next/navigation", () => ({
 
 // Mock Next.js image
 vi.mock("next/image", () => ({
-  default: ({ src, alt, ...props }: { src: string; alt: string; [key: string]: unknown }) => ({
+  default: ({
+    src,
+    alt,
+    ...props
+  }: {
+    src: string
+    alt: string
+    [key: string]: unknown
+  }) => ({
     type: "img",
     props: { src, alt, ...props },
   }),

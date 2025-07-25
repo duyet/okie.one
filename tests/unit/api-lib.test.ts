@@ -43,7 +43,11 @@ describe("API Library", () => {
       }
 
       const { signInWithGoogle } = await import("@/lib/api")
-      await signInWithGoogle(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>)
+      await signInWithGoogle(
+        mockSupabase as unknown as NonNullable<
+          ReturnType<typeof import("@/lib/supabase/client").createClient>
+        >
+      )
 
       // In test environment, should default to localhost
       expect(mockSupabase.auth.signInWithOAuth).toHaveBeenCalledWith({
@@ -69,7 +73,11 @@ describe("API Library", () => {
       }
 
       const { signInWithGoogle } = await import("@/lib/api")
-      const result = await signInWithGoogle(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>)
+      const result = await signInWithGoogle(
+        mockSupabase as unknown as NonNullable<
+          ReturnType<typeof import("@/lib/supabase/client").createClient>
+        >
+      )
 
       expect(mockSupabase.auth.signInWithOAuth).toHaveBeenCalledWith({
         provider: "google",
@@ -81,7 +89,9 @@ describe("API Library", () => {
           },
         },
       })
-      expect((result as unknown as { user: { id: string } }).user.id).toBe("123")
+      expect((result as unknown as { user: { id: string } }).user.id).toBe(
+        "123"
+      )
     })
 
     it("should handle GitHub OAuth sign-in successfully", async () => {
@@ -95,7 +105,11 @@ describe("API Library", () => {
       }
 
       const { signInWithGitHub } = await import("@/lib/api")
-      const result = await signInWithGitHub(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>)
+      const result = await signInWithGitHub(
+        mockSupabase as unknown as NonNullable<
+          ReturnType<typeof import("@/lib/supabase/client").createClient>
+        >
+      )
 
       expect(mockSupabase.auth.signInWithOAuth).toHaveBeenCalledWith({
         provider: "github",
@@ -103,7 +117,9 @@ describe("API Library", () => {
           redirectTo: expect.stringContaining("/auth/callback"),
         },
       })
-      expect((result as unknown as { user: { id: string } }).user.id).toBe("456")
+      expect((result as unknown as { user: { id: string } }).user.id).toBe(
+        "456"
+      )
     })
 
     it("should use window.location.origin as fallback", async () => {
@@ -128,7 +144,11 @@ describe("API Library", () => {
       }
 
       const { signInWithGitHub } = await import("@/lib/api")
-      await signInWithGitHub(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>)
+      await signInWithGitHub(
+        mockSupabase as unknown as NonNullable<
+          ReturnType<typeof import("@/lib/supabase/client").createClient>
+        >
+      )
 
       expect(mockSupabase.auth.signInWithOAuth).toHaveBeenCalledWith({
         provider: "github",
@@ -354,9 +374,13 @@ describe("API Library", () => {
 
       const { signInWithGoogle } = await import("@/lib/api")
 
-      await expect(signInWithGoogle(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>)).rejects.toThrow(
-        "OAuth provider error"
-      )
+      await expect(
+        signInWithGoogle(
+          mockSupabase as unknown as NonNullable<
+            ReturnType<typeof import("@/lib/supabase/client").createClient>
+          >
+        )
+      ).rejects.toThrow("OAuth provider error")
     })
 
     it("should handle network errors during OAuth", async () => {
@@ -370,9 +394,13 @@ describe("API Library", () => {
 
       const { signInWithGitHub } = await import("@/lib/api")
 
-      await expect(signInWithGitHub(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>)).rejects.toThrow(
-        "Network timeout"
-      )
+      await expect(
+        signInWithGitHub(
+          mockSupabase as unknown as NonNullable<
+            ReturnType<typeof import("@/lib/supabase/client").createClient>
+          >
+        )
+      ).rejects.toThrow("Network timeout")
     })
   })
 
@@ -386,7 +414,11 @@ describe("API Library", () => {
       }
 
       const { signInWithGoogle } = await import("@/lib/api")
-      await signInWithGoogle(mockSupabase as unknown as NonNullable<ReturnType<typeof import('@/lib/supabase/client').createClient>>)
+      await signInWithGoogle(
+        mockSupabase as unknown as NonNullable<
+          ReturnType<typeof import("@/lib/supabase/client").createClient>
+        >
+      )
 
       const callArgs = mockSupabase.auth.signInWithOAuth.mock.calls[0][0]
       const redirectTo = callArgs.options.redirectTo

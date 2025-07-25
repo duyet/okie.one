@@ -1,7 +1,11 @@
 // todo: fix this
 /* eslint-disable-next-line react-hooks/rules-of-hooks */
 
-import type { Message, CreateMessage, ChatRequestOptions } from "@ai-sdk/ui-utils"
+import type {
+  Message,
+  CreateMessage,
+  ChatRequestOptions,
+} from "@ai-sdk/ui-utils"
 import { useChat } from "@ai-sdk/react"
 import { useMemo } from "react"
 
@@ -17,7 +21,10 @@ type ModelChat = {
   model: ModelConfig
   messages: Message[]
   isLoading: boolean
-  append: (message: Message | CreateMessage, options?: ChatRequestOptions) => Promise<string | null | undefined>
+  append: (
+    message: Message | CreateMessage,
+    options?: ChatRequestOptions
+  ) => Promise<string | null | undefined>
   stop: () => void
 }
 
@@ -55,7 +62,10 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
         model,
         messages: chatHook.messages,
         isLoading: chatHook.isLoading,
-        append: (message: Message | CreateMessage, options?: ChatRequestOptions) => {
+        append: (
+          message: Message | CreateMessage,
+          options?: ChatRequestOptions
+        ) => {
           return chatHook.append(message, options)
         },
         stop: chatHook.stop,

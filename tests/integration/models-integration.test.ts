@@ -57,8 +57,12 @@ describe("Models Integration", () => {
           expect(model).toHaveProperty("name")
           expect(model).toHaveProperty("provider")
           expect(model).toHaveProperty("providerId")
-          expect(typeof (model as { contextWindow: number }).contextWindow).toBe("number")
-          expect((model as { contextWindow: number }).contextWindow).toBeGreaterThan(0)
+          expect(
+            typeof (model as { contextWindow: number }).contextWindow
+          ).toBe("number")
+          expect(
+            (model as { contextWindow: number }).contextWindow
+          ).toBeGreaterThan(0)
         })
       }
     }

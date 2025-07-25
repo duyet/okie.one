@@ -60,7 +60,9 @@ export function MultiChat() {
 
   const modelsFromPersisted = useMemo(() => {
     return persistedMessages
-      .filter((msg): msg is MessageType & { model: string } => Boolean((msg as MessageType).model))
+      .filter((msg): msg is MessageType & { model: string } =>
+        Boolean((msg as MessageType).model)
+      )
       .map((msg) => (msg as MessageType & { model: string }).model)
   }, [persistedMessages])
 
@@ -152,7 +154,9 @@ export function MultiChat() {
           userMessage: group.userMessage,
           responses: group.assistantMessages.map((msg, index) => {
             const model =
-              (msg as MessageType).model || selectedModelIds[index] || `model-${index}`
+              (msg as MessageType).model ||
+              selectedModelIds[index] ||
+              `model-${index}`
             const provider =
               models.find((m) => m.id === model)?.provider || "unknown"
 
