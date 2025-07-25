@@ -1,4 +1,5 @@
 import { Download, ExternalLink, MoreHorizontal, Trash2 } from "lucide-react"
+import Image from "next/image"
 
 import { formatDate } from "@/app/components/history/utils"
 import { Badge } from "@/components/ui/badge"
@@ -51,12 +52,15 @@ export function FileList({ files, onDelete, onDownload }: FileListProps) {
             >
               <div>
                 {isImage(file.file_type) ? (
-                  <img
-                    src={file.file_url}
-                    alt={file.file_name || "Uploaded file"}
-                    className="h-8 w-8 rounded object-cover"
-                    loading="lazy"
-                  />
+                  <div className="relative h-8 w-8">
+                    <Image
+                      src={file.file_url}
+                      alt={file.file_name || "Uploaded file"}
+                      fill
+                      className="rounded object-cover"
+                      sizes="32px"
+                    />
+                  </div>
                 ) : (
                   <FileIcon className="h-8 w-8 text-muted-foreground" />
                 )}

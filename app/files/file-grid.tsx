@@ -1,4 +1,5 @@
 import { Download, ExternalLink, MoreHorizontal, Trash2 } from "lucide-react"
+import Image from "next/image"
 
 import { formatDate } from "@/app/components/history/utils"
 import { Badge } from "@/components/ui/badge"
@@ -38,11 +39,12 @@ export function FileGrid({ files, onDelete, onDownload }: FileGridProps) {
               {/* File preview */}
               <div className="relative aspect-video overflow-hidden bg-muted">
                 {isImage(file.file_type) ? (
-                  <img
+                  <Image
                     src={file.file_url}
                     alt={file.file_name || "Uploaded file"}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (
                   <div className="flex h-full w-full items-center justify-center">

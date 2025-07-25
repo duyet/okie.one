@@ -32,7 +32,7 @@ export default async function FilesPage() {
   return (
     <MessagesProvider>
       <LayoutApp>
-        <div className="flex h-full flex-col">
+        <div className="flex h-full flex-col pt-app-header">
           <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex h-14 items-center px-4">
               <h1 className="font-semibold text-lg">Files</h1>
