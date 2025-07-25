@@ -65,7 +65,7 @@ export function MessageAssistant({
 }: MessageAssistantProps) {
   const { preferences } = useUserPreferences()
   const { openArtifact } = useArtifact()
-  // Use proper type guards for safe type checking  
+  // Use proper type guards for safe type checking
   const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
   const reasoningParts = parts?.find(isReasoningPart)
@@ -123,11 +123,21 @@ export function MessageAssistant({
         {toolInvocationParts &&
           toolInvocationParts.length > 0 &&
           preferences.showToolInvocations && (
-            <ToolInvocation toolInvocations={toolInvocationParts as ToolInvocationUIPart[]} />
+            <ToolInvocation
+              toolInvocations={toolInvocationParts as ToolInvocationUIPart[]}
+            />
           )}
 
         {searchImageResults.length > 0 && (
-          <SearchImages results={searchImageResults as Array<{title: string; imageUrl: string; sourceUrl: string}>} />
+          <SearchImages
+            results={
+              searchImageResults as Array<{
+                title: string
+                imageUrl: string
+                sourceUrl: string
+              }>
+            }
+          />
         )}
 
         {contentNullOrEmpty ? null : (
@@ -195,8 +205,16 @@ function renderContentWithArtifacts(
   // Create a map of artifact IDs to artifacts
   const artifactMap = new Map<string, NonNullable<ContentPart["artifact"]>>()
   artifactParts.forEach((part) => {
-    if (part.type === "artifact" && part.artifact && typeof part.artifact === 'object' && 'id' in part.artifact) {
-      artifactMap.set(part.artifact.id as string, part.artifact as NonNullable<ContentPart["artifact"]>)
+    if (
+      part.type === "artifact" &&
+      part.artifact &&
+      typeof part.artifact === "object" &&
+      "id" in part.artifact
+    ) {
+      artifactMap.set(
+        part.artifact.id as string,
+        part.artifact as NonNullable<ContentPart["artifact"]>
+      )
     }
   })
 
