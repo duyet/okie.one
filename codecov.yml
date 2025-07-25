@@ -26,6 +26,7 @@ ignore:
   - "**/*.d.ts"
   - ".next/"
   - "coverage/"
+  - ".vitest-cache/"
   - "playwright.config.ts"
   - "vitest.config.mts"
   - "tailwind.config.ts"

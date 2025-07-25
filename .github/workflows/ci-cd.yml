@@ -149,7 +149,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            node_modules/.vitest
+            .vitest-cache
             node_modules/.vite
             coverage
           key: vitest-${{ runner.os }}-${{ hashFiles('**/*.test.ts', '**/*.test.tsx', 'vitest.config.mts') }}
@@ -158,6 +158,8 @@ jobs:
 
       - name: Run tests with coverage
         run: pnpm test
+        env:
+          VITEST: true
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
