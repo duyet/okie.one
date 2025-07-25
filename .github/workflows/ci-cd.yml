@@ -13,8 +13,51 @@ env:
   NEXT_PUBLIC_VERCEL_URL: ${{ vars.NEXT_PUBLIC_VERCEL_URL }}
 
 jobs:
-  validate:
-    name: Lint and Test
+  setup:
+    name: Setup Dependencies
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
+    outputs:
+      cache-key: ${{ steps.deps-cache.outputs.key }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Generate dependency cache key
+        id: deps-cache
+        run: echo "key=deps-${{ hashFiles('**/pnpm-lock.yaml', '**/package.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ steps.deps-cache.outputs.key }}
+          restore-keys: |
+            deps-${{ hashFiles('**/pnpm-lock.yaml') }}
+            deps-
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: pnpm install --frozen-lockfile
+
+  lint-typescript:
+    name: Lint & TypeScript Check
+    needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -33,17 +76,87 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            deps-${{ hashFiles('**/pnpm-lock.yaml') }}
+            deps-
+          fail-on-cache-miss: true
+
+      - name: Cache ESLint
+        uses: actions/cache@v4
+        with:
+          path: .eslintcache
+          key: eslint-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx') }}
+          restore-keys: |
+            eslint-${{ runner.os }}-
+
+      - name: Cache TypeScript
+        uses: actions/cache@v4
+        with:
+          path: |
+            .tsbuildinfo
+            tsconfig.tsbuildinfo
+          key: typescript-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', 'tsconfig.json') }}
+          restore-keys: |
+            typescript-${{ runner.os }}-
 
       - name: Run Lint
-        run: pnpm run lint
+        run: pnpm run lint --cache
 
       - name: Run TypeScript checks
         run: pnpm run type-check
 
+  test:
+    name: Test
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            deps-${{ hashFiles('**/pnpm-lock.yaml') }}
+            deps-
+          fail-on-cache-miss: true
+
+      - name: Cache Jest
+        uses: actions/cache@v4
+        with:
+          path: |
+            .jest-cache
+            coverage
+          key: jest-${{ runner.os }}-${{ hashFiles('**/*.test.ts', '**/*.test.tsx', 'jest.config.js') }}
+          restore-keys: |
+            jest-${{ runner.os }}-
+
       - name: Run tests with coverage
-        run: pnpm test
+        run: pnpm test --cache --cacheDirectory=.jest-cache
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -75,14 +188,15 @@ jobs:
       #     CI: true
 
   build:
-    name: Build Application
-    needs: validate
+    name: Build App
+    needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [22]
     outputs:
       cache-key: ${{ steps.build-cache.outputs.key }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -96,33 +210,49 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
 
-      - name: Install dependencies
-        run: pnpm install
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            deps-${{ hashFiles('**/pnpm-lock.yaml') }}
+            deps-
+          fail-on-cache-miss: true
 
       - name: Generate ENCRYPTION_KEY for build
         run: echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
 
       - name: Generate build cache key
         id: build-cache
-        run: echo "key=build-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', 'package-lock.json') }}" >> $GITHUB_OUTPUT
+        run: echo "key=build-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/package.json', 'next.config.ts', 'tailwind.config.ts') }}" >> $GITHUB_OUTPUT
 
-      - name: Check build cache
-        id: check-build-cache
+      - name: Cache Next.js build
         uses: actions/cache@v4
         with:
-          path: .next
+          path: |
+            .next/cache
+            .next/standalone
+            .next/static
           key: ${{ steps.build-cache.outputs.key }}
+          restore-keys: |
+            build-${{ hashFiles('**/package.json') }}
+            build-
 
       - name: Build application
-        if: steps.check-build-cache.outputs.cache-hit != 'true'
         run: pnpm run build
 
-      - name: Cache build output
-        if: steps.check-build-cache.outputs.cache-hit != 'true'
+      - name: Cache SWC
         uses: actions/cache@v4
         with:
-          path: .next
-          key: ${{ steps.build-cache.outputs.key }}
+          path: |
+            ~/.swc
+            .swc
+          key: swc-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            swc-${{ runner.os }}-
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -135,10 +265,17 @@ jobs:
             package.json
             next.config.ts
 
+  validate:
+    name: Validation Complete
+    needs: [lint-typescript, test, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: All checks passed
+        run: echo "All validation jobs completed successfully"
+
   docker:
-    name: Build and Push Docker Image
-    needs: [validate, build]
-    if: github.event_name != 'pull_request'
+    name: Build Docker Image
+    needs: validate
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -157,6 +294,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Login to Container Registry
+        if: github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -170,6 +308,7 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
             type=ref,event=branch
+            type=ref,event=pr
             type=semver,pattern={{version}}
             type=sha,format=short
             type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
@@ -178,7 +317,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
