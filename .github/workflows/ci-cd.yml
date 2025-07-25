@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [20, 22]
     outputs:
       cache-key: ${{ steps.deps-cache.outputs.key }}
 
@@ -107,7 +107,7 @@ jobs:
             typescript-${{ runner.os }}-
 
       - name: Run Lint
-        run: pnpm run lint --cache
+        run: pnpm run lint
 
       - name: Run TypeScript checks
         run: pnpm run type-check
@@ -118,7 +118,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [20, 22]
 
     steps:
       - name: Checkout repository
@@ -167,25 +167,66 @@ jobs:
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
-      # Temporarily disabled - E2E tests disabled
-      # - name: Cache Playwright browsers
-      #   uses: actions/cache@v4
-      #   id: playwright-cache
-      #   with:
-      #     path: |
-      #       ~/.cache/ms-playwright
-      #     key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+  e2e:
+    name: E2E Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [22]
 
-      # - name: Install Playwright browsers
-      #   if: steps.playwright-cache.outputs.cache-hit != 'true'
-      #   run: npx playwright install --with-deps
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # Temporarily disabled - E2E tests timing out in CI  
-      # TODO: Re-enable after optimizing server startup time
-      # - name: Run E2E tests
-      #   run: pnpm test:e2e
-      #   env:
-      #     CI: true
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            deps-${{ hashFiles('**/pnpm-lock.yaml') }}
+            deps-
+          fail-on-cache-miss: true
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: Generate ENCRYPTION_KEY for tests
+        run: echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright Report
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
 
   build:
     name: Build App
@@ -193,7 +234,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [20, 22]
     outputs:
       cache-key: ${{ steps.build-cache.outputs.key }}
 
@@ -267,7 +308,7 @@ jobs:
 
   validate:
     name: Validation Complete
-    needs: [lint-typescript, test, build]
+    needs: [lint-typescript, test, e2e, build]
     runs-on: ubuntu-latest
     steps:
       - name: All checks passed

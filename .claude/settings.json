@@ -2,11 +2,15 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Edit|MultiEdit|Write",
+        "matcher": "Edit|MultiEdit|Write|Update",
         "hooks": [
           {
             "type": "command",
             "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.ts$'; then pnpm run fmt \"$file_path\"; fi; }"
+          },
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path' | { read file_path; if echo \"$file_path\" | grep -q '\\.(yml|yaml)$'; then npx yaml-lint \"$file_path\"; fi; }"
           }
         ]
       }
