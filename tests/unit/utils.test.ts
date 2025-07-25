@@ -132,7 +132,10 @@ describe("Lib Utils Integration", () => {
       const { debounce } = await import("@/lib/utils")
 
       const mockFn = vi.fn((a: string, b: number) => a + b)
-      const debouncedFn = debounce(mockFn, 50)
+      const debouncedFn = debounce(
+        mockFn as (...args: unknown[]) => unknown,
+        50
+      )
 
       debouncedFn("test", 123)
 
