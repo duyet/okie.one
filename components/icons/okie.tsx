@@ -9,7 +9,7 @@ export function OkieIcon(props: SVGProps<SVGSVGElement>) {
       height={24}
       viewBox="0 0 80 80"
       fill="none"
-      className="text-primary"
+      className="bg-primary text-primary"
       {...props}
     >
       <g clipPath="url(#okie)">
