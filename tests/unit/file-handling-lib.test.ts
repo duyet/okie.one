@@ -11,6 +11,20 @@ vi.mock("@/components/ui/toast", () => ({
 
 vi.mock("@/lib/config", () => ({
   DAILY_FILE_UPLOAD_LIMIT: 10,
+  MAX_FILES_PER_MESSAGE: 3,
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB
+  ALLOWED_FILE_TYPES: [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/svg+xml",
+    "image/heic",
+    "image/heif",
+    "application/pdf",
+    "text/plain",
+    "text/markdown",
+  ],
 }))
 
 vi.mock("@/lib/supabase/client", () => ({
@@ -19,6 +33,30 @@ vi.mock("@/lib/supabase/client", () => ({
 
 vi.mock("@/lib/supabase/config", () => ({
   isSupabaseEnabled: true,
+}))
+
+vi.mock("@/lib/models", () => ({
+  getModelInfo: vi.fn((modelId: string) => {
+    if (modelId === "gpt-4.1") {
+      return {
+        id: "gpt-4.1",
+        vision: true,
+        fileCapabilities: {
+          maxFiles: 10,
+          maxFileSize: 20 * 1024 * 1024,
+          supportedTypes: ["image/*", "text/*"],
+          features: ["image_analysis"],
+        },
+      }
+    }
+    if (modelId === "gpt-3.5-turbo") {
+      return {
+        id: "gpt-3.5-turbo",
+        vision: false,
+      }
+    }
+    return null
+  }),
 }))
 
 describe("File Handling Library", () => {
@@ -123,7 +161,7 @@ describe("File Handling Library", () => {
         { mime: "image/png", ext: "png", filename: "image.png" },
         { mime: "application/pdf", ext: "pdf", filename: "document.pdf" },
         { mime: "text/plain", ext: "txt", filename: "text.txt" },
-        { mime: "application/json", ext: "json", filename: "data.json" },
+        { mime: "text/markdown", ext: "md", filename: "document.md" },
       ]
 
       const { validateFile } = await import("@/lib/file-handling")

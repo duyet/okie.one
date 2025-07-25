@@ -17,7 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getModelInfo } from "@/lib/models"
+import { validateModelSupportsFiles, getModelFileCapabilities } from "@/lib/file-handling"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { cn } from "@/lib/utils"
 
@@ -40,7 +40,11 @@ export function ButtonFileUpload({
     return null
   }
 
-  const isFileUploadAvailable = getModelInfo(model)?.vision
+  const isFileUploadAvailable = validateModelSupportsFiles(model)
+  const fileCapabilities = getModelFileCapabilities(model)
+  
+  // Generate accept string from model capabilities
+  const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
 
   // Prevent hydration mismatches by showing a consistent initial state
   if (!isHydrated) {
@@ -116,7 +120,7 @@ export function ButtonFileUpload({
       onFilesAdded={onFileUpload}
       multiple
       disabled={!isUserAuthenticated}
-      accept=".txt,.md,image/jpeg,image/png,image/gif,image/webp,image/svg,image/heic,image/heif"
+      accept={acceptTypes}
     >
       <Tooltip>
         <TooltipTrigger asChild>

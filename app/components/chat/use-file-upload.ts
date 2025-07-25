@@ -5,9 +5,13 @@ import {
   type Attachment,
   checkFileUploadLimit,
   processFiles,
+  validateModelSupportsFiles,
+  getModelFileCapabilities,
+  validateFilesForModel,
 } from "@/lib/file-handling"
+import { MAX_FILES_PER_MESSAGE } from "@/lib/config"
 
-export const useFileUpload = () => {
+export const useFileUpload = (modelId?: string) => {
   const [files, setFiles] = useState<File[]>([])
 
   const handleFileUploads = async (
@@ -61,13 +65,47 @@ export const useFileUpload = () => {
     })
   }
 
-  const handleFileUpload = useCallback((newFiles: File[]) => {
-    setFiles((prev) => [...prev, ...newFiles])
-  }, [])
+  const handleFileUpload = useCallback(
+    (newFiles: File[]) => {
+      setFiles((prev) => {
+        // Check file count limit
+        const combined = [...prev, ...newFiles]
+        if (combined.length > MAX_FILES_PER_MESSAGE) {
+          toast({
+            title: `Maximum ${MAX_FILES_PER_MESSAGE} files allowed per message`,
+            status: "warning",
+          })
+          // Only take up to the limit
+          return combined.slice(0, MAX_FILES_PER_MESSAGE)
+        }
+
+        // If model is provided, validate files against model capabilities
+        if (modelId) {
+          const validation = validateFilesForModel(combined, modelId)
+          if (!validation.isValid) {
+            toast({
+              title: validation.error || "File validation failed",
+              status: "error",
+            })
+            return prev // Don't add invalid files
+          }
+        }
+
+        return combined
+      })
+    },
+    [modelId]
+  )
 
   const handleFileRemove = useCallback((file: File) => {
     setFiles((prev) => prev.filter((f) => f !== file))
   }, [])
+
+  const canAcceptFiles = modelId ? validateModelSupportsFiles(modelId) : true
+  const fileCapabilities = modelId ? getModelFileCapabilities(modelId) : null
+  const maxFiles = fileCapabilities?.maxFiles
+    ? Math.min(fileCapabilities.maxFiles, MAX_FILES_PER_MESSAGE)
+    : MAX_FILES_PER_MESSAGE
 
   return {
     files,
@@ -77,5 +115,8 @@ export const useFileUpload = () => {
     cleanupOptimisticAttachments,
     handleFileUpload,
     handleFileRemove,
+    canAcceptFiles,
+    fileCapabilities,
+    maxFiles,
   }
 }

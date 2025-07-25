@@ -2,7 +2,11 @@ import type { Attachment } from "@ai-sdk/ui-utils"
 import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
-import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import { SYSTEM_PROMPT_DEFAULT, MAX_FILES_PER_MESSAGE } from "@/lib/config"
+import {
+  validateModelSupportsFiles,
+  getModelFileCapabilities,
+} from "@/lib/file-handling"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
@@ -60,6 +64,37 @@ export async function POST(req: Request) {
     }
 
     const userMessage = messages[messages.length - 1]
+    const attachments =
+      (userMessage?.experimental_attachments as Attachment[]) || []
+
+    // Validate file attachments for the selected model
+    if (attachments.length > 0) {
+      // Check if model supports files
+      if (!validateModelSupportsFiles(model)) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "This model does not support file attachments. Please select a vision-enabled model like GPT-4, Claude, or Gemini.",
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        )
+      }
+
+      // Check file count limits
+      const capabilities = getModelFileCapabilities(model)
+      const maxFiles = capabilities?.maxFiles
+        ? Math.min(capabilities.maxFiles, MAX_FILES_PER_MESSAGE)
+        : MAX_FILES_PER_MESSAGE
+
+      if (attachments.length > maxFiles) {
+        return new Response(
+          JSON.stringify({
+            error: `This model supports maximum ${maxFiles} files per message. You have ${attachments.length} files.`,
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        )
+      }
+    }
 
     if (supabase && userMessage?.role === "user") {
       await logUserMessage({
@@ -67,7 +102,7 @@ export async function POST(req: Request) {
         userId,
         chatId,
         content: userMessage.content,
-        attachments: userMessage.experimental_attachments as Attachment[],
+        attachments: attachments,
         model,
         isAuthenticated,
         message_group_id,

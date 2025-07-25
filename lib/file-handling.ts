@@ -3,24 +3,15 @@ import * as fileType from "file-type"
 
 import { toast } from "@/components/ui/toast"
 
-import { DAILY_FILE_UPLOAD_LIMIT } from "./config"
+import {
+  DAILY_FILE_UPLOAD_LIMIT,
+  MAX_FILE_SIZE,
+  ALLOWED_FILE_TYPES,
+  MAX_FILES_PER_MESSAGE,
+} from "./config"
 import { createClient } from "./supabase/client"
 import { isSupabaseEnabled } from "./supabase/config"
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
-
-const ALLOWED_FILE_TYPES = [
-  "image/jpeg",
-  "image/png",
-  "image/gif",
-  "application/pdf",
-  "text/plain",
-  "text/markdown",
-  "application/json",
-  "text/csv",
-  "application/vnd.ms-excel",
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-]
+import { getModelInfo } from "./models"
 
 export type Attachment = {
   name: string
@@ -171,4 +162,92 @@ export async function checkFileUploadLimit(userId: string) {
   }
 
   return count
+}
+
+// Model capability validation helpers
+export function validateModelSupportsFiles(modelId: string): boolean {
+  const modelConfig = getModelInfo(modelId)
+  return (
+    modelConfig?.vision === true ||
+    (modelConfig?.fileCapabilities?.maxFiles ?? 0) > 0
+  )
+}
+
+export function getModelFileCapabilities(modelId: string) {
+  const modelConfig = getModelInfo(modelId)
+
+  if (!modelConfig) {
+    return null
+  }
+
+  // Use fileCapabilities if available, otherwise fall back to legacy vision field
+  if (modelConfig.fileCapabilities) {
+    return modelConfig.fileCapabilities
+  }
+
+  // Legacy support for models with vision but no fileCapabilities
+  if (modelConfig.vision) {
+    return {
+      maxFiles: 10, // Default for vision models
+      maxFileSize: MAX_FILE_SIZE,
+      supportedTypes: ["image/*", "text/*"],
+      features: ["image_analysis"],
+    }
+  }
+
+  return null
+}
+
+export function validateFilesForModel(
+  files: File[],
+  modelId: string
+): {
+  isValid: boolean
+  error?: string
+} {
+  const capabilities = getModelFileCapabilities(modelId)
+
+  if (!capabilities) {
+    return {
+      isValid: false,
+      error: "This model does not support file attachments",
+    }
+  }
+
+  // Check file count
+  if (files.length > Math.min(capabilities.maxFiles, MAX_FILES_PER_MESSAGE)) {
+    return {
+      isValid: false,
+      error: `Maximum ${MAX_FILES_PER_MESSAGE} files allowed per message`,
+    }
+  }
+
+  // Check file types and sizes
+  for (const file of files) {
+    // Check file size
+    if (file.size > capabilities.maxFileSize) {
+      return {
+        isValid: false,
+        error: `File "${file.name}" exceeds the ${capabilities.maxFileSize / (1024 * 1024)}MB size limit`,
+      }
+    }
+
+    // Check file type
+    const isTypeSupported = capabilities.supportedTypes.some((type) => {
+      if (type.endsWith("/*")) {
+        const category = type.replace("/*", "")
+        return file.type.startsWith(category + "/")
+      }
+      return file.type === type
+    })
+
+    if (!isTypeSupported) {
+      return {
+        isValid: false,
+        error: `File type "${file.type}" is not supported by this model`,
+      }
+    }
+  }
+
+  return { isValid: true }
 }

@@ -52,6 +52,12 @@ const openaiModels: ModelConfig[] = [
     icon: "openai",
     apiSdk: (apiKey?: string) =>
       openproviders("gpt-4-turbo", undefined, apiKey),
+    fileCapabilities: {
+      maxFiles: 10,
+      maxFileSize: 20 * 1024 * 1024, // 20MB
+      supportedTypes: ["image/*", "text/*"],
+      features: ["image_analysis", "document_reading", "chart_interpretation"],
+    },
   },
   {
     id: "gpt-4.1",
@@ -76,6 +82,12 @@ const openaiModels: ModelConfig[] = [
     modelPage: "https://platform.openai.com/docs/models/gpt-4.1",
     icon: "openai",
     apiSdk: (apiKey?: string) => openproviders("gpt-4.1", undefined, apiKey),
+    fileCapabilities: {
+      maxFiles: 10,
+      maxFileSize: 20 * 1024 * 1024, // 20MB
+      supportedTypes: ["image/*", "text/*"],
+      features: ["image_analysis", "document_reading", "chart_interpretation"],
+    },
   },
   {
     id: "gpt-4.1-mini",
@@ -101,6 +113,12 @@ const openaiModels: ModelConfig[] = [
     icon: "openai",
     apiSdk: (apiKey?: string) =>
       openproviders("gpt-4.1-mini", undefined, apiKey),
+    fileCapabilities: {
+      maxFiles: 10,
+      maxFileSize: 20 * 1024 * 1024, // 20MB
+      supportedTypes: ["image/*", "text/*"],
+      features: ["image_analysis", "document_reading"],
+    },
   },
   {
     id: "gpt-4.1-nano",
@@ -126,6 +144,12 @@ const openaiModels: ModelConfig[] = [
     icon: "openai",
     apiSdk: (apiKey?: string) =>
       openproviders("gpt-4.1-nano", undefined, apiKey),
+    fileCapabilities: {
+      maxFiles: 10,
+      maxFileSize: 20 * 1024 * 1024, // 20MB
+      supportedTypes: ["image/*", "text/*"],
+      features: ["image_analysis", "document_reading"],
+    },
   },
   {
     id: "gpt-4.5-preview",
@@ -151,6 +175,12 @@ const openaiModels: ModelConfig[] = [
     icon: "openai",
     apiSdk: (apiKey?: string) =>
       openproviders("gpt-4.5-preview", undefined, apiKey),
+    fileCapabilities: {
+      maxFiles: 10,
+      maxFileSize: 20 * 1024 * 1024, // 20MB
+      supportedTypes: ["image/*", "text/*", "audio/*"],
+      features: ["image_analysis", "document_reading", "audio_transcription"],
+    },
   },
   {
     id: "gpt-4o",
@@ -175,6 +205,17 @@ const openaiModels: ModelConfig[] = [
     modelPage: "https://platform.openai.com/docs/models/gpt-4o",
     icon: "openai",
     apiSdk: (apiKey?: string) => openproviders("gpt-4o", undefined, apiKey),
+    fileCapabilities: {
+      maxFiles: 10,
+      maxFileSize: 25 * 1024 * 1024, // 25MB
+      supportedTypes: ["image/*", "text/*", "audio/*"],
+      features: [
+        "image_analysis",
+        "document_reading",
+        "audio_transcription",
+        "multimodal",
+      ],
+    },
   },
   {
     id: "gpt-4o-mini",
@@ -200,6 +241,12 @@ const openaiModels: ModelConfig[] = [
     icon: "openai",
     apiSdk: (apiKey?: string) =>
       openproviders("gpt-4o-mini", undefined, apiKey),
+    fileCapabilities: {
+      maxFiles: 10,
+      maxFileSize: 25 * 1024 * 1024, // 25MB
+      supportedTypes: ["image/*", "text/*", "audio/*"],
+      features: ["image_analysis", "document_reading", "audio_transcription"],
+    },
   },
   {
     id: "o1",

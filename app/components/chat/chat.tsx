@@ -54,6 +54,14 @@ function ChatInner() {
   const { preferences } = useUserPreferences()
   const { draftValue, clearDraft } = useChatDraft(chatId)
 
+  // Model selection
+  const { selectedModel, handleModelChange } = useModel({
+    currentChat: currentChat || null,
+    user,
+    updateChatModel,
+    chatId,
+  })
+
   // File upload functionality
   const {
     files,
@@ -63,15 +71,7 @@ function ChatInner() {
     cleanupOptimisticAttachments,
     handleFileUpload,
     handleFileRemove,
-  } = useFileUpload()
-
-  // Model selection
-  const { selectedModel, handleModelChange } = useModel({
-    currentChat: currentChat || null,
-    user,
-    updateChatModel,
-    chatId,
-  })
+  } = useFileUpload(selectedModel)
 
   // State to pass between hooks
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
