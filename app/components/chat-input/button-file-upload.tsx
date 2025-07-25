@@ -39,6 +39,17 @@ export function ButtonFileUpload({
   const isHydrated = useHydrationSafe()
   const isFileUploadAvailable = validateModelSupportsFiles(model)
   const fileCapabilities = getModelFileCapabilities(model)
+  
+  // Debug logging (remove in production)
+  if (typeof window !== "undefined" && model === "gpt-4.1-mini") {
+    console.log("Debug - ButtonFileUpload:", {
+      model,
+      isFileUploadAvailable,
+      fileCapabilities,
+      isSupabaseEnabled: isSupabaseEnabled,
+      isUserAuthenticated,
+    })
+  }
 
   // Generate accept string from model capabilities
   const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
@@ -72,28 +83,37 @@ export function ButtonFileUpload({
   // Determine the popover content based on state
   let popoverContent: React.ReactNode = null
   let isDisabled = false
+  let tooltipText = "Add files"
 
   if (!isSupabaseEnabled) {
     popoverContent = (
       <div className="text-secondary-foreground text-sm">
-        File uploads require database configuration.
-        <br />
-        Please configure Supabase to enable file uploads.
+        <div className="font-medium mb-1">File uploads are disabled</div>
+        <div className="text-xs">
+          File storage requires Supabase configuration.
+          <br />
+          Set NEXT_PUBLIC_SUPABASE_URL and other
+          <br />
+          environment variables to enable uploads.
+        </div>
       </div>
     )
     isDisabled = true
+    tooltipText = "File uploads disabled - Database not configured"
   } else if (!isFileUploadAvailable) {
     popoverContent = (
       <div className="text-secondary-foreground text-sm">
-        This model does not support file uploads.
+        This model ({model}) does not support file uploads.
         <br />
-        Please select another model.
+        Please select another model with vision capabilities.
       </div>
     )
     isDisabled = true
+    tooltipText = `File uploads not supported by ${model}`
   } else if (!isUserAuthenticated) {
     popoverContent = <PopoverContentAuth />
     isDisabled = false
+    tooltipText = "Sign in to upload files"
   }
 
   // If we need a popover (disabled states or auth required)
@@ -106,7 +126,7 @@ export function ButtonFileUpload({
               <FileUploadButton disabled={isDisabled} />
             </PopoverTrigger>
           </TooltipTrigger>
-          <TooltipContent>Add files</TooltipContent>
+          <TooltipContent>{tooltipText}</TooltipContent>
         </Tooltip>
         <PopoverContent className="p-2">
           {popoverContent}
