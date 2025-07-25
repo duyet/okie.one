@@ -6,6 +6,7 @@ import type { Message as MessageTypeBase } from "@ai-sdk/react"
 type MessageType = MessageTypeBase & {
   model?: string
 }
+
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useMemo, useState } from "react"
 

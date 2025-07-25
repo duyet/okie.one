@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid"
+
 import type { ContentPart } from "@/app/types/api.types"
 
 export interface ArtifactCandidate {
@@ -91,11 +92,11 @@ function extractArtifactCandidates(text: string): ArtifactCandidate[] {
   // Extract large structured text (potential documents)
   // Look for documents that start with a main heading and contain substantial markdown content
   const documentRegex = /^#+\s+[^\n]+[\s\S]*$/m
-  match = documentRegex.exec(text)
-  if (match && !isInsideCodeBlock(text, match.index)) {
-    const content = match[0].trim()
-    const startIndex = match.index
-    const endIndex = match.index + match[0].length
+  const documentMatch = documentRegex.exec(text)
+  if (documentMatch && !isInsideCodeBlock(text, documentMatch.index)) {
+    const content = documentMatch[0].trim()
+    const startIndex = documentMatch.index
+    const endIndex = documentMatch.index + documentMatch[0].length
 
     // Check if it's long enough and has structure (multiple headings)
     const headingCount = (content.match(/^#+\s+/gm) || []).length
@@ -121,9 +122,10 @@ function extractArtifactCandidates(text: string): ArtifactCandidate[] {
  */
 function shouldCreateArtifact(candidate: ArtifactCandidate): boolean {
   switch (candidate.type) {
-    case "code":
+    case "code": {
       const lines = candidate.content.split("\n").length
       return lines >= ARTIFACT_CONFIG.MIN_CODE_LINES
+    }
 
     case "document":
       return candidate.content.length >= ARTIFACT_CONFIG.MIN_DOCUMENT_CHARS

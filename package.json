@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "biome lint",
     "type-check": "tsc --noEmit",
-    "fmt": "biome format --write . && biome check --write .",
+    "fmt": "biome format --write",
+    "check": "biome check --write",
     "test": "vitest run --coverage",
     "test:e2e": "playwright test"
   },

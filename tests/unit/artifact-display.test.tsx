@@ -1,8 +1,10 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach } from "vitest"
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+
+import { fireEvent, render, screen, waitFor, cleanup } from "@testing-library/react"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+
 import { ArtifactDisplay } from "@/app/components/chat/artifact-display"
 import type { ContentPart } from "@/app/types/api.types"
 
@@ -44,6 +46,13 @@ describe("ArtifactDisplay", () => {
   }
 
   beforeEach(() => {
+    // Ensure clean DOM for each test
+    document.body.innerHTML = ''
+    
+    // Add a div for React to render into
+    const container = document.createElement('div')
+    container.id = 'test-container'
+    document.body.appendChild(container)
     // Mock clipboard API
     mockClipboard = {
       writeText: vi.fn().mockResolvedValue(undefined),
@@ -73,6 +82,16 @@ describe("ArtifactDisplay", () => {
 
     document.body.appendChild = vi.fn()
     document.body.removeChild = vi.fn()
+  })
+
+  afterEach(() => {
+    cleanup()
+    vi.clearAllMocks()
+    // Clean up container
+    const container = document.getElementById('test-container')
+    if (container) {
+      document.body.removeChild(container)
+    }
   })
 
   const createMockArtifact = (

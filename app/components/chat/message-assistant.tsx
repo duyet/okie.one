@@ -1,11 +1,3 @@
-import type { Message as MessageAISDK } from "@ai-sdk/react"
-import type { ContentPart } from "@/app/types/api.types"
-import {
-  isArtifactPart,
-  isToolInvocationPart,
-  isReasoningPart,
-  type MessagePart,
-} from "@/lib/type-guards/message-parts"
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 
 import {
@@ -14,15 +6,21 @@ import {
   MessageActions,
   MessageContent,
 } from "@/components/prompt-kit/message"
+import {
+  isArtifactPart,
+  isReasoningPart,
+  isToolInvocationPart,
+  type MessagePart,
+} from "@/lib/type-guards/message-parts"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
 
+import { ArtifactDisplay } from "./artifact-display"
 import { getSources } from "./get-sources"
 import { Reasoning } from "./reasoning"
 import { SearchImages } from "./search-images"
 import { SourcesList } from "./sources-list"
 import { ToolInvocation } from "./tool-invocation"
-import { ArtifactDisplay } from "./artifact-display"
 
 type MessageAssistantProps = {
   children: string
@@ -58,20 +56,25 @@ export function MessageAssistant({
   const searchImageResults =
     parts
       ?.filter(
-        (part) =>
-          part.type === "tool-invocation" &&
-          part.toolInvocation?.state === "result" &&
-          part.toolInvocation?.toolName === "imageSearch" &&
-          part.toolInvocation?.result?.content?.[0]?.type === "images"
+        (part) => {
+          if (part.type !== "tool-invocation" || !part.toolInvocation) return false
+          const ti = part.toolInvocation as any
+          return (
+            ti.state === "result" &&
+            ti.toolName === "imageSearch" &&
+            ti.result?.content?.[0]?.type === "images"
+          )
+        }
       )
-      .flatMap((part) =>
-        part.type === "tool-invocation" &&
-        part.toolInvocation?.state === "result" &&
-        part.toolInvocation?.toolName === "imageSearch" &&
-        part.toolInvocation?.result?.content?.[0]?.type === "images"
-          ? (part.toolInvocation?.result?.content?.[0]?.results ?? [])
+      .flatMap((part) => {
+        if (part.type !== "tool-invocation" || !part.toolInvocation) return []
+        const ti = part.toolInvocation as any
+        return ti.state === "result" &&
+          ti.toolName === "imageSearch" &&
+          ti.result?.content?.[0]?.type === "images"
+          ? (ti.result?.content?.[0]?.results ?? [])
           : []
-      ) ?? []
+      }) ?? []
 
   return (
     <Message

@@ -1,17 +1,19 @@
 "use client"
 
-import { useState } from "react"
 import {
+  ArrowSquareOut,
   CaretDown,
   CaretUp,
   Copy,
-  Download,
-  ArrowSquareOut,
   DotsThreeIcon,
+  Download,
 } from "@phosphor-icons/react"
+import { useState } from "react"
 import ReactMarkdown from "react-markdown"
 import rehypeSanitize from "rehype-sanitize"
 
+import type { ContentPart } from "@/app/types/api.types"
+import { CodeBlock, CodeBlockCode } from "@/components/prompt-kit/code-block"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -27,9 +29,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-
-import { CodeBlock, CodeBlockCode } from "@/components/prompt-kit/code-block"
-import type { ContentPart } from "@/app/types/api.types"
 
 interface ArtifactDisplayProps {
   artifact: NonNullable<ContentPart["artifact"]>

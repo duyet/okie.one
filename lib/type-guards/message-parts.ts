@@ -8,8 +8,8 @@ export interface ToolInvocationPart {
     step?: number
     toolCallId?: string
     toolName?: string
-    args?: any
-    result?: any
+    args?: Record<string, unknown>
+    result?: unknown
   }
 }
 
@@ -20,7 +20,11 @@ export interface ReasoningPart {
 
 export interface SourcePart {
   type: "source"
-  source: any
+  source: {
+    url?: string
+    title?: string
+    [key: string]: unknown
+  }
 }
 
 // Union type for all possible part types
@@ -30,9 +34,9 @@ export type MessagePart =
   | ReasoningPart
   | SourcePart
   | { type: "text"; text?: string }
-  | { type: "file"; [key: string]: any }
-  | { type: "step-start"; [key: string]: any }
-  | any // Allow any type to handle AI SDK compatibility
+  | { type: "file"; [key: string]: unknown }
+  | { type: "step-start"; [key: string]: unknown }
+  | { type: string; [key: string]: unknown } // Allow any type to handle AI SDK compatibility
 
 // Type guards
 export function isArtifactPart(part: MessagePart): part is ContentPart {
@@ -55,6 +59,6 @@ export function isSourcePart(part: MessagePart): part is SourcePart {
 
 export function hasToolInvocation(
   part: MessagePart
-): part is MessagePart & { toolInvocation: any } {
+): part is MessagePart & { toolInvocation: Record<string, unknown> } {
   return "toolInvocation" in part && part.toolInvocation != null
 }

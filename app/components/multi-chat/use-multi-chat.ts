@@ -1,12 +1,12 @@
 // todo: fix this
 /* eslint-disable-next-line react-hooks/rules-of-hooks */
 
-import type {
-  Message,
-  CreateMessage,
-  ChatRequestOptions,
-} from "@ai-sdk/ui-utils"
 import { useChat } from "@ai-sdk/react"
+import type {
+  ChatRequestOptions,
+  CreateMessage,
+  Message,
+} from "@ai-sdk/ui-utils"
 import { useMemo } from "react"
 
 import { toast } from "@/components/ui/toast"
@@ -78,8 +78,6 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
   }, [
     models,
     ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading]),
-    // Commenting out problematic dependency that doesn't exist
-    // chatHooks[index],
   ])
 
   return activeChatInstances

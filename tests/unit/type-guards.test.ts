@@ -1,13 +1,14 @@
-import { describe, it, expect } from "vitest"
+import { describe, expect, it } from "vitest"
+
+import type { ContentPart } from "@/app/types/api.types"
 import {
+  hasToolInvocation,
   isArtifactPart,
-  isToolInvocationPart,
   isReasoningPart,
   isSourcePart,
-  hasToolInvocation,
+  isToolInvocationPart,
   type MessagePart,
 } from "@/lib/type-guards/message-parts"
-import type { ContentPart } from "@/app/types/api.types"
 
 describe("Message Part Type Guards", () => {
   describe("isArtifactPart", () => {
@@ -38,15 +39,15 @@ describe("Message Part Type Guards", () => {
 
     it("should return false for artifact parts with null artifact", () => {
       const invalidArtifactPart = {
-        type: "artifact",
+        type: "artifact" as const,
         artifact: null,
-      } as any
+      }
       expect(isArtifactPart(invalidArtifactPart)).toBe(false)
     })
 
     it("should return false for artifact parts without artifact property", () => {
       const invalidArtifactPart = {
-        type: "artifact",
+        type: "artifact" as const,
       }
       expect(isArtifactPart(invalidArtifactPart)).toBe(false)
     })
@@ -92,7 +93,7 @@ describe("Message Part Type Guards", () => {
 
     it("should return false for reasoning parts without reasoning property", () => {
       const invalidReasoningPart = {
-        type: "reasoning",
+        type: "reasoning" as const,
       }
       expect(isReasoningPart(invalidReasoningPart)).toBe(false)
     })
@@ -136,9 +137,9 @@ describe("Message Part Type Guards", () => {
 
     it("should return false for parts with null toolInvocation", () => {
       const partWithNullTool = {
-        type: "tool-invocation",
+        type: "tool-invocation" as const,
         toolInvocation: null,
-      } as any
+      }
       expect(hasToolInvocation(partWithNullTool)).toBe(false)
     })
   })

@@ -132,7 +132,7 @@ describe("Encryption Library", () => {
       const key = "sk-1234567890abcdef1234567890abcdef"
       const masked = maskKey(key)
 
-      expect(masked).toBe("sk-1" + "*".repeat(27) + "cdef")
+      expect(masked).toBe(`sk-1${"*".repeat(27)}cdef`)
       expect(masked.length).toBe(key.length)
       expect(masked.startsWith("sk-1")).toBe(true)
       expect(masked.endsWith("cdef")).toBe(true)

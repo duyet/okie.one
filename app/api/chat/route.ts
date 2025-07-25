@@ -1,6 +1,7 @@
 import type { Attachment } from "@ai-sdk/ui-utils"
 import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
 
+import { parseArtifacts } from "@/lib/artifacts/parser"
 import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
@@ -12,7 +13,6 @@ import {
   storeAssistantMessage,
   validateAndTrackUsage,
 } from "./api"
-import { parseArtifacts } from "@/lib/artifacts/parser"
 import { createErrorResponse, extractErrorMessage } from "./utils"
 
 export const maxDuration = 60
