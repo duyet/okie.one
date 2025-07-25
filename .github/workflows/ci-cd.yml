@@ -319,19 +319,10 @@ jobs:
             package.json
             next.config.ts
 
-  validate:
-    name: Validation Complete
-    needs: [lint-typescript, test, e2e, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - name: All checks passed
-        run: echo "All validation jobs completed successfully"
 
   docker:
     name: Build Docker Image
-    needs: validate
+    needs: setup
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -339,12 +330,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: build-output-node22
-          path: .
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
