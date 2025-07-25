@@ -2,11 +2,11 @@
 
 import {
   ChatTeardropText,
+  Folder,
   GithubLogo,
   MagnifyingGlass,
   NotePencilIcon,
   X,
-  Folder,
 } from "@phosphor-icons/react"
 import { useParams, useRouter } from "next/navigation"
 import { useMemo } from "react"

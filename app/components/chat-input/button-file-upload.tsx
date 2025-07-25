@@ -17,9 +17,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { validateModelSupportsFiles, getModelFileCapabilities } from "@/lib/file-handling"
+import {
+  getModelFileCapabilities,
+  validateModelSupportsFiles,
+} from "@/lib/file-handling"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { cn } from "@/lib/utils"
 
 import { PopoverContentAuth } from "./popover-content-auth"
 
@@ -35,86 +37,85 @@ export function ButtonFileUpload({
   model,
 }: ButtonFileUploadProps) {
   const isHydrated = useHydrationSafe()
-
-  if (!isSupabaseEnabled) {
-    return null
-  }
-
   const isFileUploadAvailable = validateModelSupportsFiles(model)
   const fileCapabilities = getModelFileCapabilities(model)
-  
+
   // Generate accept string from model capabilities
   const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
+
+  // Common button component to ensure consistent structure
+  const FileUploadButton = ({ disabled = false }: { disabled?: boolean }) => (
+    <Button
+      size="sm"
+      variant="secondary"
+      className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
+      type="button"
+      disabled={disabled}
+      aria-label="Add files"
+    >
+      <Paperclip className="size-4" />
+    </Button>
+  )
 
   // Prevent hydration mismatches by showing a consistent initial state
   if (!isHydrated) {
     return (
-      <Button
-        size="sm"
-        variant="secondary"
-        className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
-        type="button"
-        disabled
-      >
-        <Paperclip className="size-4" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <FileUploadButton disabled />
+        </TooltipTrigger>
+        <TooltipContent>Add files</TooltipContent>
+      </Tooltip>
     )
   }
 
-  if (!isFileUploadAvailable) {
+  // Determine the popover content based on state
+  let popoverContent: React.ReactNode = null
+  let isDisabled = false
+
+  if (!isSupabaseEnabled) {
+    popoverContent = (
+      <div className="text-secondary-foreground text-sm">
+        File uploads require database configuration.
+        <br />
+        Please configure Supabase to enable file uploads.
+      </div>
+    )
+    isDisabled = true
+  } else if (!isFileUploadAvailable) {
+    popoverContent = (
+      <div className="text-secondary-foreground text-sm">
+        This model does not support file uploads.
+        <br />
+        Please select another model.
+      </div>
+    )
+    isDisabled = true
+  } else if (!isUserAuthenticated) {
+    popoverContent = <PopoverContentAuth />
+    isDisabled = false
+  }
+
+  // If we need a popover (disabled states or auth required)
+  if (popoverContent) {
     return (
       <Popover>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
-                type="button"
-                aria-label="Add files"
-              >
-                <Paperclip className="size-4" />
-              </Button>
+              <FileUploadButton disabled={isDisabled} />
             </PopoverTrigger>
           </TooltipTrigger>
           <TooltipContent>Add files</TooltipContent>
         </Tooltip>
         <PopoverContent className="p-2">
-          <div className="text-secondary-foreground text-sm">
-            This model does not support file uploads.
-            <br />
-            Please select another model.
-          </div>
+          {popoverContent}
         </PopoverContent>
       </Popover>
     )
   }
 
-  if (!isUserAuthenticated) {
-    return (
-      <Popover>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
-                type="button"
-                aria-label="Add files"
-              >
-                <Paperclip className="size-4" />
-              </Button>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          <TooltipContent>Add files</TooltipContent>
-        </Tooltip>
-        <PopoverContentAuth />
-      </Popover>
-    )
-  }
-
+  // Fully functional file upload for authenticated users with supported models
   return (
     <FileUpload
       onFilesAdded={onFileUpload}
@@ -125,19 +126,7 @@ export function ButtonFileUpload({
       <Tooltip>
         <TooltipTrigger asChild>
           <FileUploadTrigger asChild>
-            <Button
-              size="sm"
-              variant="secondary"
-              className={cn(
-                "size-9 rounded-full border border-border bg-transparent dark:bg-secondary",
-                !isUserAuthenticated && "opacity-50"
-              )}
-              type="button"
-              disabled={!isUserAuthenticated}
-              aria-label="Add files"
-            >
-              <Paperclip className="size-4" />
-            </Button>
+            <FileUploadButton />
           </FileUploadTrigger>
         </TooltipTrigger>
         <TooltipContent>Add files</TooltipContent>

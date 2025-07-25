@@ -2,10 +2,10 @@ import type { Attachment } from "@ai-sdk/ui-utils"
 import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
-import { SYSTEM_PROMPT_DEFAULT, MAX_FILES_PER_MESSAGE } from "@/lib/config"
+import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import {
-  validateModelSupportsFiles,
   getModelFileCapabilities,
+  validateModelSupportsFiles,
 } from "@/lib/file-handling"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"

@@ -1,26 +1,21 @@
 "use client"
 
-import React, { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
-import {
-  Search,
-  Grid,
-  List,
-  FolderOpen,
-} from "lucide-react"
+import { FolderOpen, Grid, List, Search } from "lucide-react"
+import React, { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { toast } from "@/components/ui/toast"
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { toast } from "@/components/ui/toast"
 
-import { getUserFiles, deleteUserFile, downloadFile } from "./api"
+import { deleteUserFile, downloadFile, getUserFiles } from "./api"
 import { EmptyState } from "./empty-state"
 import { FileGrid } from "./file-grid"
 import { FileList } from "./file-list"
@@ -63,7 +58,8 @@ export function FilesView({ userId }: FilesViewProps) {
     } catch (error) {
       toast({
         title: "Failed to delete file",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         status: "error",
       })
     }
@@ -80,7 +76,8 @@ export function FilesView({ userId }: FilesViewProps) {
     } catch (error) {
       toast({
         title: "Download failed",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description:
+          error instanceof Error ? error.message : "An error occurred",
         status: "error",
       })
     }
@@ -107,11 +104,13 @@ export function FilesView({ userId }: FilesViewProps) {
     return (
       <div className="flex h-full items-center justify-center">
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-destructive">
+          <h2 className="font-semibold text-destructive text-lg">
             Error loading files
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {error instanceof Error ? error.message : "Failed to load your files"}
+          <p className="mt-2 text-muted-foreground text-sm">
+            {error instanceof Error
+              ? error.message
+              : "Failed to load your files"}
           </p>
           <Button onClick={() => refetch()} variant="outline" className="mt-4">
             Try again
@@ -124,7 +123,7 @@ export function FilesView({ userId }: FilesViewProps) {
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-primary border-b-2"></div>
       </div>
     )
   }
@@ -136,15 +135,15 @@ export function FilesView({ userId }: FilesViewProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Header with stats */}
-      <div className="p-4 border-b">
+      <div className="border-b p-4">
         <FileStats files={files} />
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-between gap-4 p-4 border-b">
-        <div className="flex items-center gap-2 flex-1">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+      <div className="flex items-center justify-between gap-4 border-b p-4">
+        <div className="flex flex-1 items-center gap-2">
+          <div className="relative max-w-sm flex-1">
+            <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search files and chats..."
               value={searchQuery}
@@ -152,7 +151,10 @@ export function FilesView({ userId }: FilesViewProps) {
               className="pl-9"
             />
           </div>
-          <Select value={filterBy} onValueChange={(value: FilterBy) => setFilterBy(value)}>
+          <Select
+            value={filterBy}
+            onValueChange={(value: FilterBy) => setFilterBy(value)}
+          >
             <SelectTrigger className="w-36">
               <SelectValue />
             </SelectTrigger>
@@ -163,7 +165,10 @@ export function FilesView({ userId }: FilesViewProps) {
               <SelectItem value="text">Text files</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={sortBy} onValueChange={(value: SortBy) => setSortBy(value)}>
+          <Select
+            value={sortBy}
+            onValueChange={(value: SortBy) => setSortBy(value)}
+          >
             <SelectTrigger className="w-32">
               <SelectValue />
             </SelectTrigger>
@@ -200,8 +205,8 @@ export function FilesView({ userId }: FilesViewProps) {
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
               <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-4 text-lg font-semibold">No files found</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
+              <h3 className="mt-4 font-semibold text-lg">No files found</h3>
+              <p className="mt-2 text-muted-foreground text-sm">
                 {searchQuery
                   ? `No files match "${searchQuery}"`
                   : "No files match the selected filter"}

@@ -4,14 +4,14 @@ import * as fileType from "file-type"
 import { toast } from "@/components/ui/toast"
 
 import {
+  ALLOWED_FILE_TYPES,
   DAILY_FILE_UPLOAD_LIMIT,
   MAX_FILE_SIZE,
-  ALLOWED_FILE_TYPES,
   MAX_FILES_PER_MESSAGE,
 } from "./config"
+import { getModelInfo } from "./models"
 import { createClient } from "./supabase/client"
 import { isSupabaseEnabled } from "./supabase/config"
-import { getModelInfo } from "./models"
 
 export type Attachment = {
   name: string
@@ -236,7 +236,7 @@ export function validateFilesForModel(
     const isTypeSupported = capabilities.supportedTypes.some((type) => {
       if (type.endsWith("/*")) {
         const category = type.replace("/*", "")
-        return file.type.startsWith(category + "/")
+        return file.type.startsWith(`${category}/`)
       }
       return file.type === type
     })

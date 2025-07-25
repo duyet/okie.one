@@ -4,7 +4,7 @@ import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   plugins: [tsconfigPaths(), react()],
-  cacheDir: process.env.VITEST ? '.vitest-cache' : undefined,
+  cacheDir: process.env.VITEST ? ".vitest-cache" : undefined,
   test: {
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],

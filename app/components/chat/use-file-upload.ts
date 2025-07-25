@@ -1,15 +1,15 @@
 import { useCallback, useState } from "react"
 
 import { toast } from "@/components/ui/toast"
+import { MAX_FILES_PER_MESSAGE } from "@/lib/config"
 import {
   type Attachment,
   checkFileUploadLimit,
-  processFiles,
-  validateModelSupportsFiles,
   getModelFileCapabilities,
+  processFiles,
   validateFilesForModel,
+  validateModelSupportsFiles,
 } from "@/lib/file-handling"
-import { MAX_FILES_PER_MESSAGE } from "@/lib/config"
 
 export const useFileUpload = (modelId?: string) => {
   const [files, setFiles] = useState<File[]>([])
