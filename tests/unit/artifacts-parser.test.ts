@@ -92,6 +92,43 @@ This is just a small example.
       expect(artifacts).toHaveLength(0)
     })
 
+    it("should create artifacts for code blocks with 15+ lines", () => {
+      const responseText = `
+Here's a React component:
+
+\`\`\`jsx
+import React from 'react'
+
+function TodoItem({ task, onToggle, onDelete }) {
+  return (
+    <div className="todo-item">
+      <input 
+        type="checkbox"
+        checked={task.completed}
+        onChange={() => onToggle(task.id)}
+      />
+      <span className={task.completed ? 'completed' : ''}>
+        {task.text}
+      </span>
+      <button onClick={() => onDelete(task.id)}>
+        Delete
+      </button>
+    </div>
+  )
+}
+
+export default TodoItem
+\`\`\`
+
+This component handles todo items.
+      `
+
+      const artifacts = parseArtifacts(responseText)
+      expect(artifacts).toHaveLength(1)
+      expect(artifacts[0].artifact?.type).toBe("code")
+      expect(artifacts[0].artifact?.language).toBe("jsx")
+    })
+
     it("should parse HTML documents", () => {
       const responseText = `
 Here's a complete HTML page:
@@ -128,6 +165,43 @@ This creates a simple landing page with styling and interactivity.
           id: "art_mocked-uuid-1234",
           type: "html",
           title: "Landing Page",
+          content: expect.stringContaining("<!DOCTYPE html>"),
+          language: undefined,
+          metadata: {
+            size: expect.any(Number),
+            created: expect.any(String),
+          },
+        },
+      })
+    })
+
+    it("should create artifacts for shorter HTML documents (100+ chars)", () => {
+      const responseText = `
+Here's a simple HTML page:
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Page</title>
+</head>
+<body>
+    <h1>Hello World</h1>
+    <p>This is a basic page.</p>
+</body>
+</html>
+
+This creates a minimal webpage.
+      `
+
+      const artifacts = parseArtifacts(responseText)
+
+      expect(artifacts).toHaveLength(1)
+      expect(artifacts[0]).toEqual({
+        type: "artifact",
+        artifact: {
+          id: "art_mocked-uuid-1234",
+          type: "html",
+          title: "Simple Page",
           content: expect.stringContaining("<!DOCTYPE html>"),
           language: undefined,
           metadata: {

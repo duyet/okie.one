@@ -13,9 +13,9 @@ export interface ArtifactCandidate {
 
 // Configuration for artifact detection
 const ARTIFACT_CONFIG = {
-  MIN_CODE_LINES: 20,
+  MIN_CODE_LINES: 15,  // Reduced from 20 to show artifacts more frequently
   MIN_DOCUMENT_CHARS: 1000,
-  MIN_HTML_CHARS: 200,
+  MIN_HTML_CHARS: 100,  // Reduced from 200 as requested
   MAX_TITLE_LENGTH: 60,
 } as const
 
