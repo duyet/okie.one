@@ -24,6 +24,12 @@ export default defineConfig({
     trace: "on-first-retry",
   },
 
+  /* Global timeout configuration */
+  timeout: 30 * 1000, // 30 seconds per test
+  expect: {
+    timeout: 10 * 1000, // 10 seconds for expect assertions
+  },
+
   /* Configure projects for major browsers */
   projects: [
     {
@@ -67,5 +73,8 @@ export default defineConfig({
     command: process.env.CI ? "pnpm build && pnpm start" : "pnpm dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000, // 120 seconds timeout for CI builds
+    stdout: "pipe",
+    stderr: "pipe",
   },
 })
