@@ -24,8 +24,16 @@ export const mockComponents = {
   Badge: ({ children }: { children: React.ReactNode }) => (
     <span data-testid="badge">{children}</span>
   ),
-  Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <button onClick={onClick} data-testid="button">{children}</button>
+  Button: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode
+    onClick?: () => void
+  }) => (
+    <button onClick={onClick} data-testid="button" type="button">
+      {children}
+    </button>
   ),
 
   // Dropdown components
@@ -35,8 +43,16 @@ export const mockComponents = {
   DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dropdown-content">{children}</div>
   ),
-  DropdownMenuItem: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <div onClick={onClick} data-testid="dropdown-item">{children}</div>
+  DropdownMenuItem: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode
+    onClick?: () => void
+  }) => (
+    <div onClick={onClick} data-testid="dropdown-item">
+      {children}
+    </div>
   ),
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dropdown-trigger">{children}</div>
@@ -59,7 +75,9 @@ export const mockComponents = {
 
 // Icon Mocks
 export const mockIcons = {
-  ArrowSquareOut: () => <span data-testid="icon-arrow-square-out">ArrowSquareOut</span>,
+  ArrowSquareOut: () => (
+    <span data-testid="icon-arrow-square-out">ArrowSquareOut</span>
+  ),
   CaretDown: () => <span data-testid="icon-caret-down">CaretDown</span>,
   CaretUp: () => <span data-testid="icon-caret-up">CaretUp</span>,
   Copy: () => <span data-testid="icon-copy">Copy</span>,

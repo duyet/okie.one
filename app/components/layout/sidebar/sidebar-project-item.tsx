@@ -181,6 +181,18 @@ export function SidebarProjectItem({ project }: SidebarProjectItemProps) {
     [isEditing]
   )
 
+  const handleContainerKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        if (isEditing) {
+          e.stopPropagation()
+        }
+      }
+    },
+    [isEditing]
+  )
+
   const handleSaveClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -234,6 +246,9 @@ export function SidebarProjectItem({ project }: SidebarProjectItemProps) {
     <div
       className={containerClassName}
       onClick={handleContainerClick}
+      onKeyDown={handleContainerKeyDown}
+      role="button"
+      tabIndex={0}
       ref={containerRef}
     >
       {isEditing ? (

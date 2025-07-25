@@ -8,6 +8,7 @@ export default function MetaIcon(props: SVGProps<SVGSVGElement>) {
       height={192}
       viewBox="0 0 192 192"
       fill="none"
+      aria-label="Meta"
       {...props}
     >
       <g clipPath="url(#meta)">

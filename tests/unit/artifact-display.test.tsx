@@ -36,25 +36,51 @@ vi.mock("@/components/ui/badge", () => ({
 }))
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <button onClick={onClick}>{children}</button>
+  Button: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode
+    onClick?: () => void
+  }) => (
+    <button type="button" onClick={onClick}>
+      {children}
+    </button>
   ),
 }))
 
 vi.mock("@/components/ui/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuItem: ({ children, onClick }: { children: React.ReactNode; onClick?: () => void }) => (
-    <div onClick={onClick}>{children}</div>
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
   ),
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  DropdownMenuItem: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode
+    onClick?: () => void
+  }) => <div onClick={onClick}>{children}</div>,
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }))
 
 vi.mock("@/components/ui/tooltip", () => ({
-  TooltipProvider: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Tooltip: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  TooltipContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  TooltipTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  TooltipProvider: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  Tooltip: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  TooltipContent: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  TooltipTrigger: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }))
 
 vi.mock("@/lib/utils", () => ({

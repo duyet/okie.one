@@ -7,6 +7,7 @@ const Icon = (props: SVGProps<SVGSVGElement>) => (
     height={64}
     viewBox="0 0 64 64"
     fill="none"
+    aria-label="Grok"
     {...props}
   >
     <g clipPath="url(#grok)">

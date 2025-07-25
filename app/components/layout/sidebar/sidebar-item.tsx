@@ -95,6 +95,18 @@ export function SidebarItem({ chat, currentChatId }: SidebarItemProps) {
     [isEditing]
   )
 
+  const handleContainerKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault()
+        if (isEditing) {
+          e.stopPropagation()
+        }
+      }
+    },
+    [isEditing]
+  )
+
   const handleSaveClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -148,6 +160,9 @@ export function SidebarItem({ chat, currentChatId }: SidebarItemProps) {
     <div
       className={containerClassName}
       onClick={handleContainerClick}
+      onKeyDown={handleContainerKeyDown}
+      role="button"
+      tabIndex={0}
       ref={containerRef}
     >
       {isEditing ? (

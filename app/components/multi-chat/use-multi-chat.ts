@@ -82,18 +82,21 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
     onError: (error) => handleError(error, models[9]),
   })
 
-  const chatHooks = [
-    chat0,
-    chat1,
-    chat2,
-    chat3,
-    chat4,
-    chat5,
-    chat6,
-    chat7,
-    chat8,
-    chat9,
-  ]
+  const chatHooks = useMemo(
+    () => [
+      chat0,
+      chat1,
+      chat2,
+      chat3,
+      chat4,
+      chat5,
+      chat6,
+      chat7,
+      chat8,
+      chat9,
+    ],
+    [chat0, chat1, chat2, chat3, chat4, chat5, chat6, chat7, chat8, chat9]
+  )
 
   // Map only the provided models to their corresponding chat hooks
   const activeChatInstances = useMemo(() => {
@@ -119,7 +122,7 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
   }, [
     models,
     ...chatHooks.flatMap((chat) => [chat.messages, chat.isLoading]),
-    chatHooks,
+    chatHooks[index],
   ])
 
   return activeChatInstances

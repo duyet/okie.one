@@ -57,9 +57,7 @@ export function isSourcePart(part: MessagePart): part is SourcePart {
   return part.type === "source"
 }
 
-export function hasToolInvocation(
-  part: MessagePart
-): part is MessagePart & {
+export function hasToolInvocation(part: MessagePart): part is MessagePart & {
   toolInvocation: NonNullable<Record<string, unknown>>
 } {
   return (
