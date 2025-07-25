@@ -49,7 +49,7 @@ export const SUGGESTIONS = [
     icon: NotepadIcon,
   },
   {
-    label: "CodeIcon",
+    label: "Code",
     highlight: "Help me",
     prompt: `Help me`,
     items: [

@@ -20,6 +20,7 @@ export function ButtonNewChat() {
   )
 
   if (pathname === "/") return null
+
   return (
     <Tooltip>
       <TooltipTrigger asChild>

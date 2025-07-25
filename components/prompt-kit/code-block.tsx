@@ -46,11 +46,22 @@ function CodeBlockCode({
 
   useEffect(() => {
     async function highlight() {
-      const html = await codeToHtml(code, {
-        lang: language,
-        theme: appTheme === "dark" ? "github-dark" : "github-light",
-      })
-      setHighlightedHtml(html)
+      // Ensure code is a string and not empty
+      if (typeof code !== 'string' || !code.trim()) {
+        setHighlightedHtml('')
+        return
+      }
+      
+      try {
+        const html = await codeToHtml(code, {
+          lang: language,
+          theme: appTheme === "dark" ? "github-dark" : "github-light",
+        })
+        setHighlightedHtml(html)
+      } catch (error) {
+        console.error('Code highlighting failed:', error)
+        setHighlightedHtml(`<pre><code>${code}</code></pre>`)
+      }
     }
     highlight()
   }, [code, language, appTheme])
