@@ -297,8 +297,8 @@ export function MultiChat() {
 
       setPrompt("")
       setFiles([])
-    } catch (error) {
-      console.error("Failed to send message:", error)
+    } catch (error: unknown) {
+      console.error("Failed to send multi-chat message:", error)
       toast({
         title: "Failed to send message",
         description: "Please try again.",

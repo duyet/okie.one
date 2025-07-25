@@ -65,7 +65,7 @@ export function useChatOperations({
       }
 
       return true
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Rate limit check failed:", err)
       return false
     }
@@ -97,15 +97,25 @@ export function useChatOperations({
         return newChat.id
       } catch (err: unknown) {
         let errorMessage = "Something went wrong."
-        try {
-          const errorObj = err as { message?: string }
+
+        // Handle different error formats
+        if (err && typeof err === "object") {
+          const errorObj = err as { message?: string; error?: string }
+
           if (errorObj.message) {
-            const parsed = JSON.parse(errorObj.message)
-            errorMessage = parsed.error || errorMessage
+            try {
+              // Try parsing as JSON error message
+              const parsed = JSON.parse(errorObj.message)
+              errorMessage = parsed.error || parsed.message || errorMessage
+            } catch {
+              // Fall back to plain message
+              errorMessage = errorObj.message
+            }
+          } else if (errorObj.error) {
+            errorMessage = errorObj.error
           }
-        } catch {
-          const errorObj = err as { message?: string }
-          errorMessage = errorObj.message || errorMessage
+        } else if (typeof err === "string") {
+          errorMessage = err
         }
         toast({
           title: errorMessage,

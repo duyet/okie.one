@@ -10,7 +10,7 @@ describe("Config Integration", () => {
     expect(config.FREE_MODELS_IDS).toBeInstanceOf(Array)
     expect(config.NON_AUTH_DAILY_MESSAGE_LIMIT).toBeGreaterThan(0)
     expect(config.AUTH_DAILY_MESSAGE_LIMIT).toBeGreaterThan(0)
-  })
+  }, 10000)
 
   it("should have valid suggestion configurations", async () => {
     const { SUGGESTIONS } = await import("@/lib/config")

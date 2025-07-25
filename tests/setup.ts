@@ -3,6 +3,26 @@ import { afterAll, afterEach, beforeAll, vi } from "vitest"
 
 import { server } from "./mocks/server"
 
+// Set up DOM globals
+global.ResizeObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}))
+
+global.IntersectionObserver = vi.fn().mockImplementation(() => ({
+  observe: vi.fn(),
+  unobserve: vi.fn(),
+  disconnect: vi.fn(),
+}))
+
+// Ensure document.body exists for React Testing Library
+beforeAll(() => {
+  if (!document.body) {
+    document.body = document.createElement("body")
+  }
+})
+
 // Start server before all tests
 beforeAll(() => server.listen({ onUnhandledRequest: "error" }))
 

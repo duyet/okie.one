@@ -36,7 +36,7 @@ export type MessagePart =
   | { type: "text"; text?: string }
   | { type: "file"; [key: string]: unknown }
   | { type: "step-start"; [key: string]: unknown }
-  | { type: string; [key: string]: unknown } // Allow any type to handle AI SDK compatibility
+  | { type: string; [key: string]: unknown } // Fallback for AI SDK compatibility - consider narrowing based on actual usage
 
 // Type guards
 export function isArtifactPart(part: MessagePart): part is ContentPart {
@@ -59,6 +59,12 @@ export function isSourcePart(part: MessagePart): part is SourcePart {
 
 export function hasToolInvocation(
   part: MessagePart
-): part is MessagePart & { toolInvocation: Record<string, unknown> } {
-  return "toolInvocation" in part && part.toolInvocation != null
+): part is MessagePart & {
+  toolInvocation: NonNullable<Record<string, unknown>>
+} {
+  return (
+    "toolInvocation" in part &&
+    part.toolInvocation != null &&
+    typeof part.toolInvocation === "object"
+  )
 }
