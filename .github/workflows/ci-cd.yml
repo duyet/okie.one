@@ -145,18 +145,18 @@ jobs:
             deps-
           fail-on-cache-miss: true
 
-      - name: Cache Jest
+      - name: Cache Vitest
         uses: actions/cache@v4
         with:
           path: |
-            .jest-cache
+            node_modules/.vite
             coverage
-          key: jest-${{ runner.os }}-${{ hashFiles('**/*.test.ts', '**/*.test.tsx', 'jest.config.js') }}
+          key: vitest-${{ runner.os }}-${{ hashFiles('**/*.test.ts', '**/*.test.tsx', 'vitest.config.mts') }}
           restore-keys: |
-            jest-${{ runner.os }}-
+            vitest-${{ runner.os }}-
 
       - name: Run tests with coverage
-        run: pnpm test --cache --cacheDirectory=.jest-cache
+        run: pnpm test
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
