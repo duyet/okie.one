@@ -57,17 +57,16 @@ export function MessageAssistant({
   const isLastStreaming = status === "streaming" && isLast
   const searchImageResults =
     parts
-      ?.filter(
-        (part) => {
-          if (part.type !== "tool-invocation" || !part.toolInvocation) return false
-          const ti = part.toolInvocation as any
-          return (
-            ti.state === "result" &&
-            ti.toolName === "imageSearch" &&
-            ti.result?.content?.[0]?.type === "images"
-          )
-        }
-      )
+      ?.filter((part) => {
+        if (part.type !== "tool-invocation" || !part.toolInvocation)
+          return false
+        const ti = part.toolInvocation as any
+        return (
+          ti.state === "result" &&
+          ti.toolName === "imageSearch" &&
+          ti.result?.content?.[0]?.type === "images"
+        )
+      })
       .flatMap((part) => {
         if (part.type !== "tool-invocation" || !part.toolInvocation) return []
         const ti = part.toolInvocation as any

@@ -35,6 +35,7 @@ const DialogAuth = dynamic(
 
 function ChatInner() {
   const { chatId } = useChatSession()
+  const { isOpen, currentArtifact, closeArtifact } = useArtifact()
   const {
     createNewChat,
     getChatById,
@@ -196,7 +197,6 @@ function ChatInner() {
   }
 
   const showOnboarding = !chatId && messages.length === 0
-  const { isOpen, currentArtifact, closeArtifact } = useArtifact()
 
   return (
     <>

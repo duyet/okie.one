@@ -14,7 +14,11 @@ interface ArtifactPanelProps {
   artifact: NonNullable<ContentPart["artifact"]> | null
 }
 
-export function ArtifactPanel({ isOpen, onClose, artifact }: ArtifactPanelProps) {
+export function ArtifactPanel({
+  isOpen,
+  onClose,
+  artifact,
+}: ArtifactPanelProps) {
   return (
     <AnimatePresence>
       {isOpen && artifact && (
@@ -23,11 +27,11 @@ export function ArtifactPanel({ isOpen, onClose, artifact }: ArtifactPanelProps)
           animate={{ width: "50%", opacity: 1 }}
           exit={{ width: 0, opacity: 0 }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-          className="fixed right-0 top-0 h-full bg-background border-l border-border overflow-hidden z-10"
+          className="fixed top-0 right-0 z-10 h-full overflow-hidden border-border border-l bg-background"
         >
-          <div className="flex flex-col h-full">
+          <div className="flex h-full flex-col">
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-border">
+            <div className="flex items-center justify-between border-border border-b p-4">
               <h2 className="font-semibold text-lg">{artifact.title}</h2>
               <Button
                 variant="ghost"

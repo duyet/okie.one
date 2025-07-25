@@ -45,7 +45,11 @@ const ARTIFACT_ICONS = {
 
 const TRUNCATE_LENGTH = 300
 
-export function ArtifactDisplay({ artifact, className, isInPanel = false }: ArtifactDisplayProps) {
+export function ArtifactDisplay({
+  artifact,
+  className,
+  isInPanel = false,
+}: ArtifactDisplayProps) {
   const [expanded, setExpanded] = useState(false)
   const [copied, setCopied] = useState(false)
 
@@ -100,7 +104,8 @@ export function ArtifactDisplay({ artifact, className, isInPanel = false }: Arti
     <TooltipProvider>
       <div
         className={cn(
-          "artifact-container my-3 rounded-lg border bg-muted/30 p-4",
+          "artifact-container rounded-lg border bg-muted/30 p-4",
+          !isInPanel && "my-3",
           className
         )}
       >

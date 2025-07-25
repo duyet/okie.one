@@ -15,7 +15,9 @@ const ArtifactContext = createContext<ArtifactContextValue | null>(null)
 
 export function ArtifactProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false)
-  const [currentArtifact, setCurrentArtifact] = useState<NonNullable<ContentPart["artifact"]> | null>(null)
+  const [currentArtifact, setCurrentArtifact] = useState<NonNullable<
+    ContentPart["artifact"]
+  > | null>(null)
 
   const openArtifact = (artifact: NonNullable<ContentPart["artifact"]>) => {
     setCurrentArtifact(artifact)

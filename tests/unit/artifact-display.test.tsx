@@ -8,6 +8,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { ArtifactDisplay } from "@/app/components/chat/artifact-display"
 import type { ContentPart } from "@/app/types/api.types"
 
+// Set up DOM before each test
+beforeEach(() => {
+  // Create a container div if it doesn't exist
+  if (!document.body.querySelector('#test-container')) {
+    const container = document.createElement('div')
+    container.id = 'test-container'
+    document.body.appendChild(container)
+  }
+})
+
+// Clean up after each test
+afterEach(() => {
+  cleanup()
+  const container = document.body.querySelector('#test-container')
+  if (container) {
+    container.remove()
+  }
+})
+
 // Mock the CodeBlock components
 vi.mock("@/components/prompt-kit/code-block", () => ({
   CodeBlock: ({
