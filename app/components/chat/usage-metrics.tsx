@@ -2,12 +2,13 @@
 
 import { Clock, Lightning } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
-import { formatNumber, cn } from "@/lib/utils"
+
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card"
+import { cn, formatNumber } from "@/lib/utils"
 
 interface UsageMetricsProps {
   messageId?: string

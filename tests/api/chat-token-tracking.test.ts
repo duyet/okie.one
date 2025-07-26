@@ -1,24 +1,25 @@
+import { streamText } from "ai"
 import {
+  afterEach,
+  beforeEach,
   describe,
   expect,
   it,
-  vi,
-  beforeEach,
-  afterEach,
   type MockedFunction,
+  vi,
 } from "vitest"
-import { POST } from "@/app/api/chat/route"
-import { recordTokenUsage } from "@/lib/token-tracking/api"
-import { getProviderForModel } from "@/lib/openproviders/provider-map"
+
 import {
-  validateAndTrackUsage,
   incrementMessageCount,
   logUserMessage,
   storeAssistantMessage,
+  validateAndTrackUsage,
 } from "@/app/api/chat/api"
-import { getAllModels } from "@/lib/models"
+import { POST } from "@/app/api/chat/route"
 import { parseArtifacts } from "@/lib/artifacts/parser"
-import { streamText } from "ai"
+import { getAllModels } from "@/lib/models"
+import { getProviderForModel } from "@/lib/openproviders/provider-map"
+import { recordTokenUsage } from "@/lib/token-tracking/api"
 import type { TokenUsageMetrics } from "@/lib/token-tracking/types"
 
 // Mock all external dependencies

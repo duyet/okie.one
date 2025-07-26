@@ -1,8 +1,9 @@
-import { describe, expect, it, vi, beforeEach } from "vitest"
 import { render, screen } from "@testing-library/react"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
 import AnalyticsPage from "@/app/analytics/page"
+import { createClient } from "@/lib/supabase/server"
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
@@ -16,7 +17,7 @@ vi.mock("@/lib/supabase/server", () => ({
 
 // Mock the TokenAnalytics component
 vi.mock("@/app/analytics/token-usage", () => ({
-  default: vi.fn(({ userId, showLeaderboard }) => (
+  TokenAnalytics: vi.fn(({ userId, showLeaderboard }) => (
     <div data-testid="token-analytics">
       <div data-testid="user-id">{userId}</div>
       <div data-testid="show-leaderboard">

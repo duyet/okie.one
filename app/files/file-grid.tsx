@@ -4,8 +4,8 @@ import {
   Download,
   ExternalLink,
   MoreHorizontal,
-  Trash2,
   Sparkles,
+  Trash2,
 } from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
@@ -23,8 +23,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import type { FileWithChat } from "./api"
-import { FileStatusIndicator, type FileStatus } from "./file-status-indicator"
 import { FileAnalysisDialog } from "./file-analysis-dialog"
+import { type FileStatus, FileStatusIndicator } from "./file-status-indicator"
 import { formatBytes, getFileIcon, getFileTypeCategory } from "./utils"
 
 interface FileGridProps {

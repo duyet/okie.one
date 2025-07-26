@@ -1,25 +1,26 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
 import {
+  beforeEach,
   describe,
   expect,
   it,
-  vi,
-  beforeEach,
   type MockedFunction,
+  vi,
 } from "vitest"
-import type { SupabaseClient } from "@supabase/supabase-js"
+
+import type { Database } from "@/app/types/database.types"
 import { createClient } from "@/lib/supabase/server"
 import {
-  recordTokenUsage,
-  getDailyLeaderboard,
-  getUserTokenAnalytics,
-  getUserDailyUsage,
   getChatTokenUsage,
-  getUserUsageStats,
+  getDailyLeaderboard,
   getTimingAnalytics,
+  getUserDailyUsage,
+  getUserTokenAnalytics,
+  getUserUsageStats,
+  recordTokenUsage,
 } from "@/lib/token-tracking/api"
 import type { TokenUsageMetrics } from "@/lib/token-tracking/types"
 import { TokenTrackingError } from "@/lib/token-tracking/types"
-import type { Database } from "@/app/types/database.types"
 
 // Mock Supabase clients
 vi.mock("@/lib/supabase/server", () => ({

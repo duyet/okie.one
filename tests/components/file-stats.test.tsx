@@ -1,8 +1,8 @@
 import { render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
-import { FileStats } from "@/app/files/file-stats"
 import type { FileWithChat } from "@/app/files/api"
+import { FileStats } from "@/app/files/file-stats"
 
 const mockFiles: FileWithChat[] = [
   {

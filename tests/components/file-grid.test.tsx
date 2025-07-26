@@ -1,8 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
-import { FileGrid } from "@/app/files/file-grid"
 import type { FileWithChat } from "@/app/files/api"
+import { FileGrid } from "@/app/files/file-grid"
 
 // Mock the FileAnalysisDialog component
 vi.mock("@/app/files/file-analysis-dialog", () => ({

@@ -1,12 +1,12 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { BarChart, TrendingUp, Loader2 } from "lucide-react"
+import { BarChart, Loader2, TrendingUp } from "lucide-react"
 import { useState } from "react"
 import {
   Bar,
-  BarChart as RechartsBarChart,
   CartesianGrid,
+  BarChart as RechartsBarChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -15,17 +15,17 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
+  type ChartConfig,
+  ChartContainer,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  ChartContainer,
-  ChartTooltipContent,
-  type ChartConfig,
-} from "@/components/ui/chart"
 
 interface ChartDataPoint {
   date: string
@@ -85,11 +85,7 @@ function formatCost(cost: number): string {
 export function DailyTokenUsageChart({ userId }: DailyTokenUsageChartProps) {
   const [period, setPeriod] = useState("30d")
 
-  const {
-    data,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["daily-token-usage", period, userId],
     queryFn: () => getDailyTokenUsageData(period, userId),
     staleTime: 300000, // 5 minutes
@@ -125,7 +121,8 @@ export function DailyTokenUsageChart({ userId }: DailyTokenUsageChartProps) {
         </CardHeader>
         <CardContent>
           <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-            Failed to load chart data: {error instanceof Error ? error.message : "Unknown error"}
+            Failed to load chart data:{" "}
+            {error instanceof Error ? error.message : "Unknown error"}
           </div>
         </CardContent>
       </Card>
@@ -207,11 +204,11 @@ export function DailyTokenUsageChart({ userId }: DailyTokenUsageChartProps) {
               <span className="font-medium text-sm">Daily Average</span>
             </div>
             <div className="mt-1 font-bold text-2xl">
-              {formatTokens(Math.round(data.totalTokens / data.chartData.length))}
+              {formatTokens(
+                Math.round(data.totalTokens / data.chartData.length)
+              )}
             </div>
-            <div className="text-muted-foreground text-xs">
-              per day
-            </div>
+            <div className="text-muted-foreground text-xs">per day</div>
           </div>
           <div className="rounded-lg border p-3">
             <div className="flex items-center gap-2">
@@ -221,9 +218,7 @@ export function DailyTokenUsageChart({ userId }: DailyTokenUsageChartProps) {
             <div className="mt-1 font-bold text-2xl">
               {formatCost(data.totalCost)}
             </div>
-            <div className="text-muted-foreground text-xs">
-              estimated
-            </div>
+            <div className="text-muted-foreground text-xs">estimated</div>
           </div>
         </div>
 
@@ -242,12 +237,12 @@ export function DailyTokenUsageChart({ userId }: DailyTokenUsageChartProps) {
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
               <XAxis
                 dataKey="date"
-                className="text-xs text-muted-foreground"
+                className="text-muted-foreground text-xs"
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
-                className="text-xs text-muted-foreground"
+                className="text-muted-foreground text-xs"
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={formatTokens}
@@ -257,7 +252,7 @@ export function DailyTokenUsageChart({ userId }: DailyTokenUsageChartProps) {
                   <ChartTooltipContent
                     active={active}
                     payload={payload}
-                    label={String(label || '')}
+                    label={String(label || "")}
                     formatter={(value, name) => [
                       formatTokens(Number(value)),
                       chartConfig[name as string]?.label || name,
@@ -279,14 +274,16 @@ export function DailyTokenUsageChart({ userId }: DailyTokenUsageChartProps) {
         </ChartContainer>
 
         {/* Legend */}
-        <div className="mt-4 flex flex-wrap gap-4 justify-center">
+        <div className="mt-4 flex flex-wrap justify-center gap-4">
           {data.models.map((model) => (
             <div key={model.id} className="flex items-center gap-2">
               <div
                 className="h-3 w-3 rounded-sm"
                 style={{ backgroundColor: model.color }}
               />
-              <span className="text-muted-foreground text-sm">{model.name}</span>
+              <span className="text-muted-foreground text-sm">
+                {model.name}
+              </span>
             </div>
           ))}
         </div>

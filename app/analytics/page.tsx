@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
-import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
 import { LayoutApp } from "@/app/components/layout/layout-app"
 import { MessagesProvider } from "@/lib/chat-store/messages/provider"
+import { createClient } from "@/lib/supabase/server"
+
 import { TokenAnalytics } from "./token-usage"
 
 export const metadata: Metadata = {

@@ -1,8 +1,8 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react"
-import { describe, expect, it, vi, beforeEach } from "vitest"
-import { TooltipProvider } from "@/components/ui/tooltip"
+import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { ButtonFileUpload } from "@/app/components/chat-input/button-file-upload"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
 // Mock the dependencies
 vi.mock("@/lib/supabase/config", () => ({

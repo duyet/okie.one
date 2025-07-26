@@ -1,9 +1,11 @@
 "use client"
 
+import { Clock, DollarSign, Loader2, TrendingUp, Trophy } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Trophy, TrendingUp, Clock, DollarSign } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { DailyTokenUsageChart } from "./daily-token-usage-chart"
 
 interface TokenStats {
