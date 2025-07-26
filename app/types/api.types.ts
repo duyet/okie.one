@@ -38,6 +38,7 @@ export interface ContentPart {
 }
 
 export interface Message {
+  id?: string
   role: "user" | "assistant" | "system" | "data" | "tool" | "tool-call"
   content: string | null | ContentPart[]
   reasoning?: string

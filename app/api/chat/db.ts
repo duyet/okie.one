@@ -17,6 +17,15 @@ export async function saveFinalAssistantMessage(
   const toolMap = new Map<string, ContentPart>()
   const textParts: string[] = []
 
+  // Extract the assistant message ID from the AI SDK response
+  const assistantMessage = messages.find((msg) => msg.role === "assistant")
+  const assistantMessageId = assistantMessage?.id
+
+  if (!assistantMessageId) {
+    console.error("No assistant message ID found in AI SDK response")
+    throw new Error("Assistant message ID is required for database storage")
+  }
+
   for (const msg of messages) {
     if (msg.role === "assistant" && Array.isArray(msg.content)) {
       for (const part of msg.content) {
@@ -84,6 +93,7 @@ export async function saveFinalAssistantMessage(
   const { data, error } = await supabase
     .from("messages")
     .insert({
+      id: assistantMessageId, // Use the AI SDK message ID
       chat_id: chatId,
       role: "assistant",
       content: finalPlainText || "",

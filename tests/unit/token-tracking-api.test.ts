@@ -6,6 +6,7 @@ import {
   beforeEach,
   type MockedFunction,
 } from "vitest"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/server"
 import {
   recordTokenUsage,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/token-tracking/api"
 import type { TokenUsageMetrics } from "@/lib/token-tracking/types"
 import { TokenTrackingError } from "@/lib/token-tracking/types"
+import type { Database } from "@/app/types/database.types"
 
 // Mock Supabase client
 vi.mock("@/lib/supabase/server", () => ({
@@ -26,13 +28,30 @@ vi.mock("@/lib/supabase/server", () => ({
 
 const mockCreateClient = createClient as MockedFunction<typeof createClient>
 
+// Type for mock query builder
+type MockQueryBuilder = {
+  insert: ReturnType<typeof vi.fn>
+  select: ReturnType<typeof vi.fn>
+  single: ReturnType<typeof vi.fn>
+  eq: ReturnType<typeof vi.fn>
+  gte: ReturnType<typeof vi.fn>
+  lte: ReturnType<typeof vi.fn>
+  order: ReturnType<typeof vi.fn>
+}
+
+// Type for mock Supabase client
+type MockSupabaseClient = {
+  from: ReturnType<typeof vi.fn>
+  rpc: ReturnType<typeof vi.fn>
+}
+
 describe("Token Tracking API", () => {
-  const mockSupabase = {
+  const mockSupabase: MockSupabaseClient = {
     from: vi.fn(),
     rpc: vi.fn(),
   }
 
-  const mockQuery = {
+  const mockQuery: MockQueryBuilder = {
     insert: vi.fn(),
     select: vi.fn(),
     single: vi.fn(),
@@ -44,15 +63,17 @@ describe("Token Tracking API", () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockCreateClient.mockResolvedValue(mockSupabase as any)
-    mockSupabase.from.mockReturnValue(mockQuery as any)
-    mockQuery.insert.mockReturnValue(mockQuery as any)
-    mockQuery.select.mockReturnValue(mockQuery as any)
-    mockQuery.single.mockReturnValue(mockQuery as any)
-    mockQuery.eq.mockReturnValue(mockQuery as any)
-    mockQuery.gte.mockReturnValue(mockQuery as any)
-    mockQuery.lte.mockReturnValue(mockQuery as any)
-    mockQuery.order.mockReturnValue(mockQuery as any)
+    mockCreateClient.mockResolvedValue(
+      mockSupabase as unknown as SupabaseClient<Database>
+    )
+    mockSupabase.from.mockReturnValue(mockQuery)
+    mockQuery.insert.mockReturnValue(mockQuery)
+    mockQuery.select.mockReturnValue(mockQuery)
+    mockQuery.single.mockReturnValue(mockQuery)
+    mockQuery.eq.mockReturnValue(mockQuery)
+    mockQuery.gte.mockReturnValue(mockQuery)
+    mockQuery.lte.mockReturnValue(mockQuery)
+    mockQuery.order.mockReturnValue(mockQuery)
   })
 
   describe("recordTokenUsage", () => {
@@ -116,7 +137,7 @@ describe("Token Tracking API", () => {
     })
 
     it("should handle database connection failure", async () => {
-      mockCreateClient.mockResolvedValue(null as any)
+      mockCreateClient.mockResolvedValue(null)
 
       await expect(
         recordTokenUsage(
@@ -454,7 +475,7 @@ describe("Token Tracking API", () => {
 
   describe("Error handling", () => {
     it("should handle database connection failure across all functions", async () => {
-      mockCreateClient.mockResolvedValue(null as any)
+      mockCreateClient.mockResolvedValue(null)
 
       const functions = [
         () => getDailyLeaderboard(),

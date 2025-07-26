@@ -24,8 +24,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get token usage for the specific message
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data: tokenUsage, error } = await (supabase as any)
+    const { data: tokenUsage, error } = await supabase
       .from("token_usage")
       .select(`
         input_tokens,

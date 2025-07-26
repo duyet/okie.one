@@ -154,18 +154,6 @@ export function MessageAssistant({
 
         {sources && sources.length > 0 && <SourcesList sources={sources} />}
 
-        {/* Usage Metrics - show for completed assistant messages */}
-        {!isLastStreaming && !contentNullOrEmpty && id && chatId && user?.id && (
-          <div className="flex justify-end mt-1">
-            <UsageMetrics 
-              messageId={id}
-              chatId={chatId}
-              userId={user.id}
-              className="opacity-60 transition-opacity hover:opacity-100"
-            />
-          </div>
-        )}
-
         {isLastStreaming || contentNullOrEmpty ? null : (
           <MessageActions
             className={cn(
@@ -205,6 +193,18 @@ export function MessageAssistant({
                 </button>
               </MessageAction>
             ) : null}
+            
+            {/* Usage Metrics - show inline with actions */}
+            {id && chatId && user?.id && (
+              <div className="ml-2 flex items-center">
+                <UsageMetrics
+                  messageId={id}
+                  chatId={chatId}
+                  userId={user.id}
+                  className="opacity-60 transition-opacity hover:opacity-100"
+                />
+              </div>
+            )}
           </MessageActions>
         )}
       </div>

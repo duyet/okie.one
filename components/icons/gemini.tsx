@@ -10,6 +10,7 @@ const Icon = (props: SVGProps<SVGSVGElement>) => (
     aria-label="Gemini"
     {...props}
   >
+    <title>Gemini</title>
     <g clipPath="url(#gemini)">
       <path
         fill="url(#b)"
