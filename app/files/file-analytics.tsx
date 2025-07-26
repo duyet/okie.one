@@ -71,8 +71,8 @@ export function FileAnalytics({ userId }: FileAnalyticsProps) {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={`skeleton-${i}`}>
+          {Array.from({ length: 4 }, (_, i) => `skeleton-card-${i}-${Date.now()}`).map((key) => (
+            <Card key={key}>
               <CardContent className="p-6">
                 <div className="h-16 animate-pulse rounded bg-muted" />
               </CardContent>
