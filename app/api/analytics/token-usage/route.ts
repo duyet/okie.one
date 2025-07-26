@@ -37,7 +37,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    let data: Record<string, any> = {}
+    let data: Record<string, unknown> = {}
 
     if (type === "leaderboard") {
       // Get daily leaderboard
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
       const daysBack =
         period === "7d" ? 7 : period === "30d" ? 30 : period === "90d" ? 90 : 30
 
-      const [analytics, stats]: [any[], any] = await Promise.all([
+      const [analytics, stats] = await Promise.all([
         getUserTokenAnalytics(userId, daysBack),
         getUserUsageStats(userId),
       ])

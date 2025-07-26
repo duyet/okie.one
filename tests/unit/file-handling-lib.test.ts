@@ -31,9 +31,14 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: vi.fn(),
 }))
 
-vi.mock("@/lib/supabase/config", () => ({
-  isSupabaseEnabled: true,
-}))
+vi.mock("@/lib/supabase/config", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/supabase/config")>()
+  return {
+    ...actual,
+    isSupabaseEnabled: true,
+    isSupabaseEnabledClient: true,
+  }
+})
 
 vi.mock("@/lib/models", () => ({
   getModelInfo: vi.fn((modelId: string) => {
@@ -335,6 +340,7 @@ describe("File Handling Library", () => {
     it("should return 0 when Supabase is disabled", async () => {
       vi.doMock("@/lib/supabase/config", () => ({
         isSupabaseEnabled: false,
+        isSupabaseEnabledClient: false,
       }))
 
       const { checkFileUploadLimit } = await import("@/lib/file-handling")
@@ -368,6 +374,7 @@ describe("File Handling Library", () => {
 
       vi.doMock("@/lib/supabase/config", () => ({
         isSupabaseEnabled: true,
+        isSupabaseEnabledClient: true,
       }))
 
       vi.resetModules()
@@ -409,6 +416,7 @@ describe("File Handling Library", () => {
 
       vi.doMock("@/lib/supabase/config", () => ({
         isSupabaseEnabled: true,
+        isSupabaseEnabledClient: true,
       }))
 
       vi.resetModules()
@@ -448,6 +456,7 @@ describe("File Handling Library", () => {
 
       vi.doMock("@/lib/supabase/config", () => ({
         isSupabaseEnabled: true,
+        isSupabaseEnabledClient: true,
       }))
 
       vi.resetModules()
@@ -515,6 +524,7 @@ describe("File Handling Library", () => {
 
       vi.doMock("@/lib/supabase/config", () => ({
         isSupabaseEnabled: true,
+        isSupabaseEnabledClient: true,
       }))
 
       vi.resetModules()
@@ -586,6 +596,7 @@ describe("File Handling Library", () => {
 
       vi.doMock("@/lib/supabase/config", () => ({
         isSupabaseEnabled: true,
+        isSupabaseEnabledClient: true,
       }))
 
       vi.resetModules()
@@ -629,6 +640,7 @@ describe("File Handling Library", () => {
 
       vi.doMock("@/lib/supabase/config", () => ({
         isSupabaseEnabled: false,
+        isSupabaseEnabledClient: false,
       }))
 
       // Mock URL.createObjectURL

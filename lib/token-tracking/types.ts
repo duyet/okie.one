@@ -117,11 +117,6 @@ export function getProviderModelKey(
   return `${providerId}-${modelId}`
 }
 
-export interface TokenTrackingError extends Error {
-  code: string
-  context?: Record<string, unknown>
-}
-
 export class TokenTrackingError extends Error {
   constructor(
     message: string,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Token tracking API utilities
 
 import { createClient } from "@/lib/supabase/server"
