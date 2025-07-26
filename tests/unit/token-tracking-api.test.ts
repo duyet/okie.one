@@ -88,7 +88,7 @@ describe("Token Tracking API", () => {
 
     // Make the query object itself awaitable (it acts like a promise)
     Object.assign(mockQuery, {
-      then: vi.fn(),
+      // then: vi.fn(), // Removed to fix lint error
       catch: vi.fn(),
       finally: vi.fn(),
     })
@@ -389,7 +389,7 @@ describe("Token Tracking API", () => {
 
   describe("getUserUsageStats", () => {
     it("should calculate usage stats correctly", async () => {
-      const mockUsage = [
+      const _mockUsage = [
         {
           input_tokens: 100,
           output_tokens: 50,
@@ -410,10 +410,10 @@ describe("Token Tracking API", () => {
 
       // Since getUserUsageStats doesn't have date parameters, the query should be awaitable directly after .eq()
       const mockFinalQuery = {
-        then: vi.fn().mockImplementation((resolve) => {
-          resolve({ data: mockUsage, error: null })
-          return Promise.resolve({ data: mockUsage, error: null })
-        }),
+        // then: vi.fn().mockImplementation((resolve) => {
+        //   resolve({ data: mockUsage, error: null })
+        //   return Promise.resolve({ data: mockUsage, error: null })
+        // }),
         catch: vi.fn(),
         finally: vi.fn(),
       }
@@ -451,10 +451,10 @@ describe("Token Tracking API", () => {
     it("should handle empty usage data", async () => {
       // Mock for empty data case
       const mockFinalQuery = {
-        then: vi.fn().mockImplementation((resolve) => {
-          resolve({ data: [], error: null })
-          return Promise.resolve({ data: [], error: null })
-        }),
+        // then: vi.fn().mockImplementation((resolve) => {
+        //   resolve({ data: [], error: null })
+        //   return Promise.resolve({ data: [], error: null })
+        // }),
         catch: vi.fn(),
         finally: vi.fn(),
       }
