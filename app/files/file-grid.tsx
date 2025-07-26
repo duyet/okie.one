@@ -1,5 +1,8 @@
-import { Download, ExternalLink, MoreHorizontal, Trash2 } from "lucide-react"
+"use client"
+
+import { Download, ExternalLink, MoreHorizontal, Trash2, Sparkles } from "lucide-react"
 import Image from "next/image"
+import { useState } from "react"
 
 import { formatDate } from "@/app/components/history/utils"
 import { Badge } from "@/components/ui/badge"
@@ -15,6 +18,7 @@ import {
 
 import type { FileWithChat } from "./api"
 import { FileStatusIndicator, type FileStatus } from "./file-status-indicator"
+import { FileAnalysisDialog } from "./file-analysis-dialog"
 import { formatBytes, getFileIcon, getFileTypeCategory } from "./utils"
 
 interface FileGridProps {
@@ -25,8 +29,45 @@ interface FileGridProps {
 }
 
 export function FileGrid({ files, onDelete, onDownload, fileStatuses }: FileGridProps) {
+  const [analysisOpen, setAnalysisOpen] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<FileWithChat | null>(null)
+
   const isImage = (fileType: string | null) => {
     return fileType?.startsWith("image/") ?? false
+  }
+
+  const handleAnalyze = async (file: FileWithChat) => {
+    try {
+      const response = await fetch("/api/files/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fileUrl: file.file_url,
+          fileName: file.file_name,
+          fileType: file.file_type,
+          userId: file.user_id,
+          isAuthenticated: true,
+        }),
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || "Failed to analyze file")
+      }
+
+      const analysis = await response.json()
+      return analysis
+    } catch (error) {
+      console.error("File analysis error:", error)
+      throw error
+    }
+  }
+
+  const openAnalysis = (file: FileWithChat) => {
+    setSelectedFile(file)
+    setAnalysisOpen(true)
   }
 
   return (
@@ -99,6 +140,12 @@ export function FileGrid({ files, onDelete, onDownload, fileStatuses }: FileGrid
                         <Download className="mr-2 h-4 w-4" />
                         Download
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openAnalysis(file)}
+                      >
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Analyze with AI
+                      </DropdownMenuItem>
                       {file.chat && (
                         <DropdownMenuItem asChild>
                           <a href={`/c/${file.chat_id}`}>
@@ -152,6 +199,13 @@ export function FileGrid({ files, onDelete, onDownload, fileStatuses }: FileGrid
           </Card>
         )
       })}
+      
+      <FileAnalysisDialog
+        file={selectedFile}
+        open={analysisOpen}
+        onOpenChange={setAnalysisOpen}
+        onAnalyze={handleAnalyze}
+      />
     </div>
   )
 }
