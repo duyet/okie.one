@@ -95,6 +95,7 @@ function FileUpload({
   }, [handleFiles])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log("File selected:", e.target.files)
     if (e.target.files?.length) {
       handleFiles(e.target.files)
       e.target.value = ""

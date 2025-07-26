@@ -1,6 +1,7 @@
-import { FileArrowUp, Paperclip } from "@phosphor-icons/react/dist/ssr"
+"use client"
 
-import { useHydrationSafe } from "@/app/hooks/use-hydration-safe"
+import React from "react"
+import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
 import {
   FileUpload,
   FileUploadContent,
@@ -23,29 +24,29 @@ import {
 } from "@/lib/file-handling"
 import { isSupabaseEnabledClient } from "@/lib/supabase/config"
 
-import { PopoverContentAuth } from "./popover-content-auth"
-
 type ButtonFileUploadProps = {
   onFileUpload: (files: File[]) => void
-  isUserAuthenticated: boolean
   model: string
 }
 
 export function ButtonFileUpload({
   onFileUpload,
-  isUserAuthenticated,
   model,
 }: ButtonFileUploadProps) {
-  const isHydrated = useHydrationSafe()
   const isFileUploadAvailable = validateModelSupportsFiles(model)
   const fileCapabilities = getModelFileCapabilities(model)
 
   // Generate accept string from model capabilities
   const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
 
-  // Common button component to ensure consistent structure
-  const FileUploadButton = ({ disabled = false }: { disabled?: boolean }) => (
+
+  // Common button component with proper ref forwarding
+  const FileUploadButton = React.forwardRef<
+    HTMLButtonElement,
+    { disabled?: boolean }
+  >(({ disabled = false }, ref) => (
     <Button
+      ref={ref}
       size="sm"
       variant="secondary"
       className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
@@ -55,21 +56,9 @@ export function ButtonFileUpload({
     >
       <Paperclip className="size-4" />
     </Button>
-  )
+  ))
 
-  // Prevent hydration mismatches by showing a consistent initial state
-  if (!isHydrated) {
-    return (
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <FileUploadButton disabled />
-        </TooltipTrigger>
-        <TooltipContent>Add files</TooltipContent>
-      </Tooltip>
-    )
-  }
-
-  // Determine the popover content based on state
+  // Determine if file upload should be disabled
   let popoverContent: React.ReactNode = null
   let isDisabled = false
   let tooltipText = "Add files"
@@ -99,13 +88,10 @@ export function ButtonFileUpload({
     )
     isDisabled = true
     tooltipText = `File uploads not supported by ${model}`
-  } else if (!isUserAuthenticated) {
-    popoverContent = <PopoverContentAuth />
-    isDisabled = false
-    tooltipText = "Sign in to upload files"
   }
+  // Removed the unauthenticated user block - now they can upload!
 
-  // If we need a popover (disabled states or auth required)
+  // If we need a popover (only for disabled states now)
   if (popoverContent) {
     return (
       <Popover>
@@ -122,12 +108,12 @@ export function ButtonFileUpload({
     )
   }
 
-  // Fully functional file upload for authenticated users with supported models
+  // Fully functional file upload for all users with supported models
   return (
     <FileUpload
       onFilesAdded={onFileUpload}
       multiple
-      disabled={!isUserAuthenticated}
+      disabled={false}
       accept={acceptTypes}
     >
       <Tooltip>
@@ -138,6 +124,7 @@ export function ButtonFileUpload({
         </TooltipTrigger>
         <TooltipContent>Add files</TooltipContent>
       </Tooltip>
+      
       <FileUploadContent>
         <div className="flex flex-col items-center rounded-lg border border-input border-dashed bg-background p-8">
           <FileArrowUp className="size-8 text-muted-foreground" />

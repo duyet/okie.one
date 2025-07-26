@@ -111,12 +111,7 @@ export function ChatInput({
         item.type.startsWith("image/")
       )
 
-      if (!isUserAuthenticated && hasImageContent) {
-        e.preventDefault()
-        return
-      }
-
-      if (isUserAuthenticated && hasImageContent) {
+      if (hasImageContent) {
         const imageFiles: File[] = []
 
         for (const item of Array.from(items)) {
@@ -139,7 +134,7 @@ export function ChatInput({
       }
       // Text pasting will work by default for everyone
     },
-    [isUserAuthenticated, onFileUpload]
+    [onFileUpload]
   )
 
   useMemo(() => {
@@ -175,7 +170,6 @@ export function ChatInput({
             <div className="flex gap-2">
               <ButtonFileUpload
                 onFileUpload={onFileUpload}
-                isUserAuthenticated={isUserAuthenticated}
                 model={selectedModel}
               />
               <ModelSelector
