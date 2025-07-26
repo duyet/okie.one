@@ -33,6 +33,11 @@ const DialogAuth = dynamic(
   { ssr: false }
 )
 
+const GuestRateLimitDialog = dynamic(
+  () => import("../guest/guest-rate-limit-dialog").then((mod) => mod.GuestRateLimitDialog),
+  { ssr: false }
+)
+
 function ChatInner() {
   const { chatId } = useChatSession()
   const { isOpen, currentArtifact, closeArtifact } = useArtifact()
@@ -75,7 +80,8 @@ function ChatInner() {
 
   // State to pass between hooks
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
-  const isAuthenticated = useMemo(() => !!user?.id, [user?.id])
+  const [hasRateLimitDialog, setHasRateLimitDialog] = useState(false)
+  const isAuthenticated = useMemo(() => !!user?.id && !user?.anonymous, [user?.id, user?.anonymous])
   const systemPrompt = useMemo(
     () => user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
     [user?.system_prompt]
@@ -91,6 +97,7 @@ function ChatInner() {
       systemPrompt,
       createNewChat,
       setHasDialogAuth,
+      setHasRateLimitDialog,
       setMessages: () => {},
       setInput: () => {},
     })
@@ -207,6 +214,7 @@ function ChatInner() {
         )}
       >
         <DialogAuth open={hasDialogAuth} setOpen={setHasDialogAuth} />
+        <GuestRateLimitDialog open={hasRateLimitDialog} onOpenChange={setHasRateLimitDialog} />
 
         <AnimatePresence initial={false} mode="popLayout">
           {showOnboarding ? (

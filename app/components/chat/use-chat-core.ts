@@ -66,7 +66,10 @@ export function useChatCore({
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
   const prevChatIdRef = useRef<string | null>(chatId)
-  const isAuthenticated = useMemo(() => !!user?.id, [user?.id])
+  const isAuthenticated = useMemo(
+    () => !!user?.id && !user?.anonymous,
+    [user?.id, user?.anonymous]
+  )
   const systemPrompt = useMemo(
     () => user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
     [user?.system_prompt]

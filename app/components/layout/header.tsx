@@ -1,15 +1,12 @@
 "use client"
 
-import { Info } from "@phosphor-icons/react"
 import Link from "next/link"
 
 import { HistoryTrigger } from "@/app/components/history/history-trigger"
-import { AppInfoTrigger } from "@/app/components/layout/app-info/app-info-trigger"
 import { ButtonNewChat } from "@/app/components/layout/button-new-chat"
 import { UserMenu } from "@/app/components/layout/user-menu"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
 import { OkieIcon } from "@/components/icons/okie"
-import { Button } from "@/components/ui/button"
 import { APP_NAME } from "@/lib/config"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { useUser } from "@/lib/user-store/provider"
@@ -42,35 +39,14 @@ export function Header({ hasSidebar }: { hasSidebar: boolean }) {
             </div>
           </div>
           <div />
-          {!isLoggedIn ? (
-            <div className="pointer-events-auto flex flex-1 items-center justify-end gap-4">
-              <AppInfoTrigger
-                trigger={
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 rounded-full bg-background text-muted-foreground hover:bg-muted"
-                    aria-label={`About ${APP_NAME}`}
-                  >
-                    <Info className="size-4" />
-                  </Button>
-                }
-              />
-              <Link
-                href="/auth"
-                className="font-base text-base text-muted-foreground transition-colors hover:text-foreground"
-              >
-                Login
-              </Link>
-            </div>
-          ) : (
-            <div className="pointer-events-auto flex flex-1 items-center justify-end gap-2">
-              {!isMultiModelEnabled && <DialogPublish />}
-              <ButtonNewChat />
-              {!hasSidebar && <HistoryTrigger hasSidebar={hasSidebar} />}
-              <UserMenu />
-            </div>
-          )}
+          <div className="pointer-events-auto flex flex-1 items-center justify-end gap-2">
+            {isLoggedIn && !isMultiModelEnabled && <DialogPublish />}
+            {isLoggedIn && <ButtonNewChat />}
+            {isLoggedIn && !hasSidebar && (
+              <HistoryTrigger hasSidebar={hasSidebar} />
+            )}
+            <UserMenu />
+          </div>
         </div>
       </div>
     </header>

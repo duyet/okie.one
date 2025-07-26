@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
 
 import { toast } from "@/components/ui/toast"
+import { useUser } from "@/lib/user-store/provider"
 
 import { MODEL_DEFAULT, SYSTEM_PROMPT_DEFAULT } from "../../config"
 import type { Chats } from "../types"
@@ -48,17 +49,16 @@ export function useChats() {
 }
 
 export function ChatsProvider({
-  userId,
   children,
 }: {
-  userId?: string
   children: React.ReactNode
 }) {
+  const { user } = useUser()
   const [isLoading, setIsLoading] = useState(true)
   const [chats, setChats] = useState<Chats[]>([])
 
   useEffect(() => {
-    if (!userId) return
+    if (!user?.id) return
 
     const load = async () => {
       setIsLoading(true)
@@ -66,7 +66,7 @@ export function ChatsProvider({
       setChats(cached)
 
       try {
-        const fresh = await fetchAndCacheChats(userId)
+        const fresh = await fetchAndCacheChats(user.id)
         setChats(fresh)
       } finally {
         setIsLoading(false)
@@ -74,12 +74,12 @@ export function ChatsProvider({
     }
 
     load()
-  }, [userId])
+  }, [user?.id])
 
   const refresh = async () => {
-    if (!userId) return
+    if (!user?.id) return
 
-    const fresh = await fetchAndCacheChats(userId)
+    const fresh = await fetchAndCacheChats(user.id)
     setChats(fresh)
   }
 

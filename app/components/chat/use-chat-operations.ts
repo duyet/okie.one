@@ -20,6 +20,7 @@ type UseChatOperationsProps = {
     systemPrompt?: string
   ) => Promise<Chats | undefined>
   setHasDialogAuth: (value: boolean) => void
+  setHasRateLimitDialog?: (value: boolean) => void
   setMessages: (
     messages: Message[] | ((messages: Message[]) => Message[])
   ) => void
@@ -34,6 +35,7 @@ export function useChatOperations({
   systemPrompt,
   createNewChat,
   setHasDialogAuth,
+  setHasRateLimitDialog,
   setMessages,
 }: UseChatOperationsProps) {
   // Chat utilities
@@ -42,7 +44,12 @@ export function useChatOperations({
       const rateData = await checkRateLimits(uid, isAuthenticated)
 
       if (rateData.remaining === 0 && !isAuthenticated) {
-        setHasDialogAuth(true)
+        // Show rate limit dialog for guest users
+        if (setHasRateLimitDialog) {
+          setHasRateLimitDialog(true)
+        } else {
+          setHasDialogAuth(true)
+        }
         return false
       }
 

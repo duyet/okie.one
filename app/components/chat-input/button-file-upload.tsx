@@ -53,7 +53,7 @@ export function ButtonFileUpload({
       variant="secondary"
       className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
       type="button"
-      disabled={disabled}
+      disabled={!!disabled}
       aria-label="Add files"
     >
       <Paperclip className="size-4" />
