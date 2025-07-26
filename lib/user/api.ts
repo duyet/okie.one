@@ -41,8 +41,31 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     .eq("id", user.id)
     .single()
 
-  // Don't load anonymous users in the user store
-  if (userProfileData?.anonymous) return null
+  // Handle anonymous users - return their profile instead of null
+  if (userProfileData?.anonymous) {
+    // Format user preferences if they exist
+    const formattedPreferences = userProfileData?.user_preferences
+      ? convertFromApiFormat({
+          layout: userProfileData.user_preferences.layout as LayoutType | null,
+          prompt_suggestions:
+            userProfileData.user_preferences.prompt_suggestions,
+          show_tool_invocations:
+            userProfileData.user_preferences.show_tool_invocations,
+          show_conversation_previews:
+            userProfileData.user_preferences.show_conversation_previews,
+          multi_model_enabled:
+            userProfileData.user_preferences.multi_model_enabled,
+          hidden_models: userProfileData.user_preferences.hidden_models,
+        })
+      : undefined
+
+    return {
+      ...userProfileData,
+      profile_image: "",
+      display_name: "Guest User",
+      preferences: formattedPreferences || defaultPreferences,
+    } as UserProfile
+  }
 
   // Format user preferences if they exist
   const formattedPreferences = userProfileData?.user_preferences

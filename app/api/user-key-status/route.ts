@@ -9,16 +9,29 @@ export async function GET() {
   try {
     const supabase = await createClient()
     if (!supabase) {
-      return NextResponse.json(
-        { error: "Supabase not available" },
-        { status: 500 }
+      // Return empty provider status for environments without Supabase
+      const providerStatus = SUPPORTED_PROVIDERS.reduce(
+        (acc, provider) => {
+          acc[provider] = false
+          return acc
+        },
+        {} as Record<string, boolean>
       )
+      return NextResponse.json(providerStatus)
     }
 
     const { data: authData } = await supabase.auth.getUser()
 
     if (!authData?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      // Return empty provider status for guest users
+      const providerStatus = SUPPORTED_PROVIDERS.reduce(
+        (acc, provider) => {
+          acc[provider] = false
+          return acc
+        },
+        {} as Record<string, boolean>
+      )
+      return NextResponse.json(providerStatus)
     }
 
     const { data, error } = await supabase

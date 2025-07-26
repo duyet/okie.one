@@ -44,6 +44,12 @@ export function UserProvider({
   }
 
   const updateUser = async (updates: Partial<UserProfile>) => {
+    // For guest users being initialized, set the full profile
+    if (!user?.id && updates.id && updates.anonymous) {
+      setUser(updates as UserProfile)
+      return
+    }
+
     if (!user?.id) return
 
     setIsLoading(true)

@@ -79,10 +79,10 @@ export async function GET() {
     const supabase = await createClient()
 
     if (!supabase) {
-      return NextResponse.json(
-        { error: "Database connection failed" },
-        { status: 500 }
-      )
+      // Return empty favorites for environments without Supabase
+      return NextResponse.json({
+        favorite_models: [],
+      })
     }
 
     // Get the current user
@@ -92,7 +92,10 @@ export async function GET() {
     } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      // Return empty favorites for guest users
+      return NextResponse.json({
+        favorite_models: [],
+      })
     }
 
     // Get the user's favorite models
