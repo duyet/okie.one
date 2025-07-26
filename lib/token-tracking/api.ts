@@ -422,3 +422,47 @@ export async function getTimingAnalytics(
     )
   }
 }
+
+/**
+ * Gets daily token usage by model for chart visualization
+ */
+export async function getDailyTokenUsageByModel(
+  daysBack: number = 30,
+  userId?: string
+): Promise<any[]> {
+  // TODO: Fix types after database migration
+  try {
+    const supabase = await createClient()
+    if (!supabase) {
+      throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
+    }
+
+    const { data, error } = await (supabase as any).rpc(
+      "get_daily_model_token_summary",
+      {
+        days_back: daysBack,
+        target_user_id: userId || null,
+      }
+    )
+
+    if (error) {
+      throw new TokenError(
+        `Failed to get daily model token usage: ${error.message}`,
+        "DAILY_MODEL_USAGE_ERROR",
+        { error, userId, daysBack }
+      )
+    }
+
+    return (data || []) as any[] // TODO: Fix types after database migration
+  } catch (error) {
+    if (error instanceof TokenError) {
+      throw error
+    }
+
+    throw new TokenError(
+      `Unexpected error getting daily model usage: ${error instanceof Error ? error.message : String(error)}`,
+      "UNEXPECTED_ERROR",
+      { originalError: error }
+    )
+  }
+}

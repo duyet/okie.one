@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Loader2, Trophy, TrendingUp, Clock, DollarSign } from "lucide-react"
+import { DailyTokenUsageChart } from "./daily-token-usage-chart"
 
 interface TokenStats {
   totalTokens: number
@@ -98,6 +99,9 @@ export function TokenAnalytics({
 
   return (
     <div className="space-y-6">
+      {/* Daily Token Usage Chart */}
+      <DailyTokenUsageChart userId={userId} />
+
       {/* User Stats */}
       {stats && (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
