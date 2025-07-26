@@ -82,7 +82,8 @@ export function UsageMetrics({
     tokenUsage.output_tokens +
     (tokenUsage.cached_tokens || 0)
   const hasTiming = tokenUsage.duration_ms || tokenUsage.time_to_first_chunk_ms
-  const hasCachedTokens = tokenUsage.cached_tokens !== undefined && tokenUsage.cached_tokens !== null
+  const hasCachedTokens =
+    tokenUsage.cached_tokens !== undefined && tokenUsage.cached_tokens !== null
 
   // Grok-style inline display - show just the duration like "1.1s"
   const primaryDuration =
@@ -288,4 +289,3 @@ export function UsageMetrics({
     </HoverCard>
   )
 }
-

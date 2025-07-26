@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function AnalyticsPage() {
   const supabase = await createClient()
-  
+
   if (!supabase) {
     redirect("/auth")
   }

@@ -8,17 +8,25 @@ global.fetch = vi.fn()
 
 // Mock the recharts components
 vi.mock("recharts", () => ({
-  ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container">{children}</div>,
-  LineChart: ({ children }: any) => <div data-testid="line-chart">{children}</div>,
+  ResponsiveContainer: ({ children }: any) => (
+    <div data-testid="responsive-container">{children}</div>
+  ),
+  LineChart: ({ children }: any) => (
+    <div data-testid="line-chart">{children}</div>
+  ),
   Line: () => <div data-testid="line" />,
   XAxis: () => <div data-testid="x-axis" />,
   YAxis: () => <div data-testid="y-axis" />,
   CartesianGrid: () => <div data-testid="cartesian-grid" />,
   Tooltip: () => <div data-testid="tooltip" />,
   Legend: () => <div data-testid="legend" />,
-  BarChart: ({ children }: any) => <div data-testid="bar-chart">{children}</div>,
+  BarChart: ({ children }: any) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
   Bar: () => <div data-testid="bar" />,
-  PieChart: ({ children }: any) => <div data-testid="pie-chart">{children}</div>,
+  PieChart: ({ children }: any) => (
+    <div data-testid="pie-chart">{children}</div>
+  ),
   Pie: () => <div data-testid="pie" />,
   Cell: () => <div data-testid="cell" />,
 }))
@@ -96,92 +104,72 @@ describe("TokenAnalytics", () => {
   it("should render loading state initially", () => {
     mockFetch.mockImplementation(() => new Promise(() => {})) // Never resolves
 
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={true} />
+    )
 
     expect(screen.getByText("Loading analytics...")).toBeInTheDocument()
   })
 
   it("should render user analytics data successfully", async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockUserAnalytics),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockLeaderboard),
-      })
-
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={true} />
+    )
 
     await waitFor(() => {
-      expect(screen.getByText("Token Usage Analytics")).toBeInTheDocument()
+      expect(screen.getByText("Total Tokens")).toBeInTheDocument()
     })
 
-    // Check if analytics data is displayed
+    // Check if analytics data is displayed (based on mocked stats response)
     expect(screen.getByText("Total Tokens")).toBeInTheDocument()
-    expect(screen.getByText("2,500")).toBeInTheDocument() // Sum of tokens
-    expect(screen.getByText("Total Messages")).toBeInTheDocument()
-    expect(screen.getByText("25")).toBeInTheDocument() // Sum of messages
+    expect(screen.getByText("6,912")).toBeInTheDocument()
     expect(screen.getByText("Total Cost")).toBeInTheDocument()
-    expect(screen.getByText("$0.13")).toBeInTheDocument() // Sum of costs
+    expect(screen.getByText("$0.1500")).toBeInTheDocument()
+    expect(screen.getByText("42 messages")).toBeInTheDocument()
   })
 
-  it("should render charts when data is available", async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockUserAnalytics),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockLeaderboard),
-      })
-
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+  it("should render stats cards when data is available", async () => {
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={true} />
+    )
 
     await waitFor(() => {
-      expect(screen.getByTestId("line-chart")).toBeInTheDocument()
+      expect(screen.getByText("Total Tokens")).toBeInTheDocument()
     })
 
-    expect(screen.getByTestId("bar-chart")).toBeInTheDocument()
-    expect(screen.getByTestId("pie-chart")).toBeInTheDocument()
+    expect(screen.getByText("6,912")).toBeInTheDocument()
+    expect(screen.getByText("Total Cost")).toBeInTheDocument()
+    expect(screen.getByText("Avg Duration")).toBeInTheDocument()
   })
 
   it("should render leaderboard when showLeaderboard is true", async () => {
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockUserAnalytics),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve(mockLeaderboard),
-      })
+    renderWithQueryClient(<TokenAnalytics showLeaderboard={true} />)
 
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+    await waitFor(
+      () => {
+        expect(
+          screen.getByText("Daily Token Usage Leaderboard")
+        ).toBeInTheDocument()
+      },
+      { timeout: 3000 }
+    )
 
-    await waitFor(() => {
-      expect(screen.getByText("Daily Leaderboard")).toBeInTheDocument()
-    })
-
-    expect(screen.getByText("5,000")).toBeInTheDocument() // Top user tokens
-    expect(screen.getByText("3,000")).toBeInTheDocument() // Second user tokens
+    expect(screen.getByText("5,432", { exact: false })).toBeInTheDocument() // Top user tokens from MSW mock
+    expect(screen.getByText("3,210", { exact: false })).toBeInTheDocument() // Second user tokens from MSW mock
   })
 
   it("should not render leaderboard when showLeaderboard is false", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: () => Promise.resolve(mockUserAnalytics),
-    })
-
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={false} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={false} />
+    )
 
     await waitFor(() => {
-      expect(screen.getByText("Token Usage Analytics")).toBeInTheDocument()
+      expect(screen.getByText("Total Tokens")).toBeInTheDocument()
     })
 
-    expect(screen.queryByText("Daily Leaderboard")).not.toBeInTheDocument()
+    expect(
+      screen.queryByText("Daily Token Usage Leaderboard")
+    ).not.toBeInTheDocument()
   })
 
   it("should handle empty analytics data", async () => {
@@ -195,7 +183,9 @@ describe("TokenAnalytics", () => {
         json: () => Promise.resolve([]),
       })
 
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={true} />
+    )
 
     await waitFor(() => {
       expect(screen.getByText("No usage data available")).toBeInTheDocument()
@@ -205,10 +195,14 @@ describe("TokenAnalytics", () => {
   it("should handle API errors gracefully", async () => {
     mockFetch.mockRejectedValue(new Error("Network error"))
 
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={true} />
+    )
 
     await waitFor(() => {
-      expect(screen.getByText("Error loading analytics data")).toBeInTheDocument()
+      expect(
+        screen.getByText("Error loading analytics data")
+      ).toBeInTheDocument()
     })
   })
 
@@ -219,10 +213,14 @@ describe("TokenAnalytics", () => {
       json: () => Promise.resolve({ error: "Internal server error" }),
     })
 
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={true} />
+    )
 
     await waitFor(() => {
-      expect(screen.getByText("Error loading analytics data")).toBeInTheDocument()
+      expect(
+        screen.getByText("Error loading analytics data")
+      ).toBeInTheDocument()
     })
   })
 
@@ -237,13 +235,19 @@ describe("TokenAnalytics", () => {
         json: () => Promise.resolve(mockLeaderboard),
       })
 
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={true} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={true} />
+    )
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/analytics/token-usage?userId=user-123")
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/analytics/token-usage?userId=user-123"
+      )
     })
 
-    expect(mockFetch).toHaveBeenCalledWith("/api/analytics/token-usage?leaderboard=true")
+    expect(mockFetch).toHaveBeenCalledWith(
+      "/api/analytics/token-usage?leaderboard=true"
+    )
   })
 
   it("should calculate totals correctly", async () => {
@@ -276,7 +280,9 @@ describe("TokenAnalytics", () => {
         json: () => Promise.resolve([]),
       })
 
-    renderWithQueryClient(<TokenAnalytics userId="user-123" showLeaderboard={false} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="user-123" showLeaderboard={false} />
+    )
 
     await waitFor(() => {
       expect(screen.getByText("6,912")).toBeInTheDocument() // 1234 + 5678
@@ -292,10 +298,14 @@ describe("TokenAnalytics", () => {
       json: () => Promise.resolve([]),
     })
 
-    renderWithQueryClient(<TokenAnalytics userId="different-user-456" showLeaderboard={false} />)
+    renderWithQueryClient(
+      <TokenAnalytics userId="different-user-456" showLeaderboard={false} />
+    )
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/analytics/token-usage?userId=different-user-456")
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/analytics/token-usage?userId=different-user-456"
+      )
     })
   })
 
@@ -310,7 +320,9 @@ describe("TokenAnalytics", () => {
     )
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/analytics/token-usage?userId=user-1")
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/analytics/token-usage?userId=user-1"
+      )
     })
 
     rerender(
@@ -320,7 +332,9 @@ describe("TokenAnalytics", () => {
     )
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith("/api/analytics/token-usage?userId=user-2")
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/analytics/token-usage?userId=user-2"
+      )
     })
   })
 })

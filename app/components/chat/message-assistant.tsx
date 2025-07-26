@@ -193,7 +193,7 @@ export function MessageAssistant({
                 </button>
               </MessageAction>
             ) : null}
-            
+
             {/* Usage Metrics - show inline with actions */}
             {id && chatId && user?.id && (
               <div className="ml-2 flex items-center">

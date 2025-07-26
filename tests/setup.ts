@@ -16,6 +16,20 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
   disconnect: vi.fn(),
 }))
 
+// Mock IndexedDB
+const mockIDBRequest = {
+  onsuccess: null,
+  onerror: null,
+  result: null,
+  readyState: "done" as const,
+}
+
+global.indexedDB = {
+  open: vi.fn().mockReturnValue(mockIDBRequest),
+  deleteDatabase: vi.fn().mockReturnValue(mockIDBRequest),
+  databases: vi.fn().mockResolvedValue([]),
+} as any
+
 // Ensure document.body exists for React Testing Library
 beforeAll(() => {
   if (!document.body) {

@@ -19,7 +19,9 @@ vi.mock("@/app/analytics/token-usage", () => ({
   default: vi.fn(({ userId, showLeaderboard }) => (
     <div data-testid="token-analytics">
       <div data-testid="user-id">{userId}</div>
-      <div data-testid="show-leaderboard">{showLeaderboard ? "true" : "false"}</div>
+      <div data-testid="show-leaderboard">
+        {showLeaderboard ? "true" : "false"}
+      </div>
     </div>
   )),
 }))
@@ -51,7 +53,7 @@ describe("AnalyticsPage", () => {
     })
 
     const AnalyticsPageComponent = await AnalyticsPage()
-    
+
     render(AnalyticsPageComponent)
 
     expect(screen.getByTestId("token-analytics")).toBeInTheDocument()
@@ -110,7 +112,7 @@ describe("AnalyticsPage", () => {
     })
 
     const AnalyticsPageComponent = await AnalyticsPage()
-    
+
     render(AnalyticsPageComponent)
 
     expect(screen.getByTestId("user-id")).toHaveTextContent("test-user-789")
@@ -149,10 +151,12 @@ describe("AnalyticsPage", () => {
     })
 
     const AnalyticsPageComponent = await AnalyticsPage()
-    
+
     render(AnalyticsPageComponent)
 
-    expect(screen.getByTestId("user-id")).toHaveTextContent("complex-user-id-123")
+    expect(screen.getByTestId("user-id")).toHaveTextContent(
+      "complex-user-id-123"
+    )
   })
 
   it("should handle async operations correctly", async () => {
@@ -163,16 +167,21 @@ describe("AnalyticsPage", () => {
 
     // Simulate async delay
     mockSupabase.auth.getUser.mockImplementation(
-      () => new Promise(resolve => 
-        setTimeout(() => resolve({
-          data: { user: mockUser },
-          error: null,
-        }), 10)
-      )
+      () =>
+        new Promise((resolve) =>
+          setTimeout(
+            () =>
+              resolve({
+                data: { user: mockUser },
+                error: null,
+              }),
+            10
+          )
+        )
     )
 
     const AnalyticsPageComponent = await AnalyticsPage()
-    
+
     render(AnalyticsPageComponent)
 
     expect(screen.getByTestId("user-id")).toHaveTextContent("async-user-123")

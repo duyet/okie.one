@@ -171,7 +171,7 @@ export function TokenAnalytics({
             </CardHeader>
             <CardContent>
               <div className="font-bold text-2xl">
-                {stats.averageTimeToFirstToken 
+                {stats.averageTimeToFirstToken
                   ? `${(stats.averageTimeToFirstToken / 1000).toFixed(2)}s`
                   : "N/A"}
               </div>
