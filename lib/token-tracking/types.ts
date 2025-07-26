@@ -94,6 +94,7 @@ export interface TokenTrackingConfig {
 }
 
 // Cost estimation models (prices per 1K tokens in USD)
+// IMPORTANT: All values below are per 1,000 tokens, not per token
 export const TOKEN_COSTS: Record<string, { input: number; output: number }> = {
   // OpenAI models
   "openai-gpt-4o": { input: 0.0025, output: 0.01 },

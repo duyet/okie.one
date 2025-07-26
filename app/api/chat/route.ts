@@ -36,7 +36,6 @@ type ChatRequest = {
 export async function POST(req: Request) {
   const requestStartTime = Date.now()
   let assistantMessageId: string | null = null
-  let timeToFirstToken: number | undefined
   let timeToFirstChunk: number | undefined
   let streamingStartTime: number | undefined
 
@@ -144,14 +143,11 @@ export async function POST(req: Request) {
         console.error("Streaming error occurred:", err)
         // Don't set streamError anymore - let the AI SDK handle it through the stream
       },
-      onChunk: (chunk) => {
-        if (!timeToFirstChunk) {
+      onChunk: () => {
+        // Set timeToFirstChunk and streamingStartTime only once, on the first chunk
+        if (timeToFirstChunk === undefined) {
           timeToFirstChunk = Date.now() - requestStartTime
           streamingStartTime = Date.now()
-        }
-        // Track first token timing from chunk data
-        if (!timeToFirstToken && chunk.chunk?.type === "text-delta") {
-          timeToFirstToken = Date.now() - requestStartTime
         }
       },
 
@@ -222,7 +218,7 @@ export async function POST(req: Request) {
                     usage.totalTokens ||
                     (usage.promptTokens || 0) + (usage.completionTokens || 0),
                   durationMs: requestDuration,
-                  timeToFirstTokenMs: timeToFirstToken,
+                  timeToFirstTokenMs: timeToFirstChunk, // Using first chunk as proxy for first token
                   timeToFirstChunkMs: timeToFirstChunk,
                   streamingDurationMs: streamingDuration,
                 }
@@ -235,7 +231,6 @@ export async function POST(req: Request) {
                 outputTokens: usage.completionTokens,
                 cachedTokens: (usage as { cachedTokens?: number }).cachedTokens,
                 duration: requestDuration,
-                timeToFirstToken,
                 timeToFirstChunk,
                 streamingDuration,
               })

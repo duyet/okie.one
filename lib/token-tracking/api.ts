@@ -43,8 +43,11 @@ export async function recordTokenUsage(
 
     // Get current pricing for historical record
     const costs = TOKEN_COSTS[providerModelKey] || TOKEN_COSTS.default
-    const costPerInputToken = costs.input / 1000 // Convert to per-token cost
-    const costPerOutputToken = costs.output / 1000
+
+    // Note: TOKEN_COSTS values are per 1K tokens (see types.ts comment)
+    // Convert to per-token cost for storage
+    const costPerInputToken = costs.input / 1000 // costs.input is per 1K tokens
+    const costPerOutputToken = costs.output / 1000 // costs.output is per 1K tokens
 
     const tokenUsage: Omit<TokenUsage, "id" | "created_at" | "updated_at"> = {
       user_id: userId,
