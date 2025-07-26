@@ -79,7 +79,6 @@ export function MultiChatInput({
         onSend()
       }
     },
-    // biome-ignore lint/correctness/useExhaustiveDependencies: fix this
     [isSubmitting, anyLoading, onSend, status, value, isOnlyWhitespace]
   )
 

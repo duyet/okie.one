@@ -99,7 +99,6 @@ export function ChatInput({
         onSend()
       }
     },
-    // biome-ignore lint/correctness/useExhaustiveDependencies: todo
     [isSubmitting, onSend, status, value, isOnlyWhitespace]
   )
 

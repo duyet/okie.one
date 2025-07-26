@@ -104,12 +104,12 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Cost</CardTitle>
+              <CardTitle className="font-medium text-sm">Total Cost</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${stats.totalCost.toFixed(4)}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="font-bold text-2xl">${stats.totalCost.toFixed(4)}</div>
+              <p className="text-muted-foreground text-xs">
                 ${(stats.totalCost / stats.totalMessages || 0).toFixed(4)} per message
               </p>
             </CardContent>
@@ -117,12 +117,12 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg Duration</CardTitle>
+              <CardTitle className="font-medium text-sm">Avg Duration</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{(stats.averageDuration / 1000).toFixed(1)}s</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="font-bold text-2xl">{(stats.averageDuration / 1000).toFixed(1)}s</div>
+              <p className="text-muted-foreground text-xs">
                 Response time
               </p>
             </CardContent>
@@ -130,14 +130,14 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Top Model</CardTitle>
+              <CardTitle className="font-medium text-sm">Top Model</CardTitle>
               <Badge variant="secondary" className="text-xs">
                 {stats.topProvider}
               </Badge>
             </CardHeader>
             <CardContent>
-              <div className="text-lg font-bold">{stats.topModel}</div>
-              <p className="text-xs text-muted-foreground">
+              <div className="font-bold text-lg">{stats.topModel}</div>
+              <p className="text-muted-foreground text-xs">
                 Most used
               </p>
             </CardContent>
@@ -167,14 +167,14 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
                     </Badge>
                     <div>
                       <div className="font-medium">User {entry.user_id.slice(0, 8)}...</div>
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-muted-foreground text-sm">
                         {entry.total_tokens.toLocaleString()} tokens • {entry.total_messages} messages
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="font-medium">${entry.total_cost_usd.toFixed(4)}</div>
-                    <div className="text-sm text-muted-foreground">
+                    <div className="text-muted-foreground text-sm">
                       {entry.top_model}
                     </div>
                   </div>
@@ -189,7 +189,7 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
       {!stats && !showLeaderboard && (
         <div className="rounded-lg border border-dashed p-8 text-center">
           <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground" />
-          <h3 className="mt-4 text-lg font-semibold">No Analytics Data</h3>
+          <h3 className="mt-4 font-semibold text-lg">No Analytics Data</h3>
           <p className="text-muted-foreground">
             Start using AI models to see your token usage analytics here.
           </p>
