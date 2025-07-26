@@ -4,17 +4,28 @@
 -- Step 1: Drop dependent tables/constraints that reference messages.id
 DROP TABLE IF EXISTS token_usage CASCADE;
 
--- Step 2: Truncate messages table (as requested)
+-- Step 2: Drop foreign key constraints that reference messages.id
+ALTER TABLE chat_attachments DROP CONSTRAINT IF EXISTS chat_attachments_source_message_id_fkey;
+
+-- Step 3: Truncate messages table (as requested)
 TRUNCATE TABLE messages CASCADE;
 
--- Step 3: Drop the old integer ID column and recreate as TEXT
+-- Step 4: Drop the old integer ID column and recreate as TEXT
 ALTER TABLE messages DROP CONSTRAINT messages_pkey;
 ALTER TABLE messages DROP COLUMN id;
 
--- Step 4: Add new TEXT id column as primary key
+-- Step 5: Add new TEXT id column as primary key
 ALTER TABLE messages ADD COLUMN id TEXT PRIMARY KEY DEFAULT ('msg-' || encode(gen_random_bytes(16), 'base64url'));
 
--- Step 5: Recreate the token_usage table with TEXT message_id
+-- Step 6: Update chat_attachments.source_message_id to TEXT type
+ALTER TABLE chat_attachments ALTER COLUMN source_message_id TYPE TEXT USING source_message_id::TEXT;
+
+-- Step 7: Re-add foreign key constraint with TEXT reference
+ALTER TABLE chat_attachments 
+ADD CONSTRAINT chat_attachments_source_message_id_fkey 
+FOREIGN KEY (source_message_id) REFERENCES messages(id) ON DELETE CASCADE;
+
+-- Step 20: Recreate the token_usage table with TEXT message_id
 CREATE TABLE IF NOT EXISTS token_usage (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -47,7 +58,7 @@ CREATE TABLE IF NOT EXISTS token_usage (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Step 6: Recreate daily_token_usage table (unchanged but recreate for consistency)
+-- Step 21: Recreate daily_token_usage table (unchanged but recreate for consistency)
 CREATE TABLE IF NOT EXISTS daily_token_usage (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -78,7 +89,7 @@ CREATE TABLE IF NOT EXISTS daily_token_usage (
     UNIQUE(user_id, usage_date, provider_id, model_id)
 );
 
--- Step 7: Recreate indexes
+-- Step 19: Recreate indexes
 CREATE INDEX IF NOT EXISTS idx_token_usage_user_id ON token_usage(user_id);
 CREATE INDEX IF NOT EXISTS idx_token_usage_chat_id ON token_usage(chat_id);
 CREATE INDEX IF NOT EXISTS idx_token_usage_message_id ON token_usage(message_id);
@@ -90,7 +101,7 @@ CREATE INDEX IF NOT EXISTS idx_daily_token_usage_date ON daily_token_usage(usage
 CREATE INDEX IF NOT EXISTS idx_daily_token_usage_provider_model ON daily_token_usage(provider_id, model_id);
 CREATE INDEX IF NOT EXISTS idx_daily_token_usage_total_tokens ON daily_token_usage(total_tokens);
 
--- Step 8: Recreate the trigger function for daily aggregation
+-- Step 20: Recreate the trigger function for daily aggregation
 CREATE OR REPLACE FUNCTION update_daily_token_usage()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -132,14 +143,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Step 9: Recreate trigger
+-- Step 21: Recreate trigger
 DROP TRIGGER IF EXISTS trigger_update_daily_token_usage ON token_usage;
 CREATE TRIGGER trigger_update_daily_token_usage
     AFTER INSERT ON token_usage
     FOR EACH ROW
     EXECUTE FUNCTION update_daily_token_usage();
 
--- Step 10: Recreate utility functions
+-- Step 19: Recreate utility functions
 CREATE OR REPLACE FUNCTION get_daily_token_leaderboard(
     target_date DATE DEFAULT CURRENT_DATE,
     limit_count INTEGER DEFAULT 10
@@ -259,11 +270,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Step 11: Enable RLS (Row Level Security)
+-- Step 20: Enable RLS (Row Level Security)
 ALTER TABLE token_usage ENABLE ROW LEVEL SECURITY;
 ALTER TABLE daily_token_usage ENABLE ROW LEVEL SECURITY;
 
--- Step 12: Create RLS policies
+-- Step 21: Create RLS policies
 -- Token usage policies
 CREATE POLICY "Users can view their own token usage" 
     ON token_usage FOR SELECT 
@@ -282,13 +293,13 @@ CREATE POLICY "Service role can manage daily token usage"
     ON daily_token_usage FOR ALL 
     USING (auth.role() = 'service_role');
 
--- Step 13: Grant permissions
+-- Step 19: Grant permissions
 GRANT SELECT, INSERT ON token_usage TO authenticated;
 GRANT SELECT ON daily_token_usage TO authenticated;
 GRANT ALL ON token_usage TO service_role;
 GRANT ALL ON daily_token_usage TO service_role;
 
--- Step 14: Create updated_at trigger function if not exists
+-- Step 20: Create updated_at trigger function if not exists
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -297,7 +308,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Step 15: Create updated_at triggers
+-- Step 21: Create updated_at triggers
 CREATE TRIGGER update_token_usage_updated_at
     BEFORE UPDATE ON token_usage
     FOR EACH ROW
@@ -308,16 +319,16 @@ CREATE TRIGGER update_daily_token_usage_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- Step 16: Add table comments
+-- Step 19: Add table comments
 COMMENT ON TABLE token_usage IS 'Individual message token usage tracking with performance metrics';
 COMMENT ON TABLE daily_token_usage IS 'Aggregated daily token usage statistics per user';
 COMMENT ON COLUMN token_usage.message_id IS 'Message ID as TEXT (e.g., msg-xyz123), matches frontend format';
 COMMENT ON COLUMN messages.id IS 'Message ID as TEXT with auto-generated format (msg-xxxxx)';
 
--- Step 17: Update messages table to use better default ID generation
+-- Step 20: Update messages table to use better default ID generation
 ALTER TABLE messages ALTER COLUMN id SET DEFAULT ('msg-' || encode(gen_random_bytes(12), 'base64url'));
 
--- Step 18: Verify the changes
+-- Step 21: Verify the changes
 DO $$
 BEGIN
     RAISE NOTICE 'Migration completed successfully!';
