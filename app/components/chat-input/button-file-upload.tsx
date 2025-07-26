@@ -57,6 +57,8 @@ export function ButtonFileUpload({
       <Paperclip className="size-4" />
     </Button>
   ))
+  
+  FileUploadButton.displayName = "FileUploadButton"
 
   // Determine if file upload should be disabled
   let popoverContent: React.ReactNode = null
