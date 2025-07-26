@@ -98,13 +98,12 @@ describe("Lib Utils Integration", () => {
       debouncedFn("test")
       expect(mockFn).not.toHaveBeenCalled()
 
-      // Wait for debounce delay
-      await vi.waitFor(
-        () => {
-          expect(mockFn).toHaveBeenCalledWith("test")
-        },
-        { timeout: 150 }
-      )
+      // Wait for debounce delay using a Promise
+      await new Promise((resolve) => setTimeout(resolve, 110))
+
+      // Check that the function was called
+      expect(mockFn).toHaveBeenCalledWith("test")
+      expect(mockFn).toHaveBeenCalledTimes(1)
     })
 
     it("should cancel previous timeout when called again", async () => {
