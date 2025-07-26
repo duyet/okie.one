@@ -2,6 +2,7 @@
 // Token tracking API utilities
 
 import { createClient } from "@/lib/supabase/server"
+import { createGuestServerClient } from "@/lib/supabase/server-guest"
 import type {
   TokenUsage,
   DailyTokenUsage,
@@ -29,7 +30,8 @@ export async function recordTokenUsage(
   metrics: TokenUsageMetrics
 ): Promise<TokenUsage> {
   try {
-    const supabase = await createClient()
+    // Use service role client for token tracking to ensure proper permissions
+    const supabase = await createGuestServerClient()
     if (!supabase) {
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }

@@ -99,6 +99,6 @@ export async function saveFinalAssistantMessage(
     throw new Error(`Failed to save assistant message: ${error.message}`)
   } else {
     console.log("Assistant message saved successfully (merged).")
-    return data?.id?.toString() || null
+    return data?.id || null
   }
 }
