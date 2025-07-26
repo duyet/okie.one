@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS token_usage (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     chat_id UUID REFERENCES chats(id) ON DELETE CASCADE,
-    message_id UUID REFERENCES messages(id) ON DELETE CASCADE,
+    message_id int REFERENCES messages(id) ON DELETE CASCADE,
     
     -- Provider and model information
     provider_id TEXT NOT NULL, -- openai, anthropic, google, etc.
@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS token_usage (
     -- Cost estimation with historical pricing
     estimated_cost_usd DECIMAL(10, 6), -- Cost in USD
     cost_per_input_token_usd DECIMAL(12, 8),
-    cost_per_output_token_usd DECIMAL(12, 8)
+    cost_per_output_token_usd DECIMAL(12, 8),
     
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
