@@ -78,7 +78,7 @@ export function createAttachment(file: File, url: string): Attachment {
 export async function processFiles(
   files: File[],
   chatId: string,
-  userId: string
+  userId: string | null
 ): Promise<Attachment[]> {
   const supabase = isSupabaseEnabledClient ? createClient() : null
   const attachments: Attachment[] = []
@@ -100,7 +100,7 @@ export async function processFiles(
         ? await uploadFile(supabase, file)
         : URL.createObjectURL(file)
 
-      if (supabase) {
+      if (supabase && userId) {
         const { error } = await supabase.from("chat_attachments").insert({
           chat_id: chatId,
           user_id: userId,
@@ -132,8 +132,9 @@ export class FileUploadLimitError extends Error {
   }
 }
 
-export async function checkFileUploadLimit(userId: string) {
+export async function checkFileUploadLimit(userId: string | null) {
   if (!isSupabaseEnabledClient) return 0
+  if (!userId) return 0 // Allow unlimited for unauthenticated users
 
   const supabase = createClient()
 

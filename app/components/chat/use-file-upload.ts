@@ -15,7 +15,7 @@ export const useFileUpload = (modelId?: string) => {
   const [files, setFiles] = useState<File[]>([])
 
   const handleFileUploads = async (
-    uid: string,
+    uid: string | null,
     chatId: string
   ): Promise<Attachment[] | null> => {
     if (files.length === 0) return []

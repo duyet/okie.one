@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { render, screen } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import { ButtonFileUpload } from "@/app/components/chat-input/button-file-upload"
@@ -61,8 +61,8 @@ describe("ButtonFileUpload", () => {
     render(
       <ButtonFileUpload
         onFileUpload={mockOnFileUpload}
-        isUserAuthenticated={true}
         model="gpt-4.1"
+        isUserAuthenticated={true}
       />,
       { wrapper: createWrapper() }
     )
@@ -75,8 +75,8 @@ describe("ButtonFileUpload", () => {
     render(
       <ButtonFileUpload
         onFileUpload={mockOnFileUpload}
-        isUserAuthenticated={true}
         model="gpt-4.1"
+        isUserAuthenticated={true}
       />,
       { wrapper: createWrapper() }
     )
@@ -89,8 +89,22 @@ describe("ButtonFileUpload", () => {
     render(
       <ButtonFileUpload
         onFileUpload={mockOnFileUpload}
-        isUserAuthenticated={true}
         model="gpt-3.5-turbo"
+        isUserAuthenticated={true}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    const button = screen.getByRole("button", { name: "Add files" })
+    expect(button).toBeDisabled()
+  })
+
+  it("should be disabled for unauthenticated users", () => {
+    render(
+      <ButtonFileUpload
+        onFileUpload={mockOnFileUpload}
+        model="gpt-4.1"
+        isUserAuthenticated={false}
       />,
       { wrapper: createWrapper() }
     )
