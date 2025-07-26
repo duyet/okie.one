@@ -1,4 +1,4 @@
-import { FileText, Image, Upload } from "lucide-react"
+import { FileText, Image as ImageIcon, Upload } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
@@ -20,7 +20,7 @@ export function EmptyState() {
 
           <div className="mb-6 grid w-full max-w-xs grid-cols-3 gap-4">
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-muted/50 p-3">
-              <Image className="h-6 w-6 text-muted-foreground" />
+              <ImageIcon className="h-6 w-6 text-muted-foreground" />
               <span className="text-muted-foreground text-xs">Images</span>
             </div>
             <div className="flex flex-col items-center gap-2 rounded-lg border bg-muted/50 p-3">

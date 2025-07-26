@@ -17,6 +17,7 @@ import {
   storeAssistantMessage,
   validateAndTrackUsage,
 } from "./api"
+import { recordTokenUsage } from "@/lib/token-tracking/api"
 import { createErrorResponse, extractErrorMessage } from "./utils"
 
 export const maxDuration = 60
@@ -33,6 +34,9 @@ type ChatRequest = {
 }
 
 export async function POST(req: Request) {
+  const requestStartTime = Date.now()
+  let assistantMessageId: string | null = null
+
   try {
     const {
       messages,
@@ -138,7 +142,14 @@ export async function POST(req: Request) {
         // Don't set streamError anymore - let the AI SDK handle it through the stream
       },
 
-      onFinish: async ({ response }) => {
+      onFinish: async ({ response, usage, finishReason }) => {
+        // Log token usage data for debugging
+        console.log("AI SDK Response data:", {
+          usage,
+          finishReason,
+          responseKeys: Object.keys(response),
+        })
+
         // Parse artifacts from the response text for all users (not just Supabase users)
         const responseText = response.messages
           .filter((msg) => msg.role === "assistant")
@@ -164,7 +175,7 @@ export async function POST(req: Request) {
 
         // Store in database only if Supabase is available
         if (supabase) {
-          await storeAssistantMessage({
+          assistantMessageId = await storeAssistantMessage({
             supabase,
             chatId,
             messages:
@@ -173,6 +184,41 @@ export async function POST(req: Request) {
             model,
             artifactParts,
           })
+
+          // Record token usage if available
+          if (usage && assistantMessageId) {
+            try {
+              const provider = getProviderForModel(model)
+              const requestDuration = Date.now() - requestStartTime
+
+              await recordTokenUsage(
+                userId,
+                chatId,
+                assistantMessageId,
+                provider,
+                model,
+                {
+                  inputTokens: usage.promptTokens || 0,
+                  outputTokens: usage.completionTokens || 0,
+                  totalTokens:
+                    usage.totalTokens ||
+                    (usage.promptTokens || 0) + (usage.completionTokens || 0),
+                  durationMs: requestDuration,
+                }
+              )
+
+              console.log("Token usage recorded successfully:", {
+                model,
+                provider,
+                inputTokens: usage.promptTokens,
+                outputTokens: usage.completionTokens,
+                duration: requestDuration,
+              })
+            } catch (tokenError) {
+              console.error("Failed to record token usage:", tokenError)
+              // Don't fail the request if token tracking fails
+            }
+          }
         }
       },
     })
