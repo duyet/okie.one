@@ -1,7 +1,7 @@
 "use client"
 
 import { useQuery } from "@tanstack/react-query"
-import { FolderOpen, Grid, List, Search } from "lucide-react"
+import { BarChart, FolderOpen, Grid, List, Search } from "lucide-react"
 import React, { useState, useEffect } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -17,6 +17,7 @@ import { toast } from "@/components/ui/toast"
 
 import { deleteUserFile, downloadFile, getUserFiles } from "./api"
 import { EmptyState } from "./empty-state"
+import { FileAnalytics } from "./file-analytics"
 import { FileGrid } from "./file-grid"
 import { FileList } from "./file-list"
 import type { FileStatus } from "./file-status-indicator"
@@ -26,7 +27,7 @@ interface FilesViewProps {
   userId: string
 }
 
-type ViewMode = "grid" | "list"
+type ViewMode = "grid" | "list" | "analytics"
 type SortBy = "newest" | "oldest" | "name" | "size" | "type"
 type FilterBy = "all" | "images" | "documents" | "text"
 
@@ -219,12 +220,23 @@ export function FilesView({ userId }: FilesViewProps) {
           >
             <List className="h-4 w-4" />
           </Button>
+          <Button
+            variant={viewMode === "analytics" ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setViewMode("analytics")}
+          >
+            <BarChart className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
       {/* Files content */}
       <div className="flex-1 overflow-auto">
-        {filteredFiles.length === 0 ? (
+        {viewMode === "analytics" ? (
+          <div className="p-4">
+            <FileAnalytics userId={userId} />
+          </div>
+        ) : filteredFiles.length === 0 ? (
           <div className="flex h-full items-center justify-center">
             <div className="text-center">
               <FolderOpen className="mx-auto h-12 w-12 text-muted-foreground" />

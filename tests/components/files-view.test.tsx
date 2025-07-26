@@ -48,6 +48,14 @@ vi.mock("@/app/files/file-list", () => ({
   ),
 }))
 
+vi.mock("@/app/files/file-analytics", () => ({
+  FileAnalytics: ({ userId }: any) => (
+    <div data-testid="file-analytics">
+      Analytics for user: {userId}
+    </div>
+  ),
+}))
+
 // Mock UI components
 vi.mock("@/components/ui/button", () => ({
   Button: ({ children, onClick, ...props }: any) => (
@@ -180,11 +188,11 @@ describe("FilesView", () => {
     
     // Find view toggle buttons - they have variant attributes
     const buttons = screen.getAllByRole("button")
-    // The last two buttons should be the view toggles
-    const viewButtons = buttons.slice(-2)
-    expect(viewButtons).toHaveLength(2)
+    // The last three buttons should be the view toggles (grid, list, analytics)
+    const viewButtons = buttons.slice(-3)
+    expect(viewButtons).toHaveLength(3)
     
-    // Click the list view button (the second/last one)
+    // Click the list view button (the second one)
     fireEvent.click(viewButtons[1])
     
     // Check that FileList is now rendered instead of FileGrid
@@ -227,5 +235,28 @@ describe("FilesView", () => {
     // The component should still display all files with our current mock
     expect(screen.getByText("test-image.png")).toBeDefined()
     expect(screen.getByText("document.pdf")).toBeDefined()
+  })
+
+  it("should toggle to analytics view", async () => {
+    render(<FilesView userId="test-user" />, { wrapper: createWrapper() })
+    
+    await waitFor(() => {
+      expect(screen.getByText("test-image.png")).toBeDefined()
+    })
+    
+    // Find view toggle buttons
+    const buttons = screen.getAllByRole("button")
+    const viewButtons = buttons.slice(-3)
+    expect(viewButtons).toHaveLength(3)
+    
+    // Click the analytics view button (the third/last one)
+    fireEvent.click(viewButtons[2])
+    
+    // Check that FileAnalytics is now rendered
+    await waitFor(() => {
+      expect(screen.queryByTestId('file-grid')).toBeNull()
+      expect(screen.queryByTestId('file-list')).toBeNull()
+      expect(screen.getByTestId('file-analytics')).toBeDefined()
+    })
   })
 })

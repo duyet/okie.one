@@ -46,10 +46,6 @@ const mockFiles: FileWithChat[] = [
     chat: {
       id: "chat-1",
       title: "Test Chat",
-      created_at: "2024-01-01T00:00:00Z",
-      updated_at: "2024-01-01T00:00:00Z",
-      user_id: "user-1",
-      project_id: null,
     },
   },
   {
@@ -61,6 +57,10 @@ const mockFiles: FileWithChat[] = [
     file_size: 2097152, // 2MB
     file_url: "https://example.com/document.pdf",
     created_at: "2024-01-02T00:00:00Z",
+    chat: {
+      id: "chat-2",
+      title: "Document Chat",
+    },
   },
 ]
 
