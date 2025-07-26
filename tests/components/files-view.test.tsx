@@ -9,14 +9,14 @@ const mockDownloadFile = vi.fn()
 
 // Mock the API module
 vi.mock("@/app/files/api", () => ({
-  getUserFiles: (...args: any[]) => mockGetUserFiles(...args),
-  deleteUserFile: (...args: any[]) => mockDeleteUserFile(...args),
-  downloadFile: (...args: any[]) => mockDownloadFile(...args),
+  getUserFiles: (...args: unknown[]) => mockGetUserFiles(...args),
+  deleteUserFile: (...args: unknown[]) => mockDeleteUserFile(...args),
+  downloadFile: (...args: unknown[]) => mockDownloadFile(...args),
 }))
 
 // Mock the other components
 vi.mock("@/app/files/file-stats", () => ({
-  FileStats: ({ files }: any) => (
+  FileStats: ({ files }: { files?: unknown[] }) => (
     <div>
       <div>Total files</div>
       <div>{files?.length || 0}</div>
@@ -29,9 +29,9 @@ vi.mock("@/app/files/empty-state", () => ({
 }))
 
 vi.mock("@/app/files/file-grid", () => ({
-  FileGrid: ({ files }: any) => (
+  FileGrid: ({ files }: { files?: Array<{ id: string; file_name: string }> }) => (
     <div data-testid="file-grid">
-      {files?.map((file: any) => (
+      {files?.map((file) => (
         <div key={file.id}>{file.file_name}</div>
       ))}
     </div>
@@ -39,9 +39,9 @@ vi.mock("@/app/files/file-grid", () => ({
 }))
 
 vi.mock("@/app/files/file-list", () => ({
-  FileList: ({ files }: any) => (
+  FileList: ({ files }: { files?: Array<{ id: string; file_name: string }> }) => (
     <div data-testid="file-list">
-      {files?.map((file: any) => (
+      {files?.map((file) => (
         <div key={file.id}>{file.file_name}</div>
       ))}
     </div>
@@ -49,7 +49,7 @@ vi.mock("@/app/files/file-list", () => ({
 }))
 
 vi.mock("@/app/files/file-analytics", () => ({
-  FileAnalytics: ({ userId }: any) => (
+  FileAnalytics: ({ userId }: { userId?: string }) => (
     <div data-testid="file-analytics">
       Analytics for user: {userId}
     </div>
@@ -58,23 +58,23 @@ vi.mock("@/app/files/file-analytics", () => ({
 
 // Mock UI components
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, ...props }: any) => (
+  Button: ({ children, onClick, ...props }: { children: React.ReactNode; onClick?: () => void; [key: string]: unknown }) => (
     <button onClick={onClick} {...props}>{children}</button>
   ),
 }))
 
 vi.mock("@/components/ui/input", () => ({
-  Input: ({ onChange, ...props }: any) => (
+  Input: ({ onChange, ...props }: { onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; [key: string]: unknown }) => (
     <input onChange={onChange} {...props} />
   ),
 }))
 
 vi.mock("@/components/ui/select", () => ({
-  Select: ({ children, onValueChange }: any) => <div>{children}</div>,
-  SelectContent: ({ children }: any) => <div>{children}</div>,
-  SelectItem: ({ children, value }: any) => <option value={value}>{children}</option>,
-  SelectTrigger: ({ children }: any) => <button>{children}</button>,
-  SelectValue: ({ placeholder }: any) => <span>{placeholder}</span>,
+  Select: ({ children, onValueChange }: { children: React.ReactNode; onValueChange?: (value: string) => void }) => <div>{children}</div>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => <option value={value}>{children}</option>,
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <button>{children}</button>,
+  SelectValue: ({ placeholder }: { placeholder?: string }) => <span>{placeholder}</span>,
 }))
 
 vi.mock("@/components/ui/toast", () => ({
