@@ -10,6 +10,7 @@ interface TokenStats {
   totalMessages: number
   totalCost: number
   averageDuration: number
+  averageTimeToFirstToken?: number
   topProvider: string
   topModel: string
 }
@@ -17,9 +18,13 @@ interface TokenStats {
 interface LeaderboardEntry {
   user_id: string
   total_tokens: number
+  total_input_tokens: number
+  total_output_tokens: number
+  total_cached_tokens: number
   total_messages: number
   total_cost_usd: number
   avg_duration_ms: number
+  avg_time_to_first_token_ms?: number
   top_provider: string
   top_model: string
 }
@@ -95,7 +100,7 @@ export function TokenAnalytics({
     <div className="space-y-6">
       {/* User Stats */}
       {stats && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="font-medium text-sm">
@@ -154,6 +159,23 @@ export function TokenAnalytics({
             <CardContent>
               <div className="font-bold text-lg">{stats.topModel}</div>
               <p className="text-muted-foreground text-xs">Most used</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="font-medium text-sm">
+                Avg Time to First Token
+              </CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="font-bold text-2xl">
+                {stats.averageTimeToFirstToken 
+                  ? `${(stats.averageTimeToFirstToken / 1000).toFixed(2)}s`
+                  : "N/A"}
+              </div>
+              <p className="text-muted-foreground text-xs">Response latency</p>
             </CardContent>
           </Card>
         </div>

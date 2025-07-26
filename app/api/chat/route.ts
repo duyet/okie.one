@@ -36,6 +36,9 @@ type ChatRequest = {
 export async function POST(req: Request) {
   const requestStartTime = Date.now()
   let assistantMessageId: string | null = null
+  let timeToFirstToken: number | undefined
+  let timeToFirstChunk: number | undefined
+  let streamingStartTime: number | undefined
 
   try {
     const {
@@ -141,6 +144,16 @@ export async function POST(req: Request) {
         console.error("Streaming error occurred:", err)
         // Don't set streamError anymore - let the AI SDK handle it through the stream
       },
+      onChunk: (chunk) => {
+        if (!timeToFirstChunk) {
+          timeToFirstChunk = Date.now() - requestStartTime
+          streamingStartTime = Date.now()
+        }
+        // Track first token timing from chunk data
+        if (!timeToFirstToken && chunk.chunk?.type === "text-delta") {
+          timeToFirstToken = Date.now() - requestStartTime
+        }
+      },
 
       onFinish: async ({ response, usage, finishReason }) => {
         // Log token usage data for debugging
@@ -190,6 +203,9 @@ export async function POST(req: Request) {
             try {
               const provider = getProviderForModel(model)
               const requestDuration = Date.now() - requestStartTime
+              const streamingDuration = streamingStartTime
+                ? Date.now() - streamingStartTime
+                : undefined
 
               await recordTokenUsage(
                 userId,
@@ -200,10 +216,15 @@ export async function POST(req: Request) {
                 {
                   inputTokens: usage.promptTokens || 0,
                   outputTokens: usage.completionTokens || 0,
+                  cachedTokens:
+                    (usage as { cachedTokens?: number }).cachedTokens || 0, // Some providers return cached tokens
                   totalTokens:
                     usage.totalTokens ||
                     (usage.promptTokens || 0) + (usage.completionTokens || 0),
                   durationMs: requestDuration,
+                  timeToFirstTokenMs: timeToFirstToken,
+                  timeToFirstChunkMs: timeToFirstChunk,
+                  streamingDurationMs: streamingDuration,
                 }
               )
 
@@ -212,7 +233,11 @@ export async function POST(req: Request) {
                 provider,
                 inputTokens: usage.promptTokens,
                 outputTokens: usage.completionTokens,
+                cachedTokens: (usage as { cachedTokens?: number }).cachedTokens,
                 duration: requestDuration,
+                timeToFirstToken,
+                timeToFirstChunk,
+                streamingDuration,
               })
             } catch (tokenError) {
               console.error("Failed to record token usage:", tokenError)
