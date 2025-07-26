@@ -1,4 +1,5 @@
-import { CheckCircle, Loader2, AlertCircle, Upload } from "lucide-react"
+import { AlertCircle, CheckCircle, Loader2, Upload } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 
 export type FileStatus = "uploading" | "processing" | "ready" | "error"

@@ -1,18 +1,18 @@
 "use client"
 
+import { Check, Copy, FileText, Loader2, Sparkles } from "lucide-react"
 import { useState } from "react"
-import { Loader2, FileText, Sparkles, Copy, Check } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Badge } from "@/components/ui/badge"
 import { toast } from "@/components/ui/toast"
 
 import type { FileWithChat } from "./api"

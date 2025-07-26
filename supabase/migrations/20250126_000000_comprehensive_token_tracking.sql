@@ -1,13 +1,13 @@
--- Migration: Add token usage tracking tables
+-- Migration: Comprehensive token usage tracking with detailed metrics
 -- Created: 2025-01-26
--- Description: Adds tables to track AI token usage per message and user analytics
+-- Description: Adds tables to track AI token usage per message and user analytics with enhanced timing and pricing data
 
 -- Create token_usage table for tracking individual message token usage
 CREATE TABLE IF NOT EXISTS token_usage (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     chat_id UUID REFERENCES chats(id) ON DELETE CASCADE,
-    message_id UUID REFERENCES messages(id) ON DELETE CASCADE,
+    message_id int REFERENCES messages(id) ON DELETE CASCADE,
     
     -- Provider and model information
     provider_id TEXT NOT NULL, -- openai, anthropic, google, etc.
@@ -16,13 +16,19 @@ CREATE TABLE IF NOT EXISTS token_usage (
     -- Token usage data
     input_tokens INTEGER NOT NULL DEFAULT 0,
     output_tokens INTEGER NOT NULL DEFAULT 0,
-    total_tokens INTEGER GENERATED ALWAYS AS (input_tokens + output_tokens) STORED,
+    cached_tokens INTEGER DEFAULT 0,
+    total_tokens INTEGER GENERATED ALWAYS AS (input_tokens + output_tokens + COALESCE(cached_tokens, 0)) STORED,
     
     -- Performance metrics
     duration_ms INTEGER, -- Request duration in milliseconds
+    time_to_first_token_ms INTEGER,
+    time_to_first_chunk_ms INTEGER,
+    streaming_duration_ms INTEGER,
     
-    -- Cost estimation (optional, can be calculated from tokens)
+    -- Cost estimation with historical pricing
     estimated_cost_usd DECIMAL(10, 6), -- Cost in USD
+    cost_per_input_token_usd DECIMAL(12, 8),
+    cost_per_output_token_usd DECIMAL(12, 8),
     
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -42,7 +48,8 @@ CREATE TABLE IF NOT EXISTS daily_token_usage (
     -- Aggregated token counts
     total_input_tokens INTEGER NOT NULL DEFAULT 0,
     total_output_tokens INTEGER NOT NULL DEFAULT 0,
-    total_tokens INTEGER GENERATED ALWAYS AS (total_input_tokens + total_output_tokens) STORED,
+    total_cached_tokens INTEGER DEFAULT 0,
+    total_tokens INTEGER GENERATED ALWAYS AS (total_input_tokens + total_output_tokens + COALESCE(total_cached_tokens, 0)) STORED,
     
     -- Usage statistics
     message_count INTEGER NOT NULL DEFAULT 0,
@@ -71,6 +78,8 @@ CREATE INDEX IF NOT EXISTS idx_token_usage_chat_id ON token_usage(chat_id);
 CREATE INDEX IF NOT EXISTS idx_token_usage_message_id ON token_usage(message_id);
 CREATE INDEX IF NOT EXISTS idx_token_usage_provider_model ON token_usage(provider_id, model_id);
 CREATE INDEX IF NOT EXISTS idx_token_usage_created_at ON token_usage(created_at);
+CREATE INDEX IF NOT EXISTS idx_token_usage_cached_tokens ON token_usage(cached_tokens);
+CREATE INDEX IF NOT EXISTS idx_token_usage_timing ON token_usage(time_to_first_token_ms, time_to_first_chunk_ms);
 
 CREATE INDEX IF NOT EXISTS idx_daily_token_usage_user_id ON daily_token_usage(user_id);
 CREATE INDEX IF NOT EXISTS idx_daily_token_usage_date ON daily_token_usage(usage_date);
@@ -88,6 +97,7 @@ BEGIN
         model_id,
         total_input_tokens,
         total_output_tokens,
+        total_cached_tokens,
         message_count,
         total_duration_ms,
         estimated_cost_usd
@@ -99,6 +109,7 @@ BEGIN
         NEW.model_id,
         NEW.input_tokens,
         NEW.output_tokens,
+        COALESCE(NEW.cached_tokens, 0),
         1,
         COALESCE(NEW.duration_ms, 0),
         COALESCE(NEW.estimated_cost_usd, 0.00)
@@ -107,6 +118,7 @@ BEGIN
     DO UPDATE SET
         total_input_tokens = daily_token_usage.total_input_tokens + NEW.input_tokens,
         total_output_tokens = daily_token_usage.total_output_tokens + NEW.output_tokens,
+        total_cached_tokens = daily_token_usage.total_cached_tokens + COALESCE(NEW.cached_tokens, 0),
         message_count = daily_token_usage.message_count + 1,
         total_duration_ms = daily_token_usage.total_duration_ms + COALESCE(NEW.duration_ms, 0),
         estimated_cost_usd = daily_token_usage.estimated_cost_usd + COALESCE(NEW.estimated_cost_usd, 0.00),
@@ -130,9 +142,13 @@ CREATE OR REPLACE FUNCTION get_daily_token_leaderboard(
 RETURNS TABLE (
     user_id UUID,
     total_tokens BIGINT,
+    total_input_tokens BIGINT,
+    total_output_tokens BIGINT,
+    total_cached_tokens BIGINT,
     total_messages INTEGER,
     total_cost_usd DECIMAL(10, 6),
     avg_duration_ms INTEGER,
+    avg_time_to_first_token_ms INTEGER,
     top_provider TEXT,
     top_model TEXT
 ) AS $$
@@ -141,9 +157,19 @@ BEGIN
     SELECT 
         dtu.user_id,
         SUM(dtu.total_tokens)::BIGINT as total_tokens,
+        SUM(dtu.total_input_tokens)::BIGINT as total_input_tokens,
+        SUM(dtu.total_output_tokens)::BIGINT as total_output_tokens,
+        SUM(dtu.total_cached_tokens)::BIGINT as total_cached_tokens,
         SUM(dtu.message_count)::INTEGER as total_messages,
         SUM(dtu.estimated_cost_usd) as total_cost_usd,
         AVG(dtu.average_duration_ms)::INTEGER as avg_duration_ms,
+        (
+            SELECT AVG(tu.time_to_first_token_ms)::INTEGER
+            FROM token_usage tu
+            WHERE tu.user_id = dtu.user_id 
+              AND DATE(tu.created_at) = target_date
+              AND tu.time_to_first_token_ms IS NOT NULL
+        ) as avg_time_to_first_token_ms,
         (
             SELECT provider_id 
             FROM daily_token_usage dtu2 
@@ -202,9 +228,48 @@ BEGIN
         ) as models
     FROM daily_token_usage dtu
     WHERE dtu.user_id = target_user_id
-      AND dtu.usage_date >= CURRENT_DATE - INTERVAL '%s days'
+      AND dtu.usage_date >= CURRENT_DATE - (days_back || ' days')::INTERVAL
     GROUP BY dtu.usage_date
     ORDER BY dtu.usage_date DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create function to get detailed timing analytics
+CREATE OR REPLACE FUNCTION get_timing_analytics(
+    target_user_id UUID,
+    days_back INTEGER DEFAULT 7
+)
+RETURNS TABLE (
+    usage_date DATE,
+    avg_duration_ms DECIMAL(10, 2),
+    avg_time_to_first_token_ms DECIMAL(10, 2),
+    avg_time_to_first_chunk_ms DECIMAL(10, 2),
+    avg_streaming_duration_ms DECIMAL(10, 2),
+    message_count INTEGER,
+    provider_timings JSONB
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        DATE(tu.created_at) as usage_date,
+        AVG(tu.duration_ms) as avg_duration_ms,
+        AVG(tu.time_to_first_token_ms) as avg_time_to_first_token_ms,
+        AVG(tu.time_to_first_chunk_ms) as avg_time_to_first_chunk_ms,
+        AVG(tu.streaming_duration_ms) as avg_streaming_duration_ms,
+        COUNT(*)::INTEGER as message_count,
+        jsonb_agg(
+            jsonb_build_object(
+                'provider', tu.provider_id,
+                'model', tu.model_id,
+                'avg_duration', AVG(tu.duration_ms),
+                'avg_ttft', AVG(tu.time_to_first_token_ms)
+            )
+        ) as provider_timings
+    FROM token_usage tu
+    WHERE tu.user_id = target_user_id
+      AND tu.created_at >= CURRENT_DATE - (days_back || ' days')::INTERVAL
+    GROUP BY DATE(tu.created_at)
+    ORDER BY usage_date DESC;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -258,7 +323,16 @@ CREATE TRIGGER update_daily_token_usage_updated_at
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Add comments for documentation
-COMMENT ON TABLE token_usage IS 'Tracks AI token usage per individual message';
+COMMENT ON TABLE token_usage IS 'Tracks AI token usage per individual message with detailed timing metrics';
 COMMENT ON TABLE daily_token_usage IS 'Aggregated daily token usage statistics per user';
-COMMENT ON FUNCTION get_daily_token_leaderboard IS 'Returns top users by token usage for a specific date';
+COMMENT ON FUNCTION get_daily_token_leaderboard IS 'Returns top users by token usage for a specific date with timing metrics';
 COMMENT ON FUNCTION get_user_token_analytics IS 'Returns detailed token usage analytics for a specific user';
+COMMENT ON FUNCTION get_timing_analytics IS 'Returns detailed timing analytics for a specific user over a date range';
+
+-- Add comments for new columns
+COMMENT ON COLUMN token_usage.cached_tokens IS 'Number of cached tokens used (if supported by provider)';
+COMMENT ON COLUMN token_usage.time_to_first_token_ms IS 'Time to receive first token from AI provider';
+COMMENT ON COLUMN token_usage.time_to_first_chunk_ms IS 'Time to receive first streaming chunk';
+COMMENT ON COLUMN token_usage.streaming_duration_ms IS 'Total time for streaming response';
+COMMENT ON COLUMN token_usage.cost_per_input_token_usd IS 'Historical cost per input token at time of request';
+COMMENT ON COLUMN token_usage.cost_per_output_token_usd IS 'Historical cost per output token at time of request';

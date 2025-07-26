@@ -89,10 +89,11 @@ export function ModelSelector({
     const provider = PROVIDERS.find((provider) => provider.id === model.icon)
 
     return (
-      <div
+      <button
         key={model.id}
+        type="button"
         className={cn(
-          "flex w-full items-center justify-between px-3 py-2",
+          "flex w-full items-center justify-between px-3 py-2 text-left",
           selectedModelId === model.id && "bg-accent"
         )}
         onClick={() => {
@@ -122,7 +123,7 @@ export function ModelSelector({
             <span>Locked</span>
           </div>
         )}
-      </div>
+      </button>
     )
   }
 

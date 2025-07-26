@@ -1,8 +1,8 @@
-import { render, screen, fireEvent } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
-import { FileList } from "@/app/files/file-list"
 import type { FileWithChat } from "@/app/files/api"
+import { FileList } from "@/app/files/file-list"
 
 // Mock the FileAnalysisDialog component
 vi.mock("@/app/files/file-analysis-dialog", () => ({

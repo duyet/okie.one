@@ -9,9 +9,15 @@ export interface TokenUsage {
   model_id: string
   input_tokens: number
   output_tokens: number
+  cached_tokens?: number
   total_tokens?: number // Computed by database
   duration_ms?: number
+  time_to_first_token_ms?: number
+  time_to_first_chunk_ms?: number
+  streaming_duration_ms?: number
   estimated_cost_usd?: number
+  cost_per_input_token_usd?: number
+  cost_per_output_token_usd?: number
   created_at?: string
   updated_at?: string
 }
@@ -24,6 +30,7 @@ export interface DailyTokenUsage {
   model_id: string
   total_input_tokens: number
   total_output_tokens: number
+  total_cached_tokens?: number
   total_tokens?: number // Computed by database
   message_count: number
   total_duration_ms: number
@@ -36,17 +43,27 @@ export interface DailyTokenUsage {
 export interface TokenUsageMetrics {
   inputTokens: number
   outputTokens: number
+  cachedTokens?: number
   totalTokens: number
   durationMs?: number
+  timeToFirstTokenMs?: number
+  timeToFirstChunkMs?: number
+  streamingDurationMs?: number
   estimatedCost?: number
+  costPerInputToken?: number
+  costPerOutputToken?: number
 }
 
 export interface LeaderboardEntry {
   user_id: string
   total_tokens: number
+  total_input_tokens: number
+  total_output_tokens: number
+  total_cached_tokens: number
   total_messages: number
   total_cost_usd: number
   avg_duration_ms: number
+  avg_time_to_first_token_ms?: number
   top_provider: string
   top_model: string
   // Additional fields from user profile if needed
@@ -77,6 +94,7 @@ export interface TokenTrackingConfig {
 }
 
 // Cost estimation models (prices per 1K tokens in USD)
+// IMPORTANT: All values below are per 1,000 tokens, not per token
 export const TOKEN_COSTS: Record<string, { input: number; output: number }> = {
   // OpenAI models
   "openai-gpt-4o": { input: 0.0025, output: 0.01 },
@@ -115,6 +133,30 @@ export function getProviderModelKey(
   modelId: string
 ): string {
   return `${providerId}-${modelId}`
+}
+
+export interface TimingAnalytics {
+  usage_date: string
+  avg_duration_ms: number
+  avg_time_to_first_token_ms: number
+  avg_time_to_first_chunk_ms: number
+  avg_streaming_duration_ms: number
+  message_count: number
+  provider_timings: Array<{
+    provider: string
+    model: string
+    avg_duration: number
+    avg_ttft: number
+  }>
+}
+
+export interface DetailedTimingMetrics {
+  requestStartTime: number
+  timeToFirstToken?: number
+  timeToFirstChunk?: number
+  streamingStartTime?: number
+  streamingEndTime?: number
+  requestEndTime: number
 }
 
 export class TokenTrackingError extends Error {

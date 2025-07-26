@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query"
 import { BarChart, FolderOpen, Grid, List, Search } from "lucide-react"
-import React, { useState, useEffect } from "react"
+import React, { useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,8 +20,8 @@ import { EmptyState } from "./empty-state"
 import { FileAnalytics } from "./file-analytics"
 import { FileGrid } from "./file-grid"
 import { FileList } from "./file-list"
-import type { FileStatus } from "./file-status-indicator"
 import { FileStats } from "./file-stats"
+import type { FileStatus } from "./file-status-indicator"
 
 interface FilesViewProps {
   userId: string

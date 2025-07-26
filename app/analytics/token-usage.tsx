@@ -1,15 +1,19 @@
 "use client"
 
+import { Clock, DollarSign, Loader2, TrendingUp, Trophy } from "lucide-react"
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
 import { Badge } from "@/components/ui/badge"
-import { Loader2, Trophy, TrendingUp, Clock, DollarSign } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+
+import { DailyTokenUsageChart } from "./daily-token-usage-chart"
 
 interface TokenStats {
   totalTokens: number
   totalMessages: number
   totalCost: number
   averageDuration: number
+  averageTimeToFirstToken?: number
   topProvider: string
   topModel: string
 }
@@ -17,9 +21,13 @@ interface TokenStats {
 interface LeaderboardEntry {
   user_id: string
   total_tokens: number
+  total_input_tokens: number
+  total_output_tokens: number
+  total_cached_tokens: number
   total_messages: number
   total_cost_usd: number
   avg_duration_ms: number
+  avg_time_to_first_token_ms?: number
   top_provider: string
   top_model: string
 }
@@ -93,9 +101,12 @@ export function TokenAnalytics({
 
   return (
     <div className="space-y-6">
+      {/* Daily Token Usage Chart */}
+      <DailyTokenUsageChart userId={userId} />
+
       {/* User Stats */}
       {stats && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="font-medium text-sm">
@@ -156,6 +167,23 @@ export function TokenAnalytics({
               <p className="text-muted-foreground text-xs">Most used</p>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="font-medium text-sm">
+                Avg Time to First Token
+              </CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="font-bold text-2xl">
+                {stats.averageTimeToFirstToken
+                  ? `${(stats.averageTimeToFirstToken / 1000).toFixed(2)}s`
+                  : "N/A"}
+              </div>
+              <p className="text-muted-foreground text-xs">Response latency</p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
@@ -163,7 +191,10 @@ export function TokenAnalytics({
       {showLeaderboard && leaderboard.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle
+              className="flex items-center gap-2"
+              data-testid="leaderboard-title"
+            >
               <Trophy className="h-5 w-5" />
               Daily Token Usage Leaderboard
             </CardTitle>

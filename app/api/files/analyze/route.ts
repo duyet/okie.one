@@ -1,10 +1,11 @@
 import { generateText } from "ai"
 
 import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import { validateModelSupportsFiles } from "@/lib/file-handling"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
-import { validateModelSupportsFiles } from "@/lib/file-handling"
+
 import { createErrorResponse } from "../../chat/utils"
 
 export const maxDuration = 30

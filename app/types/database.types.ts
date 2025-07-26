@@ -142,7 +142,7 @@ export type Database = {
           chat_id: string
           content: string | null
           created_at: string | null
-          id: number
+          id: string
           role: "system" | "user" | "assistant" | "data"
           parts: Json | null
           user_id?: string | null
@@ -154,7 +154,7 @@ export type Database = {
           chat_id: string
           content: string | null
           created_at?: string | null
-          id?: number
+          id?: string
           role: "system" | "user" | "assistant" | "data"
           parts?: Json
           user_id?: string | null
@@ -166,7 +166,7 @@ export type Database = {
           chat_id?: string
           content?: string | null
           created_at?: string | null
-          id?: number
+          id?: string
           role?: "system" | "user" | "assistant" | "data"
           parts?: Json
           user_id?: string | null
@@ -176,6 +176,149 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      token_usage: {
+        Row: {
+          id: string
+          user_id: string
+          chat_id: string
+          message_id: string
+          provider_id: string
+          model_id: string
+          input_tokens: number
+          output_tokens: number
+          cached_tokens: number | null
+          total_tokens: number
+          duration_ms: number | null
+          time_to_first_token_ms: number | null
+          time_to_first_chunk_ms: number | null
+          streaming_duration_ms: number | null
+          estimated_cost_usd: number | null
+          cost_per_input_token_usd: number | null
+          cost_per_output_token_usd: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          chat_id: string
+          message_id: string
+          provider_id: string
+          model_id: string
+          input_tokens?: number
+          output_tokens?: number
+          cached_tokens?: number | null
+          duration_ms?: number | null
+          time_to_first_token_ms?: number | null
+          time_to_first_chunk_ms?: number | null
+          streaming_duration_ms?: number | null
+          estimated_cost_usd?: number | null
+          cost_per_input_token_usd?: number | null
+          cost_per_output_token_usd?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          chat_id?: string
+          message_id?: string
+          provider_id?: string
+          model_id?: string
+          input_tokens?: number
+          output_tokens?: number
+          cached_tokens?: number | null
+          duration_ms?: number | null
+          time_to_first_token_ms?: number | null
+          time_to_first_chunk_ms?: number | null
+          streaming_duration_ms?: number | null
+          estimated_cost_usd?: number | null
+          cost_per_input_token_usd?: number | null
+          cost_per_output_token_usd?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "token_usage_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_usage_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "chats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "token_usage_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_token_usage: {
+        Row: {
+          id: string
+          user_id: string
+          usage_date: string
+          provider_id: string
+          model_id: string
+          total_input_tokens: number
+          total_output_tokens: number
+          total_cached_tokens: number | null
+          total_tokens: number
+          message_count: number
+          total_duration_ms: number | null
+          estimated_cost_usd: number | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          usage_date: string
+          provider_id: string
+          model_id: string
+          total_input_tokens?: number
+          total_output_tokens?: number
+          total_cached_tokens?: number | null
+          message_count?: number
+          total_duration_ms?: number | null
+          estimated_cost_usd?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          usage_date?: string
+          provider_id?: string
+          model_id?: string
+          total_input_tokens?: number
+          total_output_tokens?: number
+          total_cached_tokens?: number | null
+          message_count?: number
+          total_duration_ms?: number | null
+          estimated_cost_usd?: number | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_token_usage_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

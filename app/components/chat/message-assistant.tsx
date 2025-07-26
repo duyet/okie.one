@@ -10,6 +10,7 @@ import {
   MessageActions,
   MessageContent,
 } from "@/components/prompt-kit/message"
+import { useChatSession } from "@/lib/chat-store/session/provider"
 import {
   isArtifactPart,
   isReasoningPart,
@@ -17,6 +18,7 @@ import {
   type MessagePart,
 } from "@/lib/type-guards/message-parts"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
+import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 
 import { useArtifact } from "./artifact-context"
@@ -26,9 +28,11 @@ import { Reasoning } from "./reasoning"
 import { SearchImages } from "./search-images"
 import { SourcesList } from "./sources-list"
 import { ToolInvocation } from "./tool-invocation"
+import { UsageMetrics } from "./usage-metrics"
 
 type MessageAssistantProps = {
   children: string
+  id?: string
   isLast?: boolean
   hasScrollAnchor?: boolean
   copied?: boolean
@@ -53,6 +57,7 @@ type ToolInvocationData = {
 
 export function MessageAssistant({
   children,
+  id,
   isLast,
   hasScrollAnchor,
   copied,
@@ -64,6 +69,8 @@ export function MessageAssistant({
 }: MessageAssistantProps) {
   const { preferences } = useUserPreferences()
   const { openArtifact } = useArtifact()
+  const { chatId } = useChatSession()
+  const { user } = useUser()
   // Use proper type guards for safe type checking
   const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
@@ -186,6 +193,18 @@ export function MessageAssistant({
                 </button>
               </MessageAction>
             ) : null}
+
+            {/* Usage Metrics - show inline with actions */}
+            {id && chatId && user?.id && (
+              <div className="ml-2 flex items-center">
+                <UsageMetrics
+                  messageId={id}
+                  chatId={chatId}
+                  userId={user.id}
+                  className="opacity-60 transition-opacity hover:opacity-100"
+                />
+              </div>
+            )}
           </MessageActions>
         )}
       </div>

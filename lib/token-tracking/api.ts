@@ -2,17 +2,20 @@
 // Token tracking API utilities
 
 import { createClient } from "@/lib/supabase/server"
+import { createGuestServerClient } from "@/lib/supabase/server-guest"
+
 import type {
-  TokenUsage,
   DailyTokenUsage,
   LeaderboardEntry,
-  UserAnalytics,
+  TokenUsage,
   TokenUsageMetrics,
+  UserAnalytics,
   // TokenTrackingError,
 } from "./types"
 import {
   calculateTokenCost,
   getProviderModelKey,
+  TOKEN_COSTS,
   TokenTrackingError as TokenError,
 } from "./types"
 
@@ -28,7 +31,8 @@ export async function recordTokenUsage(
   metrics: TokenUsageMetrics
 ): Promise<TokenUsage> {
   try {
-    const supabase = await createClient()
+    // Use service role client for token tracking to ensure proper permissions
+    const supabase = await createGuestServerClient()
     if (!supabase) {
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
@@ -40,6 +44,14 @@ export async function recordTokenUsage(
       metrics.outputTokens
     )
 
+    // Get current pricing for historical record
+    const costs = TOKEN_COSTS[providerModelKey] || TOKEN_COSTS.default
+
+    // Note: TOKEN_COSTS values are per 1K tokens (see types.ts comment)
+    // Convert to per-token cost for storage
+    const costPerInputToken = costs.input / 1000 // costs.input is per 1K tokens
+    const costPerOutputToken = costs.output / 1000 // costs.output is per 1K tokens
+
     const tokenUsage: Omit<TokenUsage, "id" | "created_at" | "updated_at"> = {
       user_id: userId,
       chat_id: chatId,
@@ -48,8 +60,14 @@ export async function recordTokenUsage(
       model_id: modelId,
       input_tokens: metrics.inputTokens,
       output_tokens: metrics.outputTokens,
+      cached_tokens: metrics.cachedTokens,
       duration_ms: metrics.durationMs,
+      time_to_first_token_ms: metrics.timeToFirstTokenMs,
+      time_to_first_chunk_ms: metrics.timeToFirstChunkMs,
+      streaming_duration_ms: metrics.streamingDurationMs,
       estimated_cost_usd: estimatedCost,
+      cost_per_input_token_usd: costPerInputToken,
+      cost_per_output_token_usd: costPerOutputToken,
     }
 
     const { data, error } = await supabase
@@ -356,6 +374,94 @@ export async function getUserUsageStats(
 
     throw new TokenError(
       `Unexpected error getting usage stats: ${error instanceof Error ? error.message : String(error)}`,
+      "UNEXPECTED_ERROR",
+      { originalError: error }
+    )
+  }
+}
+
+/**
+ * Gets detailed timing analytics for a user
+ */
+export async function getTimingAnalytics(
+  userId: string,
+  daysBack: number = 7
+): Promise<any[]> {
+  // TODO: Fix types after database migration
+  try {
+    const supabase = await createClient()
+    if (!supabase) {
+      throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
+    }
+
+    const { data, error } = await (supabase as any).rpc(
+      "get_timing_analytics",
+      {
+        target_user_id: userId,
+        days_back: daysBack,
+      }
+    )
+
+    if (error) {
+      throw new TokenError(
+        `Failed to get timing analytics: ${error.message}`,
+        "TIMING_ANALYTICS_ERROR",
+        { error, userId, daysBack }
+      )
+    }
+
+    return (data || []) as any[] // TODO: Fix types after database migration
+  } catch (error) {
+    if (error instanceof TokenError) {
+      throw error
+    }
+
+    throw new TokenError(
+      `Unexpected error getting timing analytics: ${error instanceof Error ? error.message : String(error)}`,
+      "UNEXPECTED_ERROR",
+      { originalError: error }
+    )
+  }
+}
+
+/**
+ * Gets daily token usage by model for chart visualization
+ */
+export async function getDailyTokenUsageByModel(
+  daysBack: number = 30,
+  userId?: string
+): Promise<any[]> {
+  // TODO: Fix types after database migration
+  try {
+    const supabase = await createClient()
+    if (!supabase) {
+      throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
+    }
+
+    const { data, error } = await (supabase as any).rpc(
+      "get_daily_model_token_summary",
+      {
+        days_back: daysBack,
+        target_user_id: userId || null,
+      }
+    )
+
+    if (error) {
+      throw new TokenError(
+        `Failed to get daily model token usage: ${error.message}`,
+        "DAILY_MODEL_USAGE_ERROR",
+        { error, userId, daysBack }
+      )
+    }
+
+    return (data || []) as any[] // TODO: Fix types after database migration
+  } catch (error) {
+    if (error instanceof TokenError) {
+      throw error
+    }
+
+    throw new TokenError(
+      `Unexpected error getting daily model usage: ${error instanceof Error ? error.message : String(error)}`,
       "UNEXPECTED_ERROR",
       { originalError: error }
     )
