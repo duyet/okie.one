@@ -95,13 +95,20 @@ export async function GET(req: NextRequest) {
       )
     }
 
+    interface FileRow {
+      file_size: number | null
+      file_type: string | null
+      created_at: string
+    }
+
     const validFiles =
-      files?.filter((file: any) => file.file_size && file.file_size > 0) || []
+      files?.filter((file: FileRow) => file.file_size && file.file_size > 0) ||
+      []
 
     // Calculate basic stats
     const totalFiles = validFiles.length
     const totalSize = validFiles.reduce(
-      (sum: number, file: any) => sum + (file.file_size || 0),
+      (sum: number, file: FileRow) => sum + (file.file_size || 0),
       0
     )
     const averageFileSize = totalFiles > 0 ? totalSize / totalFiles : 0
@@ -109,7 +116,7 @@ export async function GET(req: NextRequest) {
     // Calculate file type distribution
     const fileTypeStats = new Map<string, { count: number; size: number }>()
 
-    validFiles.forEach((file: any) => {
+    validFiles.forEach((file: FileRow) => {
       const type = getFileTypeCategory(file.file_type)
       const current = fileTypeStats.get(type) || { count: 0, size: 0 }
       fileTypeStats.set(type, {
@@ -131,7 +138,7 @@ export async function GET(req: NextRequest) {
     // Calculate daily uploads
     const dailyStats = new Map<string, { count: number; size: number }>()
 
-    validFiles.forEach((file: any) => {
+    validFiles.forEach((file: FileRow) => {
       const date = new Date(file.created_at).toISOString().split("T")[0]
       const current = dailyStats.get(date) || { count: 0, size: 0 }
       dailyStats.set(date, {
@@ -160,7 +167,7 @@ export async function GET(req: NextRequest) {
     // Calculate monthly storage usage
     const monthlyStats = new Map<string, { count: number; size: number }>()
 
-    validFiles.forEach((file: any) => {
+    validFiles.forEach((file: FileRow) => {
       const date = new Date(file.created_at)
       const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
       const current = monthlyStats.get(month) || { count: 0, size: 0 }

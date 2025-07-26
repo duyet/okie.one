@@ -171,9 +171,9 @@ export function FileAnalysisDialog({
                   <div>
                     <h4 className="mb-2 font-semibold">Key Points</h4>
                     <ul className="space-y-2">
-                      {analysis.keyPoints.map((point, index) => (
+                      {analysis.keyPoints.map((point) => (
                         <li
-                          key={`key-point-${index}`}
+                          key={point}
                           className="flex items-start gap-2 text-muted-foreground text-sm"
                         >
                           <span className="mt-1 block h-1.5 w-1.5 rounded-full bg-primary" />
@@ -214,8 +214,8 @@ export function FileAnalysisDialog({
                   <div>
                     <h4 className="mb-2 font-semibold">Topics</h4>
                     <div className="flex flex-wrap gap-2">
-                      {analysis.topics.map((topic, index) => (
-                        <Badge key={`topic-${index}`} variant="outline">
+                      {analysis.topics.map((topic) => (
+                        <Badge key={topic} variant="outline">
                           {topic}
                         </Badge>
                       ))}
