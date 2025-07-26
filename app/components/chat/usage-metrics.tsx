@@ -79,10 +79,13 @@ export function UsageMetrics({
   const hasTiming = tokenUsage.duration_ms || tokenUsage.time_to_first_chunk_ms
   const hasCachedTokens = tokenUsage.cached_tokens && tokenUsage.cached_tokens > 0
 
-  if (compact) {
+  // Grok-style inline display - show just the duration like "1.1s"
+  const primaryDuration = tokenUsage.duration_ms || tokenUsage.time_to_first_chunk_ms
+  
+  if (compact || !primaryDuration) {
     return (
       <button 
-        className={`inline-flex items-center gap-2 text-muted-foreground text-xs ${className}`}
+        className={`inline-flex items-center gap-2 text-muted-foreground text-xs hover:text-foreground transition-colors ${className}`}
         onClick={() => setShowDetailed(!showDetailed)}
         type="button"
       >
@@ -105,117 +108,78 @@ export function UsageMetrics({
     )
   }
 
+  // Default: Grok-style simple duration display
   return (
-    <div className={`text-muted-foreground text-xs ${className}`}>
+    <div className={`relative ${className}`}>
       <button 
-        className="inline-flex cursor-pointer items-center gap-3 transition-colors hover:text-foreground"
+        className="cursor-pointer text-muted-foreground text-xs transition-colors hover:text-foreground"
+        onMouseEnter={() => setShowDetailed(true)}
+        onMouseLeave={() => setShowDetailed(false)}
         onClick={() => setShowDetailed(!showDetailed)}
         type="button"
       >
-        {/* Duration */}
-        {hasTiming && tokenUsage.duration_ms && (
-          <div className="flex items-center gap-1.5">
-            <Clock className="size-3.5 opacity-70" />
-            <span>{formatDuration(tokenUsage.duration_ms)}</span>
-          </div>
-        )}
-
-        {/* Token Usage */}
-        <div className="flex items-center gap-1.5">
-          <Lightning className="size-3.5 opacity-70" />
-          <span>
-            {formatNumber(tokenUsage.input_tokens)}↑ / {formatNumber(tokenUsage.output_tokens)}↓
-            {hasCachedTokens && (
-              <span className="ml-1 text-blue-500 dark:text-blue-400">
-                +{formatNumber(tokenUsage.cached_tokens!)}⚡
-              </span>
-            )}
-          </span>
-        </div>
-
-        {/* Cost */}
-        {tokenUsage.estimated_cost_usd && (
-          <span className="text-green-600 dark:text-green-400 font-medium">
-            {formatCost(tokenUsage.estimated_cost_usd)}
-          </span>
-        )}
+        {formatDuration(primaryDuration)}
       </button>
 
-      {/* Detailed View */}
+      {/* Hover tooltip with detailed metrics */}
       {showDetailed && (
-        <div className="mt-2 space-y-1 text-xs bg-muted/30 rounded-md p-2 border">
-          <div className="font-medium text-foreground mb-1">Usage Details</div>
+        <div className="absolute top-full left-0 z-50 mt-1 min-w-64 rounded-md border border-border bg-popover p-3 text-xs shadow-lg">
+          <div className="mb-2 font-medium text-foreground">Usage Details</div>
           
-          <div className="grid grid-cols-2 gap-2">
+          {/* Token breakdown */}
+          <div className="mb-2 grid grid-cols-2 gap-2">
             <div>
-              <span className="text-muted-foreground">Input tokens:</span>
+              <span className="text-muted-foreground">Input:</span>
               <span className="ml-1 font-mono">{formatNumber(tokenUsage.input_tokens)}</span>
             </div>
             <div>
-              <span className="text-muted-foreground">Output tokens:</span>
+              <span className="text-muted-foreground">Output:</span>
               <span className="ml-1 font-mono">{formatNumber(tokenUsage.output_tokens)}</span>
             </div>
-            
-            {hasCachedTokens && (
+            {hasCachedTokens && tokenUsage.cached_tokens && (
               <div className="col-span-2">
-                <span className="text-muted-foreground">Cached tokens:</span>
+                <span className="text-muted-foreground">Cached:</span>
                 <span className="ml-1 font-mono text-blue-500 dark:text-blue-400">
-                  {formatNumber(tokenUsage.cached_tokens!)}
+                  {formatNumber(tokenUsage.cached_tokens)}
                 </span>
               </div>
             )}
-            
-            <div className="col-span-2">
-              <span className="text-muted-foreground">Total tokens:</span>
-              <span className="ml-1 font-mono font-medium">{formatNumber(totalTokens)}</span>
-            </div>
           </div>
 
-          {/* Timing Details */}
-          {hasTiming && (
-            <div className="mt-2 pt-2 border-t border-muted">
-              <div className="font-medium text-foreground mb-1">Timing</div>
-              <div className="grid grid-cols-1 gap-1">
-                {tokenUsage.duration_ms && (
-                  <div>
-                    <span className="text-muted-foreground">Total time:</span>
-                    <span className="ml-1 font-mono">{formatDuration(tokenUsage.duration_ms)}</span>
-                  </div>
-                )}
-                {tokenUsage.time_to_first_chunk_ms && (
-                  <div>
-                    <span className="text-muted-foreground">Time to first response:</span>
-                    <span className="ml-1 font-mono">{formatDuration(tokenUsage.time_to_first_chunk_ms)}</span>
-                  </div>
-                )}
-                {tokenUsage.streaming_duration_ms && (
-                  <div>
-                    <span className="text-muted-foreground">Streaming time:</span>
-                    <span className="ml-1 font-mono">{formatDuration(tokenUsage.streaming_duration_ms)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Cost Breakdown */}
-          {tokenUsage.estimated_cost_usd && (
-            <div className="mt-2 pt-2 border-t border-muted">
-              <div className="font-medium text-foreground mb-1">Cost</div>
+          {/* Timing details */}
+          <div className="mb-2 space-y-1 border-border border-t pt-2">
+            {tokenUsage.time_to_first_chunk_ms && (
               <div>
-                <span className="text-muted-foreground">Estimated cost:</span>
-                <span className="ml-1 font-mono text-green-600 dark:text-green-400 font-medium">
-                  {formatCost(tokenUsage.estimated_cost_usd)}
-                </span>
+                <span className="text-muted-foreground">Time to first chunk:</span>
+                <span className="ml-1 font-mono">{formatDuration(tokenUsage.time_to_first_chunk_ms)}</span>
               </div>
+            )}
+            {tokenUsage.duration_ms && (
+              <div>
+                <span className="text-muted-foreground">Response time:</span>
+                <span className="ml-1 font-mono">{formatDuration(tokenUsage.duration_ms)}</span>
+              </div>
+            )}
+            {tokenUsage.streaming_duration_ms && (
+              <div>
+                <span className="text-muted-foreground">Streaming time:</span>
+                <span className="ml-1 font-mono">{formatDuration(tokenUsage.streaming_duration_ms)}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Cost */}
+          {tokenUsage.estimated_cost_usd && (
+            <div className="border-border border-t pt-2">
+              <span className="text-muted-foreground">Cost:</span>
+              <span className="ml-1 font-mono font-medium text-green-600 dark:text-green-400">
+                {formatCost(tokenUsage.estimated_cost_usd)}
+              </span>
             </div>
           )}
-
-          <div className="text-muted-foreground/70 text-xs mt-2">
-            Recorded at {new Date(tokenUsage.created_at).toLocaleTimeString()}
-          </div>
         </div>
       )}
     </div>
   )
+
 }

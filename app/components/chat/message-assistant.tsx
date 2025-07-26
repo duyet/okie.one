@@ -156,12 +156,14 @@ export function MessageAssistant({
 
         {/* Usage Metrics - show for completed assistant messages */}
         {!isLastStreaming && !contentNullOrEmpty && id && chatId && user?.id && (
-          <UsageMetrics 
-            messageId={id}
-            chatId={chatId}
-            userId={user.id}
-            className="mt-2 opacity-60 transition-opacity hover:opacity-100"
-          />
+          <div className="flex justify-end mt-1">
+            <UsageMetrics 
+              messageId={id}
+              chatId={chatId}
+              userId={user.id}
+              className="opacity-60 transition-opacity hover:opacity-100"
+            />
+          </div>
         )}
 
         {isLastStreaming || contentNullOrEmpty ? null : (
