@@ -16,19 +16,19 @@ CREATE TABLE IF NOT EXISTS token_usage (
     -- Token usage data
     input_tokens INTEGER NOT NULL DEFAULT 0,
     output_tokens INTEGER NOT NULL DEFAULT 0,
-    cached_tokens INTEGER DEFAULT 0, -- Number of cached tokens used (if supported by provider)
+    cached_tokens INTEGER DEFAULT 0,
     total_tokens INTEGER GENERATED ALWAYS AS (input_tokens + output_tokens + COALESCE(cached_tokens, 0)) STORED,
     
     -- Performance metrics
     duration_ms INTEGER, -- Request duration in milliseconds
-    time_to_first_token_ms INTEGER, -- Time to receive first token from AI provider
-    time_to_first_chunk_ms INTEGER, -- Time to receive first streaming chunk
-    streaming_duration_ms INTEGER, -- Total time for streaming response
+    time_to_first_token_ms INTEGER,
+    time_to_first_chunk_ms INTEGER,
+    streaming_duration_ms INTEGER,
     
     -- Cost estimation with historical pricing
     estimated_cost_usd DECIMAL(10, 6), -- Cost in USD
-    cost_per_input_token_usd DECIMAL(12, 8), -- Historical cost per input token at time of request
-    cost_per_output_token_usd DECIMAL(12, 8), -- Historical cost per output token at time of request
+    cost_per_input_token_usd DECIMAL(12, 8),
+    cost_per_output_token_usd DECIMAL(12, 8)
     
     -- Metadata
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -328,3 +328,11 @@ COMMENT ON TABLE daily_token_usage IS 'Aggregated daily token usage statistics p
 COMMENT ON FUNCTION get_daily_token_leaderboard IS 'Returns top users by token usage for a specific date with timing metrics';
 COMMENT ON FUNCTION get_user_token_analytics IS 'Returns detailed token usage analytics for a specific user';
 COMMENT ON FUNCTION get_timing_analytics IS 'Returns detailed timing analytics for a specific user over a date range';
+
+-- Add comments for new columns
+COMMENT ON COLUMN token_usage.cached_tokens IS 'Number of cached tokens used (if supported by provider)';
+COMMENT ON COLUMN token_usage.time_to_first_token_ms IS 'Time to receive first token from AI provider';
+COMMENT ON COLUMN token_usage.time_to_first_chunk_ms IS 'Time to receive first streaming chunk';
+COMMENT ON COLUMN token_usage.streaming_duration_ms IS 'Total time for streaming response';
+COMMENT ON COLUMN token_usage.cost_per_input_token_usd IS 'Historical cost per input token at time of request';
+COMMENT ON COLUMN token_usage.cost_per_output_token_usd IS 'Historical cost per output token at time of request';
