@@ -27,11 +27,13 @@ import { isSupabaseEnabledClient } from "@/lib/supabase/config"
 type ButtonFileUploadProps = {
   onFileUpload: (files: File[]) => void
   model: string
+  isUserAuthenticated: boolean
 }
 
 export function ButtonFileUpload({
   onFileUpload,
   model,
+  isUserAuthenticated,
 }: ButtonFileUploadProps) {
   const isFileUploadAvailable = validateModelSupportsFiles(model)
   const fileCapabilities = getModelFileCapabilities(model)
@@ -90,8 +92,20 @@ export function ButtonFileUpload({
     )
     isDisabled = true
     tooltipText = `File uploads not supported by ${model}`
+  } else if (!isUserAuthenticated) {
+    popoverContent = (
+      <div className="text-secondary-foreground text-sm">
+        <div className="mb-1 font-medium">Sign in to upload files</div>
+        <div className="text-xs">
+          File uploads require authentication to ensure secure handling of your files.
+          <br />
+          Please sign in to upload files to your conversation.
+        </div>
+      </div>
+    )
+    isDisabled = true
+    tooltipText = "Sign in to upload files"
   }
-  // Removed the unauthenticated user block - now they can upload!
 
   // If we need a popover (only for disabled states now)
   if (popoverContent) {

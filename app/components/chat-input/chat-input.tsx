@@ -129,12 +129,17 @@ export function ChatInput({
         }
 
         if (imageFiles.length > 0) {
-          onFileUpload(imageFiles)
+          if (isUserAuthenticated) {
+            onFileUpload(imageFiles)
+          } else {
+            // Don't handle the paste for unauthenticated users
+            return
+          }
         }
       }
       // Text pasting will work by default for everyone
     },
-    [onFileUpload]
+    [onFileUpload, isUserAuthenticated]
   )
 
   useMemo(() => {
@@ -171,6 +176,7 @@ export function ChatInput({
               <ButtonFileUpload
                 onFileUpload={onFileUpload}
                 model={selectedModel}
+                isUserAuthenticated={isUserAuthenticated}
               />
               <ModelSelector
                 selectedModelId={selectedModel}
