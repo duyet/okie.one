@@ -21,12 +21,20 @@ import type { TokenUsageMetrics } from "@/lib/token-tracking/types"
 import { TokenTrackingError } from "@/lib/token-tracking/types"
 import type { Database } from "@/app/types/database.types"
 
-// Mock Supabase client
+// Mock Supabase clients
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
 }))
 
+vi.mock("@/lib/supabase/server-guest", () => ({
+  createGuestServerClient: vi.fn(),
+}))
+
 const mockCreateClient = createClient as MockedFunction<typeof createClient>
+const { createGuestServerClient } = await import("@/lib/supabase/server-guest")
+const mockCreateGuestClient = createGuestServerClient as MockedFunction<
+  typeof createGuestServerClient
+>
 
 // Type for mock query builder
 type MockQueryBuilder = {
@@ -66,6 +74,9 @@ describe("Token Tracking API", () => {
     mockCreateClient.mockResolvedValue(
       mockSupabase as unknown as SupabaseClient<Database>
     )
+    mockCreateGuestClient.mockResolvedValue(
+      mockSupabase as unknown as SupabaseClient<Database>
+    )
     mockSupabase.from.mockReturnValue(mockQuery)
     mockQuery.insert.mockReturnValue(mockQuery)
     mockQuery.select.mockReturnValue(mockQuery)
@@ -74,6 +85,13 @@ describe("Token Tracking API", () => {
     mockQuery.gte.mockReturnValue(mockQuery)
     mockQuery.lte.mockReturnValue(mockQuery)
     mockQuery.order.mockReturnValue(mockQuery)
+
+    // Make the query object itself awaitable (it acts like a promise)
+    Object.assign(mockQuery, {
+      then: vi.fn(),
+      catch: vi.fn(),
+      finally: vi.fn(),
+    })
   })
 
   describe("recordTokenUsage", () => {
@@ -137,7 +155,7 @@ describe("Token Tracking API", () => {
     })
 
     it("should handle database connection failure", async () => {
-      mockCreateClient.mockResolvedValue(null)
+      mockCreateGuestClient.mockResolvedValue(null)
 
       await expect(
         recordTokenUsage(
@@ -390,7 +408,19 @@ describe("Token Tracking API", () => {
         },
       ]
 
-      mockQuery.lte.mockResolvedValue({ data: mockUsage, error: null })
+      // Since getUserUsageStats doesn't have date parameters, the query should be awaitable directly after .eq()
+      const mockFinalQuery = {
+        then: vi.fn().mockImplementation((resolve) => {
+          resolve({ data: mockUsage, error: null })
+          return Promise.resolve({ data: mockUsage, error: null })
+        }),
+        catch: vi.fn(),
+        finally: vi.fn(),
+      }
+
+      mockSupabase.from.mockReturnValue(mockQuery)
+      mockQuery.select.mockReturnValue(mockQuery)
+      mockQuery.eq.mockReturnValue(mockFinalQuery)
 
       const result = await getUserUsageStats("user-123")
 
@@ -405,6 +435,11 @@ describe("Token Tracking API", () => {
     })
 
     it("should handle date range filtering", async () => {
+      // Set up the full mock chain
+      mockSupabase.from.mockReturnValue(mockQuery)
+      mockQuery.select.mockReturnValue(mockQuery)
+      mockQuery.eq.mockReturnValue(mockQuery)
+      mockQuery.gte.mockReturnValue(mockQuery)
       mockQuery.lte.mockResolvedValue({ data: [], error: null })
 
       await getUserUsageStats("user-123", "2023-01-01", "2023-01-31")
@@ -414,7 +449,19 @@ describe("Token Tracking API", () => {
     })
 
     it("should handle empty usage data", async () => {
-      mockQuery.lte.mockResolvedValue({ data: [], error: null })
+      // Mock for empty data case
+      const mockFinalQuery = {
+        then: vi.fn().mockImplementation((resolve) => {
+          resolve({ data: [], error: null })
+          return Promise.resolve({ data: [], error: null })
+        }),
+        catch: vi.fn(),
+        finally: vi.fn(),
+      }
+
+      mockSupabase.from.mockReturnValue(mockQuery)
+      mockQuery.select.mockReturnValue(mockQuery)
+      mockQuery.eq.mockReturnValue(mockFinalQuery)
 
       const result = await getUserUsageStats("user-123")
 
@@ -476,6 +523,7 @@ describe("Token Tracking API", () => {
   describe("Error handling", () => {
     it("should handle database connection failure across all functions", async () => {
       mockCreateClient.mockResolvedValue(null)
+      mockCreateGuestClient.mockResolvedValue(null)
 
       const functions = [
         () => getDailyLeaderboard(),
@@ -495,6 +543,15 @@ describe("Token Tracking API", () => {
       const originalError = new Error("Network timeout")
       mockQuery.single.mockRejectedValue(originalError)
 
+      await expect(
+        recordTokenUsage("user-123", "chat-456", "msg-789", "openai", "gpt-4", {
+          inputTokens: 100,
+          outputTokens: 50,
+          totalTokens: 150,
+        })
+      ).rejects.toThrow(TokenTrackingError)
+
+      // Test that the error was thrown with the correct context
       try {
         await recordTokenUsage(
           "user-123",
