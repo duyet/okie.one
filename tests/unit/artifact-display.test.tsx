@@ -62,7 +62,16 @@ vi.mock("@/components/ui/dropdown-menu", () => ({
   }: {
     children: React.ReactNode
     onClick?: () => void
-  }) => <div onClick={onClick}>{children}</div>,
+  }) => (
+    <div
+      onClick={onClick}
+      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
+      role="button"
+      tabIndex={0}
+    >
+      {children}
+    </div>
+  ),
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),

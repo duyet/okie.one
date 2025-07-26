@@ -40,7 +40,10 @@ export function MultiChatInput({
   status,
   anyLoading,
 }: MultiChatInputProps) {
-  const isOnlyWhitespace = useCallback((text: string) => !/[^\s]/.test(text), [])
+  const isOnlyWhitespace = useCallback(
+    (text: string) => !/[^\s]/.test(text),
+    []
+  )
 
   const handleSend = useCallback(() => {
     if (isSubmitting || anyLoading) {
@@ -76,7 +79,6 @@ export function MultiChatInput({
         onSend()
       }
     },
-    // biome-ignore lint/correctness/useExhaustiveDependencies: fix this
     [isSubmitting, anyLoading, onSend, status, value, isOnlyWhitespace]
   )
 

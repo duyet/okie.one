@@ -17,9 +17,11 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { getModelInfo } from "@/lib/models"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
-import { cn } from "@/lib/utils"
+import {
+  getModelFileCapabilities,
+  validateModelSupportsFiles,
+} from "@/lib/file-handling"
+import { isSupabaseEnabledClient } from "@/lib/supabase/config"
 
 import { PopoverContentAuth } from "./popover-content-auth"
 
@@ -35,105 +37,103 @@ export function ButtonFileUpload({
   model,
 }: ButtonFileUploadProps) {
   const isHydrated = useHydrationSafe()
+  const isFileUploadAvailable = validateModelSupportsFiles(model)
+  const fileCapabilities = getModelFileCapabilities(model)
 
-  if (!isSupabaseEnabled) {
-    return null
-  }
+  // Generate accept string from model capabilities
+  const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
 
-  const isFileUploadAvailable = getModelInfo(model)?.vision
+  // Common button component to ensure consistent structure
+  const FileUploadButton = ({ disabled = false }: { disabled?: boolean }) => (
+    <Button
+      size="sm"
+      variant="secondary"
+      className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
+      type="button"
+      disabled={disabled}
+      aria-label="Add files"
+    >
+      <Paperclip className="size-4" />
+    </Button>
+  )
 
   // Prevent hydration mismatches by showing a consistent initial state
   if (!isHydrated) {
     return (
-      <Button
-        size="sm"
-        variant="secondary"
-        className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
-        type="button"
-        disabled
-      >
-        <Paperclip className="size-4" />
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <FileUploadButton disabled />
+        </TooltipTrigger>
+        <TooltipContent>Add files</TooltipContent>
+      </Tooltip>
     )
   }
 
-  if (!isFileUploadAvailable) {
+  // Determine the popover content based on state
+  let popoverContent: React.ReactNode = null
+  let isDisabled = false
+  let tooltipText = "Add files"
+
+  if (!isSupabaseEnabledClient) {
+    popoverContent = (
+      <div className="text-secondary-foreground text-sm">
+        <div className="mb-1 font-medium">File uploads are disabled</div>
+        <div className="text-xs">
+          File storage requires Supabase configuration.
+          <br />
+          Set NEXT_PUBLIC_SUPABASE_URL and other
+          <br />
+          environment variables to enable uploads.
+        </div>
+      </div>
+    )
+    isDisabled = true
+    tooltipText = "File uploads disabled - Database not configured"
+  } else if (!isFileUploadAvailable) {
+    popoverContent = (
+      <div className="text-secondary-foreground text-sm">
+        This model ({model}) does not support file uploads.
+        <br />
+        Please select another model with vision capabilities.
+      </div>
+    )
+    isDisabled = true
+    tooltipText = `File uploads not supported by ${model}`
+  } else if (!isUserAuthenticated) {
+    popoverContent = <PopoverContentAuth />
+    isDisabled = false
+    tooltipText = "Sign in to upload files"
+  }
+
+  // If we need a popover (disabled states or auth required)
+  if (popoverContent) {
     return (
       <Popover>
         <Tooltip>
           <TooltipTrigger asChild>
             <PopoverTrigger asChild>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
-                type="button"
-                aria-label="Add files"
-              >
-                <Paperclip className="size-4" />
-              </Button>
+              <FileUploadButton disabled={isDisabled} />
             </PopoverTrigger>
           </TooltipTrigger>
-          <TooltipContent>Add files</TooltipContent>
+          <TooltipContent>{tooltipText}</TooltipContent>
         </Tooltip>
-        <PopoverContent className="p-2">
-          <div className="text-secondary-foreground text-sm">
-            This model does not support file uploads.
-            <br />
-            Please select another model.
-          </div>
-        </PopoverContent>
+        <PopoverContent className="p-2">{popoverContent}</PopoverContent>
       </Popover>
     )
   }
 
-  if (!isUserAuthenticated) {
-    return (
-      <Popover>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <PopoverTrigger asChild>
-              <Button
-                size="sm"
-                variant="secondary"
-                className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
-                type="button"
-                aria-label="Add files"
-              >
-                <Paperclip className="size-4" />
-              </Button>
-            </PopoverTrigger>
-          </TooltipTrigger>
-          <TooltipContent>Add files</TooltipContent>
-        </Tooltip>
-        <PopoverContentAuth />
-      </Popover>
-    )
-  }
-
+  // Fully functional file upload for authenticated users with supported models
   return (
     <FileUpload
       onFilesAdded={onFileUpload}
       multiple
       disabled={!isUserAuthenticated}
-      accept=".txt,.md,image/jpeg,image/png,image/gif,image/webp,image/svg,image/heic,image/heif"
+      accept={acceptTypes}
     >
       <Tooltip>
         <TooltipTrigger asChild>
           <FileUploadTrigger asChild>
-            <Button
-              size="sm"
-              variant="secondary"
-              className={cn(
-                "size-9 rounded-full border border-border bg-transparent dark:bg-secondary",
-                !isUserAuthenticated && "opacity-50"
-              )}
-              type="button"
-              disabled={!isUserAuthenticated}
-              aria-label="Add files"
-            >
-              <Paperclip className="size-4" />
-            </Button>
+            <FileUploadButton />
           </FileUploadTrigger>
         </TooltipTrigger>
         <TooltipContent>Add files</TooltipContent>

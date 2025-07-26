@@ -40,6 +40,14 @@ type ModelConfig = {
   ) => LanguageModelV1
 
   accessible?: boolean // true if the model is accessible to the user
+
+  // File upload capabilities
+  fileCapabilities?: {
+    maxFiles: number // Maximum files per message
+    maxFileSize: number // Max size per file in bytes
+    supportedTypes: string[] // MIME types like "image/*", "application/pdf"
+    features?: string[] // Capabilities like "image_analysis", "document_reading", "ocr"
+  }
 }
 
 export type { ModelConfig }

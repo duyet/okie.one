@@ -1,9 +1,6 @@
 "use client"
 
-import { GithubLogoIcon } from "@phosphor-icons/react"
 import { useState } from "react"
-
-import XIcon from "@/components/icons/x"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -74,29 +71,6 @@ export function UserMenu() {
         <SettingsTrigger onOpenChange={handleSettingsOpenChange} />
         <FeedbackTrigger />
         <AppInfoTrigger />
-        <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <a
-            href="https://x.com/okieone"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2"
-          >
-            <XIcon className="size-4 p-0.5" />
-            <span>@okieone</span>
-          </a>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <a
-            href="https://github.com/ibelick/zola"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-2"
-          >
-            <GithubLogoIcon className="size-4" />
-            <span>GitHub</span>
-          </a>
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

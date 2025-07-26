@@ -2,7 +2,11 @@ import type { Attachment } from "@ai-sdk/ui-utils"
 import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
-import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import {
+  getModelFileCapabilities,
+  validateModelSupportsFiles,
+} from "@/lib/file-handling"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
@@ -13,6 +17,7 @@ import {
   storeAssistantMessage,
   validateAndTrackUsage,
 } from "./api"
+import { recordTokenUsage } from "@/lib/token-tracking/api"
 import { createErrorResponse, extractErrorMessage } from "./utils"
 
 export const maxDuration = 60
@@ -29,6 +34,9 @@ type ChatRequest = {
 }
 
 export async function POST(req: Request) {
+  const requestStartTime = Date.now()
+  let assistantMessageId: string | null = null
+
   try {
     const {
       messages,
@@ -60,6 +68,37 @@ export async function POST(req: Request) {
     }
 
     const userMessage = messages[messages.length - 1]
+    const attachments =
+      (userMessage?.experimental_attachments as Attachment[]) || []
+
+    // Validate file attachments for the selected model
+    if (attachments.length > 0) {
+      // Check if model supports files
+      if (!validateModelSupportsFiles(model)) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "This model does not support file attachments. Please select a vision-enabled model like GPT-4, Claude, or Gemini.",
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        )
+      }
+
+      // Check file count limits
+      const capabilities = getModelFileCapabilities(model)
+      const maxFiles = capabilities?.maxFiles
+        ? Math.min(capabilities.maxFiles, MAX_FILES_PER_MESSAGE)
+        : MAX_FILES_PER_MESSAGE
+
+      if (attachments.length > maxFiles) {
+        return new Response(
+          JSON.stringify({
+            error: `This model supports maximum ${maxFiles} files per message. You have ${attachments.length} files.`,
+          }),
+          { status: 400, headers: { "Content-Type": "application/json" } }
+        )
+      }
+    }
 
     if (supabase && userMessage?.role === "user") {
       await logUserMessage({
@@ -67,7 +106,7 @@ export async function POST(req: Request) {
         userId,
         chatId,
         content: userMessage.content,
-        attachments: userMessage.experimental_attachments as Attachment[],
+        attachments: attachments,
         model,
         isAuthenticated,
         message_group_id,
@@ -103,7 +142,14 @@ export async function POST(req: Request) {
         // Don't set streamError anymore - let the AI SDK handle it through the stream
       },
 
-      onFinish: async ({ response }) => {
+      onFinish: async ({ response, usage, finishReason }) => {
+        // Log token usage data for debugging
+        console.log("AI SDK Response data:", {
+          usage,
+          finishReason,
+          responseKeys: Object.keys(response),
+        })
+
         // Parse artifacts from the response text for all users (not just Supabase users)
         const responseText = response.messages
           .filter((msg) => msg.role === "assistant")
@@ -129,7 +175,7 @@ export async function POST(req: Request) {
 
         // Store in database only if Supabase is available
         if (supabase) {
-          await storeAssistantMessage({
+          assistantMessageId = await storeAssistantMessage({
             supabase,
             chatId,
             messages:
@@ -138,6 +184,41 @@ export async function POST(req: Request) {
             model,
             artifactParts,
           })
+
+          // Record token usage if available
+          if (usage && assistantMessageId) {
+            try {
+              const provider = getProviderForModel(model)
+              const requestDuration = Date.now() - requestStartTime
+
+              await recordTokenUsage(
+                userId,
+                chatId,
+                assistantMessageId,
+                provider,
+                model,
+                {
+                  inputTokens: usage.promptTokens || 0,
+                  outputTokens: usage.completionTokens || 0,
+                  totalTokens:
+                    usage.totalTokens ||
+                    (usage.promptTokens || 0) + (usage.completionTokens || 0),
+                  durationMs: requestDuration,
+                }
+              )
+
+              console.log("Token usage recorded successfully:", {
+                model,
+                provider,
+                inputTokens: usage.promptTokens,
+                outputTokens: usage.completionTokens,
+                duration: requestDuration,
+              })
+            } catch (tokenError) {
+              console.error("Failed to record token usage:", tokenError)
+              // Don't fail the request if token tracking fails
+            }
+          }
         }
       },
     })

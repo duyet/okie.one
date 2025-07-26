@@ -12,7 +12,7 @@ export async function saveFinalAssistantMessage(
   message_group_id?: string,
   model?: string,
   artifactParts?: ContentPart[]
-) {
+): Promise<string | null> {
   const parts: ContentPart[] = []
   const toolMap = new Map<string, ContentPart>()
   const textParts: string[] = []
@@ -81,19 +81,24 @@ export async function saveFinalAssistantMessage(
 
   const finalPlainText = textParts.join("\n\n")
 
-  const { error } = await supabase.from("messages").insert({
-    chat_id: chatId,
-    role: "assistant",
-    content: finalPlainText || "",
-    parts: parts as unknown as Json,
-    message_group_id,
-    model,
-  })
+  const { data, error } = await supabase
+    .from("messages")
+    .insert({
+      chat_id: chatId,
+      role: "assistant",
+      content: finalPlainText || "",
+      parts: parts as unknown as Json,
+      message_group_id,
+      model,
+    })
+    .select("id")
+    .single()
 
   if (error) {
     console.error("Error saving final assistant message:", error)
     throw new Error(`Failed to save assistant message: ${error.message}`)
   } else {
     console.log("Assistant message saved successfully (merged).")
+    return data?.id?.toString() || null
   }
 }

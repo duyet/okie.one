@@ -59,8 +59,11 @@ export function ChatInput({
 }: ChatInputProps) {
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
-  
-  const isOnlyWhitespace = useCallback((text: string) => !/[^\s]/.test(text), [])
+
+  const isOnlyWhitespace = useCallback(
+    (text: string) => !/[^\s]/.test(text),
+    []
+  )
 
   const handleSend = useCallback(() => {
     if (isSubmitting) {
@@ -96,7 +99,6 @@ export function ChatInput({
         onSend()
       }
     },
-    // biome-ignore lint/correctness/useExhaustiveDependencies: todo
     [isSubmitting, onSend, status, value, isOnlyWhitespace]
   )
 

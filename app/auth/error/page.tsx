@@ -72,8 +72,8 @@ function AuthErrorContent() {
                 Account Linking Issue
               </h3>
               <p className="text-left text-amber-200 text-sm">
-                You&apos;ve tried to sign in with a different provider using an email
-                that&apos;s already associated with another account.
+                You&apos;ve tried to sign in with a different provider using an
+                email that&apos;s already associated with another account.
               </p>
             </div>
 

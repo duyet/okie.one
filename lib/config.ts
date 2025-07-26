@@ -14,6 +14,22 @@ export const REMAINING_QUERY_ALERT_THRESHOLD = 2
 export const DAILY_FILE_UPLOAD_LIMIT = 5
 export const DAILY_LIMIT_PRO_MODELS = 500
 
+// File upload configuration
+export const MAX_FILES_PER_MESSAGE = 3
+export const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB per file
+export const ALLOWED_FILE_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/heic",
+  "image/heif",
+  "application/pdf",
+  "text/plain",
+  "text/markdown",
+]
+
 export const NON_AUTH_ALLOWED_MODELS = ["gpt-4.1-nano"]
 
 export const FREE_MODELS_IDS = [
@@ -26,6 +42,7 @@ export const FREE_MODELS_IDS = [
   "mistral-large-latest",
   "gpt-4.1-nano",
   "gpt-4.1-mini",
+  "gpt-4o-mini",
 ]
 
 export const MODEL_DEFAULT = "gpt-4.1-nano"

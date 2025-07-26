@@ -2,6 +2,7 @@
 
 import {
   ChatTeardropText,
+  Folder,
   GithubLogo,
   MagnifyingGlass,
   NotePencilIcon,
@@ -88,6 +89,16 @@ export function AppSidebar() {
               }
               hasPopover={false}
             />
+            <button
+              className="group/files relative inline-flex w-full items-center rounded-md bg-transparent px-2 py-2 text-primary text-sm transition-colors hover:bg-accent/80 hover:text-foreground"
+              type="button"
+              onClick={() => router.push("/files")}
+            >
+              <div className="flex items-center gap-2">
+                <Folder size={20} />
+                Files
+              </div>
+            </button>
           </div>
           <SidebarProject />
           {isLoading ? (
