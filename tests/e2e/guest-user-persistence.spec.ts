@@ -31,8 +31,21 @@ test.describe("Guest User Persistence", () => {
     await page.reload()
     await page.waitForLoadState("networkidle")
 
-    // Wait for guest user initialization
-    await page.waitForTimeout(2000)
+    // Wait for guest user initialization by waiting for the guest ID to be set
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const guestId = await getGuestUserId(page)
 
@@ -47,7 +60,22 @@ test.describe("Guest User Persistence", () => {
     await clearAllStorage(page)
     await page.reload()
     await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const initialGuestId = await getGuestUserId(page)
     expect(initialGuestId).toBeTruthy()
@@ -67,7 +95,22 @@ test.describe("Guest User Persistence", () => {
     await clearAllStorage(page)
     await page.reload()
     await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const storageData = await page.evaluate(() => {
       return {
@@ -89,7 +132,22 @@ test.describe("Guest User Persistence", () => {
     await clearAllStorage(page)
     await page.reload()
     await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const initialGuestId = await getGuestUserId(page)
     expect(initialGuestId).toBeTruthy()
@@ -114,7 +172,22 @@ test.describe("Guest User Persistence", () => {
     await clearAllStorage(page)
     await page.reload()
     await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const initialGuestId = await getGuestUserId(page)
     expect(initialGuestId).toBeTruthy()
@@ -148,7 +221,22 @@ test.describe("Guest User Persistence", () => {
     await clearAllStorage(page)
     await page.reload()
     await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const guestId = await getGuestUserId(page)
     expect(guestId).toBeTruthy()
@@ -198,7 +286,22 @@ test.describe("Guest User Persistence", () => {
     await clearAllStorage(page)
     await page.reload()
     await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     // Wait for header to be visible
     await expect(page.locator("header").first()).toBeVisible({ timeout: 10000 })
@@ -232,7 +335,22 @@ test.describe("Guest User Persistence", () => {
     await clearAllStorage(page)
     await page.reload()
     await page.waitForLoadState("networkidle")
-    await page.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await page.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const guestId = await getGuestUserId(page)
     expect(guestId).toBeTruthy()
@@ -292,7 +410,22 @@ test.describe("Guest User Persistence", () => {
 
     await regularPage.goto("/")
     await regularPage.waitForLoadState("networkidle")
-    await regularPage.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await regularPage.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const regularGuestId = await getGuestUserId(regularPage)
     expect(regularGuestId).toBeTruthy()
@@ -303,7 +436,22 @@ test.describe("Guest User Persistence", () => {
 
     await incognitoPage.goto("/")
     await incognitoPage.waitForLoadState("networkidle")
-    await incognitoPage.waitForTimeout(2000)
+
+    // Wait for guest user initialization
+    await incognitoPage.waitForFunction(
+      () => {
+        const id =
+          localStorage.getItem("guest-user-id") ||
+          localStorage.getItem("fallback-guest-id")
+        return (
+          id &&
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            id
+          )
+        )
+      },
+      { timeout: 10000 }
+    )
 
     const incognitoGuestId = await getGuestUserId(incognitoPage)
     expect(incognitoGuestId).toBeTruthy()
