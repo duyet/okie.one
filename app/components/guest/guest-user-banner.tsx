@@ -20,7 +20,7 @@ export function GuestUserBanner() {
           <User className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground sm:mt-0 sm:h-5 sm:w-5" />
           <div className="text-xs sm:text-sm">
             <span className="block text-foreground sm:inline">
-              You're using a guest account.
+              You&apos;re using a guest account.
             </span>
             <span className="block text-muted-foreground sm:ml-2 sm:inline">
               Sign in to save your chats permanently and access more features.

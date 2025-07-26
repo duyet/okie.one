@@ -34,7 +34,7 @@ export async function generateDeviceFingerprint(): Promise<string> {
       ctx.fillText("Guest Fingerprint", 4, 17)
       components.push(canvas.toDataURL())
     }
-  } catch (e) {
+  } catch {
     components.push("canvas-unavailable")
   }
 

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useUser } from "@/lib/user-store/provider"
-import { initializeGuestUser, getGuestUserProfile } from "@/lib/user/guest"
+import { initializeGuestUser } from "@/lib/user/guest"
 
 export function GuestUserInitializer() {
   const { user, updateUser } = useUser()
