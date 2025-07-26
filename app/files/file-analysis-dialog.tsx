@@ -54,7 +54,8 @@ export function FileAnalysisDialog({
     } catch (error) {
       toast({
         title: "Analysis failed",
-        description: error instanceof Error ? error.message : "Failed to analyze file",
+        description:
+          error instanceof Error ? error.message : "Failed to analyze file",
         status: "error",
       })
     } finally {
@@ -81,18 +82,18 @@ export function FileAnalysisDialog({
 
   const formatAnalysis = () => {
     if (!analysis) return ""
-    
+
     let text = `File Analysis: ${file?.file_name}\n\n`
     text += `Summary:\n${analysis.summary}\n\n`
-    
+
     if (analysis.keyPoints.length > 0) {
-      text += `Key Points:\n${analysis.keyPoints.map(point => `• ${point}`).join('\n')}\n\n`
+      text += `Key Points:\n${analysis.keyPoints.map((point) => `• ${point}`).join("\n")}\n\n`
     }
-    
+
     if (analysis.topics && analysis.topics.length > 0) {
-      text += `Topics: ${analysis.topics.join(', ')}\n`
+      text += `Topics: ${analysis.topics.join(", ")}\n`
     }
-    
+
     return text
   }
 
@@ -110,7 +111,9 @@ export function FileAnalysisDialog({
                 <span className="font-medium">{file.file_name}</span>
                 <span className="text-muted-foreground">•</span>
                 <span className="text-muted-foreground">
-                  {file.file_size ? formatBytes(file.file_size) : "Unknown size"}
+                  {file.file_size
+                    ? formatBytes(file.file_size)
+                    : "Unknown size"}
                 </span>
               </div>
             )}
@@ -186,13 +189,9 @@ export function FileAnalysisDialog({
 
                 {/* Metadata */}
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">
-                    {analysis.fileType}
-                  </Badge>
+                  <Badge variant="secondary">{analysis.fileType}</Badge>
                   {analysis.language && (
-                    <Badge variant="secondary">
-                      {analysis.language}
-                    </Badge>
+                    <Badge variant="secondary">{analysis.language}</Badge>
                   )}
                   {analysis.complexity && (
                     <Badge
@@ -200,8 +199,8 @@ export function FileAnalysisDialog({
                         analysis.complexity === "complex"
                           ? "destructive"
                           : analysis.complexity === "moderate"
-                          ? "default"
-                          : "secondary"
+                            ? "default"
+                            : "secondary"
                       }
                     >
                       {analysis.complexity}

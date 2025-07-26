@@ -39,7 +39,6 @@ export function ButtonFileUpload({
   const isHydrated = useHydrationSafe()
   const isFileUploadAvailable = validateModelSupportsFiles(model)
   const fileCapabilities = getModelFileCapabilities(model)
-  
 
   // Generate accept string from model capabilities
   const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
@@ -118,9 +117,7 @@ export function ButtonFileUpload({
           </TooltipTrigger>
           <TooltipContent>{tooltipText}</TooltipContent>
         </Tooltip>
-        <PopoverContent className="p-2">
-          {popoverContent}
-        </PopoverContent>
+        <PopoverContent className="p-2">{popoverContent}</PopoverContent>
       </Popover>
     )
   }

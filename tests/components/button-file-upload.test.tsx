@@ -11,7 +11,13 @@ vi.mock("@/lib/supabase/config", () => ({
 
 vi.mock("@/lib/file-handling", () => ({
   validateModelSupportsFiles: vi.fn((model) => {
-    return ["gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4o", "claude-3.5"].includes(model)
+    return [
+      "gpt-4.1",
+      "gpt-4.1-mini",
+      "gpt-4.1-nano",
+      "gpt-4o",
+      "claude-3.5",
+    ].includes(model)
   }),
   getModelFileCapabilities: vi.fn((model) => {
     if (["gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano", "gpt-4o"].includes(model)) {
@@ -40,15 +46,13 @@ vi.mock("@/app/hooks/use-hydration-safe", () => ({
 
 const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => (
-    <TooltipProvider>
-      {children}
-    </TooltipProvider>
+    <TooltipProvider>{children}</TooltipProvider>
   )
 }
 
 describe("ButtonFileUpload", () => {
   const mockOnFileUpload = vi.fn()
-  
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -62,7 +66,7 @@ describe("ButtonFileUpload", () => {
       />,
       { wrapper: createWrapper() }
     )
-    
+
     const button = screen.getByRole("button", { name: "Add files" })
     expect(button).toBeDefined()
   })
@@ -76,7 +80,7 @@ describe("ButtonFileUpload", () => {
       />,
       { wrapper: createWrapper() }
     )
-    
+
     const button = screen.getByRole("button", { name: "Add files" })
     expect(button).not.toBeDisabled()
   })
@@ -90,7 +94,7 @@ describe("ButtonFileUpload", () => {
       />,
       { wrapper: createWrapper() }
     )
-    
+
     const button = screen.getByRole("button", { name: "Add files" })
     expect(button).toBeDisabled()
   })

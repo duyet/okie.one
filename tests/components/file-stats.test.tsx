@@ -40,7 +40,7 @@ const mockFiles: FileWithChat[] = [
 describe("FileStats", () => {
   it("should render all stat cards", () => {
     render(<FileStats files={mockFiles} />)
-    
+
     // Check for card titles
     expect(screen.getByText("Total files")).toBeDefined()
     expect(screen.getByText("Storage used")).toBeDefined()
@@ -51,25 +51,25 @@ describe("FileStats", () => {
 
   it("should display correct total files count", () => {
     render(<FileStats files={mockFiles} />)
-    
+
     expect(screen.getByText("3")).toBeDefined() // 3 files in mockFiles
   })
 
   it("should format total size correctly", () => {
     render(<FileStats files={mockFiles} />)
-    
+
     // Total size: 1048576 + 2097152 + 1024 = 3146752 bytes = 3 MB
     expect(screen.getByText("3 MB")).toBeDefined()
   })
 
   it("should display file type counts", () => {
     render(<FileStats files={mockFiles} />)
-    
+
     // Check all file type labels are rendered
     expect(screen.getByText("Images")).toBeDefined()
     expect(screen.getByText("Documents")).toBeDefined()
     expect(screen.getByText("Text files")).toBeDefined()
-    
+
     // All file type counts should be 1
     const countElements = screen.getAllByText("1")
     expect(countElements.length).toBeGreaterThanOrEqual(3) // At least 3 counts of "1"
@@ -77,7 +77,7 @@ describe("FileStats", () => {
 
   it("should handle empty files array", () => {
     render(<FileStats files={[]} />)
-    
+
     expect(screen.getAllByText("0")).toHaveLength(4) // Total files, images, documents, text files (storage shows "0 Bytes")
     expect(screen.getByText("0 Bytes")).toBeDefined() // Total size
   })
@@ -89,14 +89,14 @@ describe("FileStats", () => {
       { size: 1048576, expected: "1 MB" },
       { size: 1073741824, expected: "1 GB" },
     ]
-    
+
     testCases.forEach(({ size, expected }) => {
       const testFile: FileWithChat = {
         ...mockFiles[0],
         file_size: size,
       }
       const { rerender } = render(<FileStats files={[testFile]} />)
-      
+
       expect(screen.getByText(expected)).toBeDefined()
       rerender(<></>)
     })
@@ -104,9 +104,9 @@ describe("FileStats", () => {
 
   it("should show correct stat cards", () => {
     const { container } = render(<FileStats files={mockFiles} />)
-    
+
     // Check for presence of 5 cards
-    const cards = container.querySelectorAll('.grid > div')
+    const cards = container.querySelectorAll(".grid > div")
     expect(cards).toHaveLength(5)
   })
 
@@ -121,9 +121,9 @@ describe("FileStats", () => {
         file_type: undefined as any,
       },
     ]
-    
+
     render(<FileStats files={filesWithMissingTypes} />)
-    
+
     // Should show 2 total files but 0 for each type
     expect(screen.getByText("2")).toBeDefined() // Total files
     expect(screen.getAllByText("0")).toHaveLength(3) // 0 images, 0 documents, 0 text files
@@ -138,13 +138,13 @@ describe("FileStats", () => {
       { ...mockFiles[0], file_type: "text/markdown" },
       { ...mockFiles[0], file_type: "application/json" }, // Not counted in any category
     ]
-    
+
     render(<FileStats files={diverseFiles} />)
-    
+
     // Check file counts
     expect(screen.getByText("6")).toBeDefined() // Total files
     expect(screen.getByText("1")).toBeDefined() // 1 document (PDF)
-    
+
     // Since we have 2 images and 2 text files, we need to check for all "2"s
     const twoElements = screen.getAllByText("2")
     expect(twoElements.length).toBe(2) // 2 images and 2 text files

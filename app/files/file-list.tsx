@@ -1,6 +1,12 @@
 "use client"
 
-import { Download, ExternalLink, MoreHorizontal, Trash2, Sparkles } from "lucide-react"
+import {
+  Download,
+  ExternalLink,
+  MoreHorizontal,
+  Trash2,
+  Sparkles,
+} from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 
@@ -27,7 +33,12 @@ interface FileListProps {
   fileStatuses?: Record<string, FileStatus>
 }
 
-export function FileList({ files, onDelete, onDownload, fileStatuses }: FileListProps) {
+export function FileList({
+  files,
+  onDelete,
+  onDownload,
+  fileStatuses,
+}: FileListProps) {
   const [analysisOpen, setAnalysisOpen] = useState(false)
   const [selectedFile, setSelectedFile] = useState<FileWithChat | null>(null)
 
@@ -131,7 +142,10 @@ export function FileList({ files, onDelete, onDownload, fileStatuses }: FileList
 
               <div>
                 {fileStatuses?.[file.id] ? (
-                  <FileStatusIndicator status={fileStatuses[file.id]} className="text-xs" />
+                  <FileStatusIndicator
+                    status={fileStatuses[file.id]}
+                    className="text-xs"
+                  />
                 ) : (
                   <span className="text-muted-foreground text-sm">—</span>
                 )}
@@ -171,9 +185,7 @@ export function FileList({ files, onDelete, onDownload, fileStatuses }: FileList
                       <Download className="mr-2 h-4 w-4" />
                       Download
                     </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => openAnalysis(file)}
-                    >
+                    <DropdownMenuItem onClick={() => openAnalysis(file)}>
                       <Sparkles className="mr-2 h-4 w-4" />
                       Analyze with AI
                     </DropdownMenuItem>
@@ -202,7 +214,7 @@ export function FileList({ files, onDelete, onDownload, fileStatuses }: FileList
           )
         })}
       </div>
-      
+
       <FileAnalysisDialog
         file={selectedFile}
         open={analysisOpen}

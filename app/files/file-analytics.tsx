@@ -46,8 +46,13 @@ interface FileAnalyticsProps {
   userId: string
 }
 
-async function getFileAnalytics(userId: string, period: string = "30d"): Promise<FileAnalytics> {
-  const response = await fetch(`/api/files/analytics?userId=${userId}&period=${period}`)
+async function getFileAnalytics(
+  userId: string,
+  period: string = "30d"
+): Promise<FileAnalytics> {
+  const response = await fetch(
+    `/api/files/analytics?userId=${userId}&period=${period}`
+  )
   if (!response.ok) {
     throw new Error("Failed to fetch file analytics")
   }
@@ -71,7 +76,10 @@ export function FileAnalytics({ userId }: FileAnalyticsProps) {
     return (
       <div className="space-y-4">
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }, (_, i) => `skeleton-card-${i}-${Date.now()}`).map((key) => (
+          {Array.from(
+            { length: 4 },
+            (_, i) => `skeleton-card-${i}-${Date.now()}`
+          ).map((key) => (
             <Card key={key}>
               <CardContent className="p-6">
                 <div className="h-16 animate-pulse rounded bg-muted" />
@@ -129,7 +137,9 @@ export function FileAnalytics({ userId }: FileAnalyticsProps) {
               {analytics.uploadTrend.length > 0 && (
                 <span className="flex items-center">
                   <TrendingUp className="mr-1 h-3 w-3" />
-                  {analytics.uploadTrend[analytics.uploadTrend.length - 1]?.count || 0} this period
+                  {analytics.uploadTrend[analytics.uploadTrend.length - 1]
+                    ?.count || 0}{" "}
+                  this period
                 </span>
               )}
             </p>
@@ -142,7 +152,9 @@ export function FileAnalytics({ userId }: FileAnalyticsProps) {
             <HardDrive className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="font-bold text-2xl">{formatBytes(analytics.totalSize)}</div>
+            <div className="font-bold text-2xl">
+              {formatBytes(analytics.totalSize)}
+            </div>
             <p className="text-muted-foreground text-xs">
               Avg: {formatBytes(analytics.averageFileSize)} per file
             </p>
@@ -159,7 +171,10 @@ export function FileAnalytics({ userId }: FileAnalyticsProps) {
               {analytics.uploadTrend.reduce((sum, item) => sum + item.count, 0)}
             </div>
             <p className="text-muted-foreground text-xs">
-              {formatBytes(analytics.uploadTrend.reduce((sum, item) => sum + item.size, 0))} uploaded
+              {formatBytes(
+                analytics.uploadTrend.reduce((sum, item) => sum + item.size, 0)
+              )}{" "}
+              uploaded
             </p>
           </CardContent>
         </Card>
@@ -174,7 +189,8 @@ export function FileAnalytics({ userId }: FileAnalyticsProps) {
               {analytics.topFileTypes[0]?.type || "N/A"}
             </div>
             <p className="text-muted-foreground text-xs">
-              {analytics.topFileTypes[0]?.count || 0} files ({analytics.topFileTypes[0]?.percentage || 0}%)
+              {analytics.topFileTypes[0]?.count || 0} files (
+              {analytics.topFileTypes[0]?.percentage || 0}%)
             </p>
           </CardContent>
         </Card>
@@ -223,7 +239,9 @@ export function FileAnalytics({ userId }: FileAnalyticsProps) {
           <div className="space-y-2">
             {analytics.dailyUploads.slice(-10).map((day) => (
               <div key={day.date} className="flex items-center justify-between">
-                <div className="text-sm">{new Date(day.date).toLocaleDateString()}</div>
+                <div className="text-sm">
+                  {new Date(day.date).toLocaleDateString()}
+                </div>
                 <div className="flex items-center gap-4 text-muted-foreground text-sm">
                   <span>{day.count} files</span>
                   <span>{formatBytes(day.size)}</span>

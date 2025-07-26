@@ -36,7 +36,9 @@ export function FilesView({ userId }: FilesViewProps) {
   const [viewMode, setViewMode] = useState<ViewMode>("grid")
   const [sortBy, setSortBy] = useState<SortBy>("newest")
   const [filterBy, setFilterBy] = useState<FilterBy>("all")
-  const [fileStatuses, setFileStatuses] = useState<Record<string, FileStatus>>({})
+  const [fileStatuses, setFileStatuses] = useState<Record<string, FileStatus>>(
+    {}
+  )
 
   const {
     data: files,

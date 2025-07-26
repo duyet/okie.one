@@ -1,6 +1,12 @@
 "use client"
 
-import { Download, ExternalLink, MoreHorizontal, Trash2, Sparkles } from "lucide-react"
+import {
+  Download,
+  ExternalLink,
+  MoreHorizontal,
+  Trash2,
+  Sparkles,
+} from "lucide-react"
 import Image from "next/image"
 import { useState } from "react"
 
@@ -28,7 +34,12 @@ interface FileGridProps {
   fileStatuses?: Record<string, FileStatus>
 }
 
-export function FileGrid({ files, onDelete, onDownload, fileStatuses }: FileGridProps) {
+export function FileGrid({
+  files,
+  onDelete,
+  onDownload,
+  fileStatuses,
+}: FileGridProps) {
   const [analysisOpen, setAnalysisOpen] = useState(false)
   const [selectedFile, setSelectedFile] = useState<FileWithChat | null>(null)
 
@@ -140,9 +151,7 @@ export function FileGrid({ files, onDelete, onDownload, fileStatuses }: FileGrid
                         <Download className="mr-2 h-4 w-4" />
                         Download
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => openAnalysis(file)}
-                      >
+                      <DropdownMenuItem onClick={() => openAnalysis(file)}>
                         <Sparkles className="mr-2 h-4 w-4" />
                         Analyze with AI
                       </DropdownMenuItem>
@@ -199,7 +208,7 @@ export function FileGrid({ files, onDelete, onDownload, fileStatuses }: FileGrid
           </Card>
         )
       })}
-      
+
       <FileAnalysisDialog
         file={selectedFile}
         open={analysisOpen}

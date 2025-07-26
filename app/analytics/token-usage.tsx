@@ -29,7 +29,10 @@ interface TokenAnalyticsProps {
   showLeaderboard?: boolean
 }
 
-export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyticsProps) {
+export function TokenAnalytics({
+  userId,
+  showLeaderboard = false,
+}: TokenAnalyticsProps) {
   const [stats, setStats] = useState<TokenStats | null>(null)
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -42,21 +45,25 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
         setError(null)
 
         if (showLeaderboard) {
-          const response = await fetch('/api/analytics/token-usage?type=leaderboard')
-          if (!response.ok) throw new Error('Failed to fetch leaderboard')
+          const response = await fetch(
+            "/api/analytics/token-usage?type=leaderboard"
+          )
+          if (!response.ok) throw new Error("Failed to fetch leaderboard")
           const data = await response.json()
           setLeaderboard(data.leaderboard || [])
         }
 
         if (userId) {
-          const response = await fetch(`/api/analytics/token-usage?userId=${userId}&type=user`)
-          if (!response.ok) throw new Error('Failed to fetch user stats')
+          const response = await fetch(
+            `/api/analytics/token-usage?userId=${userId}&type=user`
+          )
+          if (!response.ok) throw new Error("Failed to fetch user stats")
           const data = await response.json()
           setStats(data.stats || null)
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred')
-        console.error('Token analytics error:', err)
+        setError(err instanceof Error ? err.message : "An error occurred")
+        console.error("Token analytics error:", err)
       } finally {
         setIsLoading(false)
       }
@@ -91,11 +98,15 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="font-medium text-sm">Total Tokens</CardTitle>
+              <CardTitle className="font-medium text-sm">
+                Total Tokens
+              </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-bold text-2xl">{stats.totalTokens.toLocaleString()}</div>
+              <div className="font-bold text-2xl">
+                {stats.totalTokens.toLocaleString()}
+              </div>
               <p className="text-muted-foreground text-xs">
                 {stats.totalMessages} messages
               </p>
@@ -108,23 +119,28 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-bold text-2xl">${stats.totalCost.toFixed(4)}</div>
+              <div className="font-bold text-2xl">
+                ${stats.totalCost.toFixed(4)}
+              </div>
               <p className="text-muted-foreground text-xs">
-                ${(stats.totalCost / stats.totalMessages || 0).toFixed(4)} per message
+                ${(stats.totalCost / stats.totalMessages || 0).toFixed(4)} per
+                message
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="font-medium text-sm">Avg Duration</CardTitle>
+              <CardTitle className="font-medium text-sm">
+                Avg Duration
+              </CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-bold text-2xl">{(stats.averageDuration / 1000).toFixed(1)}s</div>
-              <p className="text-muted-foreground text-xs">
-                Response time
-              </p>
+              <div className="font-bold text-2xl">
+                {(stats.averageDuration / 1000).toFixed(1)}s
+              </div>
+              <p className="text-muted-foreground text-xs">Response time</p>
             </CardContent>
           </Card>
 
@@ -137,9 +153,7 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
             </CardHeader>
             <CardContent>
               <div className="font-bold text-lg">{stats.topModel}</div>
-              <p className="text-muted-foreground text-xs">
-                Most used
-              </p>
+              <p className="text-muted-foreground text-xs">Most used</p>
             </CardContent>
           </Card>
         </div>
@@ -166,14 +180,19 @@ export function TokenAnalytics({ userId, showLeaderboard = false }: TokenAnalyti
                       #{index + 1}
                     </Badge>
                     <div>
-                      <div className="font-medium">User {entry.user_id.slice(0, 8)}...</div>
+                      <div className="font-medium">
+                        User {entry.user_id.slice(0, 8)}...
+                      </div>
                       <div className="text-muted-foreground text-sm">
-                        {entry.total_tokens.toLocaleString()} tokens • {entry.total_messages} messages
+                        {entry.total_tokens.toLocaleString()} tokens •{" "}
+                        {entry.total_messages} messages
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-medium">${entry.total_cost_usd.toFixed(4)}</div>
+                    <div className="font-medium">
+                      ${entry.total_cost_usd.toFixed(4)}
+                    </div>
                     <div className="text-muted-foreground text-sm">
                       {entry.top_model}
                     </div>

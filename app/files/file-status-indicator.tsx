@@ -8,7 +8,10 @@ interface FileStatusIndicatorProps {
   className?: string
 }
 
-export function FileStatusIndicator({ status, className }: FileStatusIndicatorProps) {
+export function FileStatusIndicator({
+  status,
+  className,
+}: FileStatusIndicatorProps) {
   const statusConfig = {
     uploading: {
       icon: Upload,
@@ -48,9 +51,7 @@ export function FileStatusIndicator({ status, className }: FileStatusIndicatorPr
           config.animate && "animate-spin"
         )}
       />
-      <span className={cn("text-xs", config.className)}>
-        {config.label}
-      </span>
+      <span className={cn("text-xs", config.className)}>{config.label}</span>
     </div>
   )
 }
