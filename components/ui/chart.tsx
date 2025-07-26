@@ -171,7 +171,7 @@ const ChartTooltipContent = React.forwardRef<
                       "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
                       {
                         "h-2.5 w-2.5": indicator === "dot",
-                        "w-1 h-2.5": indicator === "line",
+                        "h-2.5 w-1": indicator === "line",
                         "w-0 border-l-2 border-dashed bg-transparent":
                           indicator === "dashed",
                       }
@@ -190,7 +190,7 @@ const ChartTooltipContent = React.forwardRef<
                       {itemConfig.label || key}
                     </span>
                   </div>
-                  <span className="font-mono font-medium tabular-nums text-foreground">
+                  <span className="font-medium font-mono text-foreground tabular-nums">
                     {formatter
                       ? formatter(item.value, item.name, item)[0]
                       : item.value?.toLocaleString()}

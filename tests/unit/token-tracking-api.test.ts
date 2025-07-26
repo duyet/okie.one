@@ -390,7 +390,7 @@ describe("Token Tracking API", () => {
 
   describe("getUserUsageStats", () => {
     it("should calculate usage stats correctly", async () => {
-      const _mockUsage = [
+      const mockUsage = [
         {
           input_tokens: 100,
           output_tokens: 50,
@@ -409,19 +409,10 @@ describe("Token Tracking API", () => {
         },
       ]
 
-      // Since getUserUsageStats doesn't have date parameters, the query should be awaitable directly after .eq()
-      const mockFinalQuery = {
-        // then: vi.fn().mockImplementation((resolve) => {
-        //   resolve({ data: mockUsage, error: null })
-        //   return Promise.resolve({ data: mockUsage, error: null })
-        // }),
-        catch: vi.fn(),
-        finally: vi.fn(),
-      }
-
+      // Set up the mock chain to return the data
       mockSupabase.from.mockReturnValue(mockQuery)
       mockQuery.select.mockReturnValue(mockQuery)
-      mockQuery.eq.mockReturnValue(mockFinalQuery)
+      mockQuery.eq.mockResolvedValue({ data: mockUsage, error: null })
 
       const result = await getUserUsageStats("user-123")
 
@@ -451,18 +442,9 @@ describe("Token Tracking API", () => {
 
     it("should handle empty usage data", async () => {
       // Mock for empty data case
-      const mockFinalQuery = {
-        // then: vi.fn().mockImplementation((resolve) => {
-        //   resolve({ data: [], error: null })
-        //   return Promise.resolve({ data: [], error: null })
-        // }),
-        catch: vi.fn(),
-        finally: vi.fn(),
-      }
-
       mockSupabase.from.mockReturnValue(mockQuery)
       mockQuery.select.mockReturnValue(mockQuery)
-      mockQuery.eq.mockReturnValue(mockFinalQuery)
+      mockQuery.eq.mockResolvedValue({ data: [], error: null })
 
       const result = await getUserUsageStats("user-123")
 

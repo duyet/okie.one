@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import AnalyticsPage from "@/app/analytics/page"
 import { createClient } from "@/lib/supabase/server"
+import { TestWrapper } from "@/tests/utils/test-wrappers"
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
@@ -13,6 +14,33 @@ vi.mock("next/navigation", () => ({
 // Mock Supabase client
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(),
+}))
+
+// Mock the user preferences hook
+vi.mock("@/lib/user-preference-store/provider", () => ({
+  useUserPreferences: () => ({
+    preferences: {
+      layout: "sidebar",
+      theme: "light",
+      model: "gpt-4",
+    },
+    updatePreferences: vi.fn(),
+    isLoading: false,
+  }),
+}))
+
+// Mock the LayoutApp component to avoid complex provider setup
+vi.mock("@/app/components/layout/layout-app", () => ({
+  LayoutApp: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="layout-app">{children}</div>
+  ),
+}))
+
+// Mock the MessagesProvider
+vi.mock("@/lib/chat-store/messages/provider", () => ({
+  MessagesProvider: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="messages-provider">{children}</div>
+  ),
 }))
 
 // Mock the TokenAnalytics component
@@ -55,7 +83,7 @@ describe("AnalyticsPage", () => {
 
     const AnalyticsPageComponent = await AnalyticsPage()
 
-    render(AnalyticsPageComponent)
+    render(<TestWrapper>{AnalyticsPageComponent}</TestWrapper>)
 
     expect(screen.getByTestId("token-analytics")).toBeInTheDocument()
     expect(screen.getByTestId("user-id")).toHaveTextContent("user-123")
@@ -68,8 +96,12 @@ describe("AnalyticsPage", () => {
       error: null,
     })
 
-    await AnalyticsPage()
+    // Mock redirect to prevent actual navigation in tests
+    mockRedirect.mockImplementation(() => {
+      throw new Error("Redirected to /auth")
+    })
 
+    await expect(AnalyticsPage()).rejects.toThrow("Redirected to /auth")
     expect(mockRedirect).toHaveBeenCalledWith("/auth")
   })
 
@@ -79,8 +111,12 @@ describe("AnalyticsPage", () => {
       error: { message: "Auth failed" },
     })
 
-    await AnalyticsPage()
+    // Mock redirect to prevent actual navigation in tests
+    mockRedirect.mockImplementation(() => {
+      throw new Error("Redirected to /auth")
+    })
 
+    await expect(AnalyticsPage()).rejects.toThrow("Redirected to /auth")
     expect(mockRedirect).toHaveBeenCalledWith("/auth")
   })
 
@@ -114,7 +150,7 @@ describe("AnalyticsPage", () => {
 
     const AnalyticsPageComponent = await AnalyticsPage()
 
-    render(AnalyticsPageComponent)
+    render(<TestWrapper>{AnalyticsPageComponent}</TestWrapper>)
 
     expect(screen.getByTestId("user-id")).toHaveTextContent("test-user-789")
     expect(screen.getByTestId("show-leaderboard")).toHaveTextContent("true")
@@ -123,14 +159,12 @@ describe("AnalyticsPage", () => {
   it("should handle supabase client creation failure", async () => {
     mockCreateClient.mockResolvedValue(null)
 
-    // This should still attempt to get user, but we'll simulate auth failure
-    mockSupabase.auth.getUser.mockResolvedValue({
-      data: { user: null },
-      error: { message: "Client creation failed" },
+    // Mock redirect to prevent actual navigation in tests
+    mockRedirect.mockImplementation(() => {
+      throw new Error("Redirected to /auth")
     })
 
-    await AnalyticsPage()
-
+    await expect(AnalyticsPage()).rejects.toThrow("Redirected to /auth")
     expect(mockRedirect).toHaveBeenCalledWith("/auth")
   })
 
@@ -153,7 +187,7 @@ describe("AnalyticsPage", () => {
 
     const AnalyticsPageComponent = await AnalyticsPage()
 
-    render(AnalyticsPageComponent)
+    render(<TestWrapper>{AnalyticsPageComponent}</TestWrapper>)
 
     expect(screen.getByTestId("user-id")).toHaveTextContent(
       "complex-user-id-123"
@@ -183,7 +217,7 @@ describe("AnalyticsPage", () => {
 
     const AnalyticsPageComponent = await AnalyticsPage()
 
-    render(AnalyticsPageComponent)
+    render(<TestWrapper>{AnalyticsPageComponent}</TestWrapper>)
 
     expect(screen.getByTestId("user-id")).toHaveTextContent("async-user-123")
   })

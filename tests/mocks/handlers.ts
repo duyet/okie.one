@@ -132,4 +132,30 @@ export const handlers = [
       totalMessages: 80,
     })
   }),
+
+  // Mock daily chart data API
+  http.get("/api/analytics/daily-chart", () => {
+    return HttpResponse.json({
+      data: [
+        {
+          date: "2024-01-01",
+          tokens: 1000,
+          inputTokens: 400,
+          outputTokens: 600,
+          cachedTokens: 0,
+          messages: 10,
+          costUsd: 0.05,
+        },
+        {
+          date: "2024-01-02",
+          tokens: 1500,
+          inputTokens: 600,
+          outputTokens: 900,
+          cachedTokens: 0,
+          messages: 15,
+          costUsd: 0.075,
+        },
+      ],
+    })
+  }),
 ]

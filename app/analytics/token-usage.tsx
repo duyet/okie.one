@@ -191,7 +191,10 @@ export function TokenAnalytics({
       {showLeaderboard && leaderboard.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle
+              className="flex items-center gap-2"
+              data-testid="leaderboard-title"
+            >
               <Trophy className="h-5 w-5" />
               Daily Token Usage Leaderboard
             </CardTitle>
