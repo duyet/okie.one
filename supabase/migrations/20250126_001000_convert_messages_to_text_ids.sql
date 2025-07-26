@@ -14,18 +14,26 @@ TRUNCATE TABLE messages CASCADE;
 ALTER TABLE messages DROP CONSTRAINT messages_pkey;
 ALTER TABLE messages DROP COLUMN id;
 
--- Step 5: Add new TEXT id column as primary key
-ALTER TABLE messages ADD COLUMN id TEXT PRIMARY KEY DEFAULT ('msg-' || encode(gen_random_bytes(16), 'base64url'));
+-- Step 5: Create a function to generate URL-safe message IDs
+CREATE OR REPLACE FUNCTION generate_message_id()
+RETURNS TEXT AS $$
+BEGIN
+    RETURN 'msg-' || translate(encode(gen_random_bytes(12), 'base64'), '+/', '-_');
+END;
+$$ LANGUAGE plpgsql;
 
--- Step 6: Update chat_attachments.source_message_id to TEXT type
+-- Step 6: Add new TEXT id column as primary key
+ALTER TABLE messages ADD COLUMN id TEXT PRIMARY KEY DEFAULT generate_message_id();
+
+-- Step 7: Update chat_attachments.source_message_id to TEXT type
 ALTER TABLE chat_attachments ALTER COLUMN source_message_id TYPE TEXT USING source_message_id::TEXT;
 
--- Step 7: Re-add foreign key constraint with TEXT reference
+-- Step 8: Re-add foreign key constraint with TEXT reference
 ALTER TABLE chat_attachments 
 ADD CONSTRAINT chat_attachments_source_message_id_fkey 
 FOREIGN KEY (source_message_id) REFERENCES messages(id) ON DELETE CASCADE;
 
--- Step 20: Recreate the token_usage table with TEXT message_id
+-- Step 9: Recreate the token_usage table with TEXT message_id
 CREATE TABLE IF NOT EXISTS token_usage (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -325,8 +333,8 @@ COMMENT ON TABLE daily_token_usage IS 'Aggregated daily token usage statistics p
 COMMENT ON COLUMN token_usage.message_id IS 'Message ID as TEXT (e.g., msg-xyz123), matches frontend format';
 COMMENT ON COLUMN messages.id IS 'Message ID as TEXT with auto-generated format (msg-xxxxx)';
 
--- Step 20: Update messages table to use better default ID generation
-ALTER TABLE messages ALTER COLUMN id SET DEFAULT ('msg-' || encode(gen_random_bytes(12), 'base64url'));
+-- Step 20: Update messages table to use better default ID generation (already set above)
+-- ALTER TABLE messages ALTER COLUMN id SET DEFAULT generate_message_id();
 
 -- Step 21: Verify the changes
 DO $$
