@@ -4,6 +4,11 @@ import {
   CaretDownIcon,
   MagnifyingGlassIcon,
   StarIcon,
+  Eye,
+  Wrench,
+  Brain,
+  GlobeHemisphereWest,
+  GearIcon,
 } from "@phosphor-icons/react"
 import { useRef, useState } from "react"
 
@@ -115,6 +120,56 @@ export function ModelSelector({
           {provider?.icon && <provider.icon className="size-5" />}
           <div className="flex flex-col gap-0">
             <span className="text-sm">{model.name}</span>
+          </div>
+          <div className="ml-1 flex items-center gap-1">
+            {model.vision && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-green-100 p-1 dark:bg-green-900/20">
+                    <Eye className="size-2.5 text-green-600 dark:text-green-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Vision
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {model.tools && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-blue-100 p-1 dark:bg-blue-900/20">
+                    <Wrench className="size-2.5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Tools
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {model.reasoning && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">
+                    <Brain className="size-2.5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Reasoning
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {model.webSearch && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-orange-100 p-1 dark:bg-orange-900/20">
+                    <GlobeHemisphereWest className="size-2.5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="text-xs">
+                  Web Search
+                </TooltipContent>
+              </Tooltip>
+            )}
           </div>
         </div>
         {isLocked && (
@@ -239,6 +294,23 @@ export function ModelSelector({
                   </a>
                 </div>
               )}
+
+              {/* Settings link separator and link */}
+              <div className="mx-4 my-2 border-border border-t" />
+              <div className="px-4 pb-2">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setIsDrawerOpen(false)
+                    // Navigate to settings page
+                    window.location.href = "/settings?tab=models"
+                  }}
+                >
+                  <GearIcon className="size-4 text-muted-foreground" />
+                  <span>Manage Models</span>
+                </button>
+              </div>
             </div>
           </DrawerContent>
         </Drawer>
@@ -339,6 +411,56 @@ export function ModelSelector({
                         <div className="flex flex-col gap-0">
                           <span className="text-sm">{model.name}</span>
                         </div>
+                        <div className="ml-1 flex items-center gap-1">
+                          {model.vision && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-green-100 p-1 dark:bg-green-900/20">
+                                  <Eye className="size-2.5 text-green-600 dark:text-green-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                Vision
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {model.tools && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-blue-100 p-1 dark:bg-blue-900/20">
+                                  <Wrench className="size-2.5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                Tools
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {model.reasoning && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">
+                                  <Brain className="size-2.5 text-purple-600 dark:text-purple-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                Reasoning
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {model.webSearch && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-orange-100 p-1 dark:bg-orange-900/20">
+                                  <GlobeHemisphereWest className="size-2.5 text-orange-600 dark:text-orange-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="text-xs">
+                                Web Search
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
                       </div>
                       {isLocked && (
                         <div className="flex items-center gap-0.5 rounded-full border border-input bg-accent px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
@@ -363,6 +485,23 @@ export function ModelSelector({
                   </a>
                 </div>
               )}
+
+              {/* Settings link separator and link */}
+              <div className="mx-1 my-1 border-border border-t" />
+              <div className="px-1">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setIsDropdownOpen(false)
+                    // Navigate to settings page
+                    window.location.href = "/settings?tab=models"
+                  }}
+                >
+                  <GearIcon className="size-4 text-muted-foreground" />
+                  <span>Manage Models</span>
+                </button>
+              </div>
             </div>
 
             {/* Submenu positioned absolutely */}

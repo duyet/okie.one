@@ -370,7 +370,10 @@ const openaiModels: ModelConfig[] = [
     apiDocs: "https://platform.openai.com/docs/models/o4-mini",
     modelPage: "https://platform.openai.com/docs/models/o4-mini",
     icon: "openai",
-    apiSdk: (apiKey?: string) => openproviders("o4-mini", undefined, apiKey),
+    apiSdk: (
+      apiKey?: string,
+      opts?: { enableSearch?: boolean; enableThink?: boolean }
+    ) => openproviders("o4-mini", undefined, apiKey),
   },
 ]
 

@@ -110,8 +110,8 @@ export function useChatCore({
         const contentLength = message.content.length
         const cacheKey = `${message.id}-${Math.floor(contentLength / 100) * 100}` // Cache per 100 chars
 
-        // Skip processing very short content
-        if (contentLength < 100) {
+        // Skip processing very short content (lowered threshold to avoid skipping normal messages)
+        if (contentLength < 10) {
           return message
         }
 
@@ -125,7 +125,7 @@ export function useChatCore({
 
         // Early detection for sidebar opening - detect potential artifacts sooner
         const hasCodeBlockStart = message.content.includes("```")
-        const hasLargeCode = message.content.length > 300 // Even lower threshold for very early detection
+        const hasLargeCode = message.content.length > 300 // Threshold for early artifact detection
 
         if (hasCodeBlockStart && hasLargeCode) {
           // Try to open sidebar early if we detect substantial code content

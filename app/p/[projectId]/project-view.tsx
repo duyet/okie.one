@@ -368,9 +368,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       isAuthenticated,
       stop,
       status,
-      setEnableSearch,
       enableSearch,
-      setEnableThink,
       enableThink,
     ]
   )
