@@ -40,6 +40,16 @@ export async function POST(req: Request) {
   let streamingStartTime: number | undefined
 
   try {
+    let requestBody: ChatRequest
+    try {
+      requestBody = await req.json()
+    } catch (parseError) {
+      console.error("[/api/chat] JSON parse error:", parseError)
+      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+        status: 400,
+      })
+    }
+
     const {
       messages,
       chatId,
@@ -49,7 +59,7 @@ export async function POST(req: Request) {
       systemPrompt,
       enableSearch,
       message_group_id,
-    } = (await req.json()) as ChatRequest
+    } = requestBody
 
     if (!messages || !chatId || !userId) {
       return new Response(

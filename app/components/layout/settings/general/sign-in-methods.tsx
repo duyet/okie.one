@@ -10,7 +10,7 @@ import { useCallback, useEffect, useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { createClient } from "@/lib/supabase/client"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { isSupabaseEnabledClient } from "@/lib/supabase/config"
 import { useUser } from "@/lib/user-store/provider"
 
 type Provider = {
@@ -42,7 +42,7 @@ export function SignInMethods() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchUserIdentities = useCallback(async () => {
-    if (!isSupabaseEnabled || !user) {
+    if (!isSupabaseEnabledClient || !user) {
       setLoading(false)
       return
     }
@@ -91,7 +91,7 @@ export function SignInMethods() {
   }, [user])
 
   const handleConnectProvider = async (providerId: string) => {
-    if (!isSupabaseEnabled) return
+    if (!isSupabaseEnabledClient) return
 
     // Set connecting state for this provider
     setProviders((prev) =>
@@ -163,7 +163,7 @@ export function SignInMethods() {
     return () => window.removeEventListener("focus", handleFocus)
   }, [fetchUserIdentities])
 
-  if (!isSupabaseEnabled || !user) {
+  if (!isSupabaseEnabledClient || !user) {
     return null
   }
 
