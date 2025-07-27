@@ -8,6 +8,10 @@ on:
 
 # Global environment variables for all jobs
 env:
+  # Docker registry configuration
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  
   # Security keys (auto-generated)
   ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
   CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
