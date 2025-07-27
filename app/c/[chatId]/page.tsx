@@ -6,6 +6,9 @@ import { MessagesProvider } from "@/lib/chat-store/messages/provider"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { createClient } from "@/lib/supabase/server"
 
+// Force dynamic rendering to prevent caching issues with anonymous users
+export const dynamic = "force-dynamic"
+
 export default async function Page() {
   if (isSupabaseEnabled) {
     const supabase = await createClient()

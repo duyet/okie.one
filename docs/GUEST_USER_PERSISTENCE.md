@@ -4,53 +4,48 @@ This guide explains how guest users can save their chats and messages to the dat
 
 ## Overview
 
-Guest users in Okie can chat without creating an account. However, to save their conversations to the database, certain configurations are required.
+Guest users in Okie can chat without creating an account using Supabase's anonymous authentication feature. This allows them to save their conversations persistently.
 
-## When Supabase Client is Not Available
+## Prerequisites
 
-The Supabase client will not be available in these scenarios:
+### Environment Variables
 
-1. **Missing Environment Variables**:
-   ```bash
-   # Required for client-side operations
-   NEXT_PUBLIC_SUPABASE_URL=
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=
-   
-   # Also required for server-side operations
-   SUPABASE_SERVICE_ROLE_KEY=  # or SUPABASE_SERVICE_ROLE
-   ```
+The following environment variables must be configured:
 
-2. **Test Environments**: When running tests without Supabase configured
-3. **Local Development**: When developing without a Supabase instance
+```bash
+# Required for client-side operations
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
-When Supabase is not available, guest users can still use the chat interface, but their messages won't be persisted to the database.
+# Also required for server-side operations
+SUPABASE_SERVICE_ROLE_KEY=  # or SUPABASE_SERVICE_ROLE
+```
+
+Without these variables, guest users can still use the chat interface, but their messages won't be persisted to the database.
 
 ## Enabling Guest User Persistence
 
-There are two approaches to enable guest user persistence:
+### Enable Anonymous Authentication in Supabase
 
-### Option 1: Enable Anonymous Authentication (Recommended)
+1. Go to your [Supabase Dashboard](https://app.supabase.com)
+2. Navigate to **Authentication** → **Providers**
+3. Enable **"Anonymous Sign-Ins"**
+4. Save the configuration
 
-1. Go to your Supabase Dashboard
-2. Navigate to Authentication > Providers
-3. Enable "Anonymous Sign-Ins"
-4. Guest users will automatically sign in anonymously and can save data
+Once enabled, guest users will automatically:
+- Sign in anonymously when they visit the site
+- Have their chats and messages saved to the database
+- Maintain their session across page reloads
 
-### Option 2: Apply Database Migration (Alternative)
+### Important: Dynamic Rendering with Next.js
 
-If you cannot enable anonymous authentication, apply the provided migration:
+Okie uses Next.js dynamic rendering to prevent caching issues with anonymous users. The pages are configured with:
 
-```bash
-# Run the migration
-psql $DATABASE_URL < supabase/migrations/20240000000001_fix_guest_users_fk.sql
+```typescript
+export const dynamic = "force-dynamic"
 ```
 
-This migration:
-- Makes foreign key constraints deferrable
-- Creates a trigger to auto-create auth.users entries for anonymous users
-- Updates RLS policies to allow anonymous users to save data
-
-**Warning**: This approach creates auth.users entries without proper authentication. Use with caution and only in controlled environments.
+This ensures that each anonymous user gets their own unique session and prevents metadata from being cached across different users.
 
 ## How It Works
 
@@ -79,11 +74,9 @@ If you see errors like:
 insert or update on table "users" violates foreign key constraint "users_id_fkey"
 ```
 
-This means:
-1. Anonymous authentication is not enabled in Supabase, OR
-2. The migration hasn't been applied
+This means anonymous authentication is not enabled in Supabase.
 
-**Solution**: Enable anonymous auth or apply the migration.
+**Solution**: Follow the steps above to enable anonymous authentication in your Supabase Dashboard.
 
 ### "Supabase not available" warnings
 
@@ -100,25 +93,39 @@ This means:
 
 This is expected behavior when:
 1. Supabase is not configured
-2. Anonymous auth is disabled and migration not applied
+2. Anonymous authentication is disabled
 
 The application gracefully degrades to allow chatting without persistence.
 
+## Converting Anonymous Users to Permanent Users
+
+You can convert anonymous users to permanent users by linking an identity:
+
+### Link an OAuth Identity
+
+```typescript
+// Link a Google account to the anonymous user
+const { data, error } = await supabase.auth.linkIdentity({ provider: 'google' })
+```
+
+### Link to an Existing Account
+
+For linking to an existing email/password account, you'll need to:
+1. Sign in with the existing account
+2. Manually migrate data from the anonymous user
+3. Implement your conflict resolution strategy
+
 ## Security Considerations
 
-1. **Anonymous Authentication**: 
-   - Safer approach
-   - Managed by Supabase
-   - Proper session handling
-
-2. **Migration Approach**:
-   - Creates auth.users entries without authentication
-   - Should only be used in controlled environments
-   - Consider implementing cleanup for old anonymous users
+- **Anonymous Authentication** is managed securely by Supabase
+- Each anonymous user gets a unique UUID
+- Sessions are properly handled with JWT tokens
+- Rate limiting should be implemented for anonymous users
 
 ## Best Practices
 
-1. **Always prefer enabling anonymous authentication** over the migration approach
+1. **Enable anonymous authentication** in Supabase Dashboard
 2. **Set up rate limiting** for anonymous users to prevent abuse
-3. **Implement cleanup jobs** to remove old anonymous user data
+3. **Implement cleanup jobs** to remove old anonymous user data periodically
 4. **Monitor usage** to ensure anonymous users aren't consuming excessive resources
+5. **Consider conversion flows** to encourage anonymous users to create permanent accounts

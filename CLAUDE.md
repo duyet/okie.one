@@ -215,3 +215,5 @@ OLLAMA_BASE_URL=http://localhost:11434
 - **AI provider errors**: Check API key validity and rate limits
 - **Performance**: Use `ANALYZE=true pnpm build` for bundle analysis
 - **Ollama not detected**: Ensure service running on OLLAMA_BASE_URL (default: localhost:11434)
+- **Guest user persistence**: Enable anonymous authentication in Supabase Dashboard
+- **Anonymous user caching**: Pages use `export const dynamic = "force-dynamic"` to prevent caching
