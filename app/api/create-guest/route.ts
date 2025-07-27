@@ -21,7 +21,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Check if the user record already exists.
+    // Check if the user record already exists in public.users table
     let { data: userData } = await supabase
       .from("users")
       .select("*")
@@ -29,31 +29,58 @@ export async function POST(request: Request) {
       .maybeSingle()
 
     if (!userData) {
+      // Try to create the user in public.users
+      // This will only work if the userId exists in auth.users (created by signInAnonymously)
       const { data, error } = await supabase
         .from("users")
         .insert({
           id: userId,
-          email: `${userId}@anonymous.example`,
+          email: `${userId}@anonymous.local`,
           anonymous: true,
           message_count: 0,
           premium: false,
           created_at: new Date().toISOString(),
+          display_name: "Guest User",
+          favorite_models: [],
         })
         .select("*")
         .single()
 
-      if (error || !data) {
-        console.error("Error creating guest user:", error)
+      if (error) {
+        // Check if it's a foreign key constraint error
+        if (error.code === "23503") {
+          console.error(
+            "Foreign key constraint error. Guest user ID does not exist in auth.users.",
+            "This means signInAnonymously() either failed or hasn't been called yet.",
+            "Ensure anonymous sign-ins are enabled in Supabase Dashboard.",
+            { userId, error }
+          )
+          return new Response(
+            JSON.stringify({
+              error: "Guest user authentication required",
+              details:
+                "Anonymous sign-ins must be enabled and signInAnonymously() must succeed first",
+              code: error.code,
+            }),
+            { status: 400 }
+          )
+        }
+
+        console.error("Error creating guest user in public.users:", error)
         return new Response(
           JSON.stringify({
-            error: "Failed to create guest user",
+            error: "Failed to create guest user profile",
             details: error?.message,
+            code: error?.code,
           }),
           { status: 500 }
         )
       }
 
       userData = data
+      console.log("Successfully created guest user profile for:", userId)
+    } else {
+      console.log("Guest user already exists:", userId)
     }
 
     return new Response(JSON.stringify({ user: userData }), { status: 200 })

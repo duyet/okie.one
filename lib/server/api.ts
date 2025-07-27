@@ -37,15 +37,31 @@ export async function validateUserIdentity(
 
       // For fallback guest users (when anonymous auth is disabled or fails)
       if (isSupabaseEnabled) {
-        console.log(
-          "Fallback guest user detected. These users should use client-side anonymous auth.",
-          "If anonymous sign-ins are disabled in Supabase, enable them in:",
-          "Dashboard > Authentication > Providers > Anonymous Sign-Ins"
-        )
+        const supabase = await createGuestServerClient()
+        if (supabase) {
+          // Check if this guest user already exists in the database
+          // (may have been created by a previous successful anonymous auth)
+          const { data: existingUser } = await supabase
+            .from("users")
+            .select("id")
+            .eq("id", userId)
+            .maybeSingle()
 
-        // We can't create users server-side due to FK constraint
-        // Return null to indicate limited functionality
-        return null
+          if (existingUser) {
+            console.log("Found existing guest user in database:", userId)
+            return supabase
+          }
+
+          console.log(
+            "Fallback guest user not in database. Due to FK constraint,",
+            "this user needs proper anonymous authentication.",
+            "Enable anonymous sign-ins in Supabase Dashboard > Authentication > Providers"
+          )
+
+          // Return the supabase client anyway to allow read operations
+          // Write operations will fail but at least the user can use the chat
+          return supabase
+        }
       }
 
       return null // Signal: valid guest user, no Supabase available
