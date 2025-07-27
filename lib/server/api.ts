@@ -52,14 +52,39 @@ export async function validateUserIdentity(
             return supabase
           }
 
-          console.log(
-            "Fallback guest user not in database. Due to FK constraint,",
-            "this user needs proper anonymous authentication.",
-            "Enable anonymous sign-ins in Supabase Dashboard > Authentication > Providers"
-          )
+          // Try to create the guest user in the database
+          console.log("Attempting to create guest user in database:", userId)
+          const { data: newUser, error: createError } = await supabase
+            .from("users")
+            .insert({
+              id: userId,
+              email: `${userId}@anonymous.local`,
+              anonymous: true,
+              message_count: 0,
+              premium: false,
+              created_at: new Date().toISOString(),
+              display_name: "Guest User",
+              favorite_models: [],
+            })
+            .select("id")
+            .single()
 
-          // Return the supabase client anyway to allow read operations
-          // Write operations will fail but at least the user can use the chat
+          if (createError) {
+            console.error("Error creating guest user:", createError)
+            if (createError.code === "23503") {
+              console.log(
+                "Foreign key constraint error. Guest user ID does not exist in auth.users.",
+                "This is expected if anonymous auth is not enabled or the migration hasn't been applied.",
+                "Apply the migration in supabase/migrations/20240000000001_fix_guest_users_fk.sql"
+              )
+            }
+          } else if (newUser) {
+            console.log("Guest user created successfully:", userId)
+          }
+
+          // Return the supabase client regardless
+          // If the migration is applied, the user will be created
+          // If not, at least read operations will work
           return supabase
         }
       }
