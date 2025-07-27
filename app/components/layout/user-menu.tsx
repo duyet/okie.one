@@ -58,7 +58,9 @@ export function UserMenu() {
               ) : (
                 <>
                   <AvatarImage src={user?.profile_image ?? undefined} />
-                  <AvatarFallback>{user?.display_name?.charAt(0)}</AvatarFallback>
+                  <AvatarFallback>
+                    {user?.display_name?.charAt(0)}
+                  </AvatarFallback>
                 </>
               )}
             </Avatar>
@@ -109,7 +111,10 @@ export function UserMenu() {
             <FeedbackTrigger />
             <AppInfoTrigger />
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="cursor-pointer"
+            >
               <SignOut className="mr-2 h-4 w-4" />
               <span>Sign Out</span>
             </DropdownMenuItem>

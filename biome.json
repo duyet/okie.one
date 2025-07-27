@@ -1,7 +1,13 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.1.2/schema.json",
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": { "ignoreUnknown": true },
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true
+  },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
@@ -20,7 +26,10 @@
     "rules": {
       "recommended": true,
       "nursery": {
-        "useSortedClasses": "error"
+        "useSortedClasses": {
+          "level": "error",
+          "fix": "safe"
+        }
       },
       "a11y": {
         "noStaticElementInteractions": "warn",
@@ -43,7 +52,11 @@
       },
       "correctness": {
         "useExhaustiveDependencies": "warn",
-        "useHookAtTopLevel": "warn"
+        "useHookAtTopLevel": "warn",
+        "noUnusedImports": {
+          "level": "warn",
+          "fix": "safe"
+        }
       }
     }
   },
@@ -60,7 +73,11 @@
       "bracketSpacing": true
     }
   },
-  "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "html": {
+    "formatter": {
+      "selfCloseVoidElements": "always"
+    }
+  },
   "assist": {
     "enabled": true,
     "actions": {

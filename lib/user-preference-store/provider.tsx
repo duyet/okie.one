@@ -92,11 +92,7 @@ function saveToLocalStorage(preferences: UserPreferences) {
   localStorage.setItem(LAYOUT_STORAGE_KEY, preferences.layout)
 }
 
-export function UserPreferencesProvider({
-  children,
-}: {
-  children: ReactNode
-}) {
+export function UserPreferencesProvider({ children }: { children: ReactNode }) {
   const { user } = useUser()
   const isAuthenticated = !!user?.id && !user?.anonymous
   const userId = user?.id

@@ -27,7 +27,7 @@ export type MorphingDialogContextType = {
   isOpen: boolean
   setIsOpen: React.Dispatch<React.SetStateAction<boolean>>
   uniqueId: string
-  triggerRef: React.RefObject<HTMLDivElement>
+  triggerRef: React.RefObject<HTMLDivElement | null>
 }
 
 const MorphingDialogContext =
@@ -199,7 +199,7 @@ function MorphingDialogContent({
     }
   }, [isOpen, triggerRef])
 
-  useClickOutside(containerRef, () => {
+  useClickOutside(containerRef as React.RefObject<HTMLDivElement>, () => {
     if (isOpen) {
       setIsOpen(false)
     }

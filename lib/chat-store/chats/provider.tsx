@@ -48,11 +48,7 @@ export function useChats() {
   return context
 }
 
-export function ChatsProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export function ChatsProvider({ children }: { children: React.ReactNode }) {
   const { user } = useUser()
   const [isLoading, setIsLoading] = useState(true)
   const [chats, setChats] = useState<Chats[]>([])

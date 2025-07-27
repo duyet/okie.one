@@ -34,8 +34,8 @@ export function GuestRateLimitDialog({
           </AlertDialogTitle>
           <AlertDialogDescription className="space-y-3">
             <p>
-              You&apos;ve used all {messagesUsed} free messages for today as a guest
-              user.
+              You&apos;ve used all {messagesUsed} free messages for today as a
+              guest user.
             </p>
             <p className="font-medium">Sign in to continue chatting with:</p>
             <ul className="list-inside list-disc space-y-1 text-sm">

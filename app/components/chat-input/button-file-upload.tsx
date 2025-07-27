@@ -41,7 +41,6 @@ export function ButtonFileUpload({
   // Generate accept string from model capabilities
   const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
 
-
   // Common button component with proper ref forwarding
   const FileUploadButton = React.forwardRef<
     HTMLButtonElement,
@@ -59,7 +58,7 @@ export function ButtonFileUpload({
       <Paperclip className="size-4" />
     </Button>
   ))
-  
+
   FileUploadButton.displayName = "FileUploadButton"
 
   // Determine if file upload should be disabled
@@ -97,7 +96,8 @@ export function ButtonFileUpload({
       <div className="text-secondary-foreground text-sm">
         <div className="mb-1 font-medium">Sign in to upload files</div>
         <div className="text-xs">
-          File uploads require authentication to ensure secure handling of your files.
+          File uploads require authentication to ensure secure handling of your
+          files.
           <br />
           Please sign in to upload files to your conversation.
         </div>
@@ -140,7 +140,7 @@ export function ButtonFileUpload({
         </TooltipTrigger>
         <TooltipContent>Add files</TooltipContent>
       </Tooltip>
-      
+
       <FileUploadContent>
         <div className="flex flex-col items-center rounded-lg border border-input border-dashed bg-background p-8">
           <FileArrowUp className="size-8 text-muted-foreground" />

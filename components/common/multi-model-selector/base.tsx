@@ -120,7 +120,7 @@ export function MultiModelSelector({
         )}
         onClick={() => handleModelToggle(model.id, isLocked)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
+          if (e.key === "Enter" || e.key === " ") {
             e.preventDefault()
             handleModelToggle(model.id, isLocked)
           }

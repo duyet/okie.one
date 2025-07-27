@@ -8,7 +8,7 @@ import { useGuestDataMerge } from "@/app/hooks/use-guest-data-merge"
 export function LayoutApp({ children }: { children: React.ReactNode }) {
   const { preferences } = useUserPreferences()
   const hasSidebar = preferences.layout === "sidebar"
-  
+
   // Handle guest data merge when user logs in
   useGuestDataMerge()
 

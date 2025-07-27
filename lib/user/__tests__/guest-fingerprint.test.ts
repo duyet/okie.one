@@ -1,3 +1,8 @@
+/**
+ * @vitest-environment jsdom
+ */
+
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest"
 import {
   generateDeviceFingerprint,
   getOrCreatePersistentGuestId,
@@ -23,13 +28,13 @@ class MockCanvasRenderingContext2D {
   font: string = ""
   fillStyle: string = ""
 
-  fillRect = jest.fn()
-  fillText = jest.fn()
+  fillRect = vi.fn()
+  fillText = vi.fn()
 }
 
 class MockHTMLCanvasElement {
-  getContext = jest.fn(() => new MockCanvasRenderingContext2D())
-  toDataURL = jest.fn(() => "data:image/png;base64,mock")
+  getContext = vi.fn(() => new MockCanvasRenderingContext2D())
+  toDataURL = vi.fn(() => "data:image/png;base64,mock")
 }
 
 describe("guest-fingerprint", () => {
@@ -50,24 +55,32 @@ describe("guest-fingerprint", () => {
     })
 
     // Mock document.createElement for canvas
-    jest.spyOn(document, "createElement").mockImplementation((tagName) => {
-      if (tagName === "canvas") {
-        return new MockHTMLCanvasElement() as unknown as HTMLCanvasElement
+    vi.spyOn(document, "createElement").mockImplementation(
+      (tagName: string) => {
+        if (tagName === "canvas") {
+          return new MockHTMLCanvasElement() as unknown as HTMLCanvasElement
+        }
+        return document.createElement(tagName)
       }
-      return document.createElement(tagName)
-    })
+    )
 
     // Mock Intl.DateTimeFormat
-    jest.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({
-      resolvedOptions: () => ({ timeZone: "America/New_York" }),
-      format: jest.fn(),
-      formatToParts: jest.fn(),
-      formatRange: jest.fn(),
-      formatRangeToParts: jest.fn(),
+    vi.spyOn(Intl, "DateTimeFormat").mockImplementation(() => ({
+      resolvedOptions: () =>
+        ({
+          timeZone: "America/New_York",
+          locale: "en-US",
+          calendar: "gregory",
+          numberingSystem: "latn",
+        }) as Intl.ResolvedDateTimeFormatOptions,
+      format: vi.fn(),
+      formatToParts: vi.fn(),
+      formatRange: vi.fn(),
+      formatRangeToParts: vi.fn(),
     }))
 
     // Mock crypto.subtle.digest
-    const mockDigest = jest
+    const mockDigest = vi
       .fn()
       .mockResolvedValue(
         new Uint8Array([
@@ -84,7 +97,7 @@ describe("guest-fingerprint", () => {
   })
 
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
   })
 
   describe("generateDeviceFingerprint", () => {
@@ -106,7 +119,7 @@ describe("guest-fingerprint", () => {
 
     it("should handle canvas errors gracefully", async () => {
       // Mock canvas to throw error
-      jest.spyOn(document, "createElement").mockImplementation(() => {
+      vi.spyOn(document, "createElement").mockImplementation(() => {
         throw new Error("Canvas not supported")
       })
 
@@ -191,9 +204,9 @@ describe("guest-fingerprint", () => {
 
     it("should handle crypto.randomUUID fallback", async () => {
       // Mock crypto.subtle.digest to fail
-      jest
-        .spyOn(window.crypto.subtle, "digest")
-        .mockRejectedValue(new Error("Crypto not supported"))
+      vi.spyOn(window.crypto.subtle, "digest").mockRejectedValue(
+        new Error("Crypto not supported")
+      )
 
       const guestId = await getOrCreatePersistentGuestId()
 
