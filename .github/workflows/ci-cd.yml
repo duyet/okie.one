@@ -226,10 +226,42 @@ jobs:
       - name: Generate ENCRYPTION_KEY for tests
         run: echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
 
+      - name: Generate CSRF_SECRET for tests
+        run: echo "CSRF_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+
       - name: Run E2E tests
         run: pnpm test:e2e
         env:
           CI: true
+          NODE_ENV: production
+          # App Configuration
+          NEXT_PUBLIC_APP_NAME: Okie
+          NEXT_PUBLIC_VERCEL_URL: ${{ vars.NEXT_PUBLIC_VERCEL_URL || 'localhost:3000' }}
+          
+          # Security (required for app to run)
+          ENCRYPTION_KEY: ${{ env.ENCRYPTION_KEY }}
+          CSRF_SECRET: ${{ env.CSRF_SECRET }}
+          
+          # Supabase (optional - app can run without it for guest users)
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || '' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
+          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE || '' }}
+          
+          # AI Provider API Keys (optional - for testing with actual AI responses)
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || '' }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || '' }}
+          GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY || '' }}
+          MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY || '' }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY || '' }}
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY || '' }}
+          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY || '' }}
+          
+          # Local AI (disabled in CI)
+          OLLAMA_BASE_URL: ''
+          DISABLE_OLLAMA: 'true'
+          
+          # Additional optional services
+          EXA_API_KEY: ${{ secrets.EXA_API_KEY || '' }}
 
       - name: Upload Playwright Report
         uses: actions/upload-artifact@v4
@@ -279,6 +311,9 @@ jobs:
       - name: Generate ENCRYPTION_KEY for build
         run: echo "ENCRYPTION_KEY=$(openssl rand -base64 32)" >> $GITHUB_ENV
 
+      - name: Generate CSRF_SECRET for build
+        run: echo "CSRF_SECRET=$(openssl rand -hex 32)" >> $GITHUB_ENV
+
       - name: Generate build cache key
         id: build-cache
         run: echo "key=build-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/package.json', 'next.config.ts', 'tailwind.config.ts') }}" >> $GITHUB_OUTPUT
@@ -297,6 +332,23 @@ jobs:
 
       - name: Build application
         run: pnpm run build
+        env:
+          # App Configuration
+          NEXT_PUBLIC_APP_NAME: Okie
+          NEXT_PUBLIC_VERCEL_URL: ${{ vars.NEXT_PUBLIC_VERCEL_URL || 'okie.one' }}
+          
+          # Security (required for build)
+          ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+          CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
+          
+          # Supabase (optional)
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || '' }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
+          SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE || '' }}
+          
+          # Local AI (disabled in CI)
+          OLLAMA_BASE_URL: ''
+          DISABLE_OLLAMA: 'true'
 
       - name: Cache SWC
         uses: actions/cache@v4
