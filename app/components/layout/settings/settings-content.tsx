@@ -13,7 +13,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DrawerClose } from "@/components/ui/drawer"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { isSupabaseEnabled } from "@/lib/supabase/config"
+import { isSupabaseEnabledClient } from "@/lib/supabase/config"
 import { cn, isDev } from "@/lib/utils"
 
 import { ByokSection } from "./apikeys/byok-section"
@@ -109,8 +109,8 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             {/* Mobile tabs content */}
             <TabsContent value="general" className="space-y-6 px-6">
               <UserProfile />
-              {isSupabaseEnabled && <SignInMethods />}
-              {isSupabaseEnabled && <AccountManagement />}
+              {isSupabaseEnabledClient && <SignInMethods />}
+              {isSupabaseEnabledClient && <AccountManagement />}
             </TabsContent>
 
             <TabsContent value="appearance" className="space-y-6 px-6">
@@ -193,8 +193,8 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
             <div className="flex-1 overflow-auto px-6 pt-4">
               <TabsContent value="general" className="mt-0 space-y-6">
                 <UserProfile />
-                {isSupabaseEnabled && <SignInMethods />}
-                {isSupabaseEnabled && <AccountManagement />}
+                {isSupabaseEnabledClient && <SignInMethods />}
+                {isSupabaseEnabledClient && <AccountManagement />}
               </TabsContent>
 
               <TabsContent value="appearance" className="mt-0 space-y-6">
