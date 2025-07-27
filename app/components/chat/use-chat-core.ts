@@ -136,7 +136,8 @@ export function useChatCore({
                 "🚀 Early artifact detection - opening sidebar:",
                 firstArtifact.title
               )
-              openArtifact(firstArtifact)
+              // Defer artifact opening to avoid setState-in-render warning
+              setTimeout(() => openArtifact(firstArtifact), 0)
             }
           }
         }
@@ -160,7 +161,8 @@ export function useChatCore({
               "📌 Auto-opening artifact in sidebar:",
               firstArtifact.title
             )
-            openArtifact(firstArtifact)
+            // Defer artifact opening to avoid setState-in-render warning
+            setTimeout(() => openArtifact(firstArtifact), 0)
           }
 
           // Replace inline code blocks with artifact placeholders in the content
