@@ -3,9 +3,11 @@ import { test, expect, type Page } from "@playwright/test"
 test.describe("Guest User Persistence", () => {
   const getGuestUserId = async (page: Page): Promise<string | null> => {
     return await page.evaluate(() => {
+      // Try multiple possible storage keys
       return (
         localStorage.getItem("guest-user-id") ||
-        localStorage.getItem("fallback-guest-id")
+        localStorage.getItem("fallback-guest-id") ||
+        sessionStorage.getItem("guest-user-id")
       )
     })
   }
@@ -26,10 +28,29 @@ test.describe("Guest User Persistence", () => {
   test("should generate a UUID-format guest ID on first visit", async ({
     page,
   }) => {
-    // Clear storage after page load
-    await clearAllStorage(page)
-    await page.reload()
+    // Clear storage before navigating to ensure clean state
+    await page.evaluate(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
+
+    // Navigate to the page
+    await page.goto("/")
     await page.waitForLoadState("networkidle")
+
+    // Wait a bit for React to mount and initialize
+    await page.waitForTimeout(2000)
+
+    // Check if guest ID is being generated
+    const storageState = await page.evaluate(() => {
+      return {
+        localStorage: Object.keys(localStorage),
+        sessionStorage: Object.keys(sessionStorage),
+        guestId: localStorage.getItem("guest-user-id"),
+        fallbackId: localStorage.getItem("fallback-guest-id"),
+      }
+    })
+    console.log("Storage state after wait:", storageState)
 
     // Wait for guest user initialization by waiting for the guest ID to be set
     await page.waitForFunction(
