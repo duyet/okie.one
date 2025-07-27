@@ -119,7 +119,9 @@ vi.mock("@/components/prompt-kit/prompt-input", () => ({
 // Mock other components
 vi.mock("@/app/components/chat-input/button-file-upload", () => ({
   ButtonFileUpload: () => (
-    <button type="button" data-testid="file-upload-button">Upload</button>
+    <button type="button" data-testid="file-upload-button">
+      Upload
+    </button>
   ),
 }))
 

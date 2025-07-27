@@ -65,7 +65,7 @@ export function ModelSelector({
   const router = useRouter()
 
   const currentModel = models.find((model) => model.id === selectedModelId)
-  
+
   // Create provider map for better performance and type safety
   const providerMap = useMemo(() => {
     const map = new Map()
@@ -74,8 +74,10 @@ export function ModelSelector({
     })
     return map
   }, [])
-  
-  const currentProvider = currentModel?.icon ? providerMap.get(currentModel.icon) : null
+
+  const currentProvider = currentModel?.icon
+    ? providerMap.get(currentModel.icon)
+    : null
   const isMobile = useBreakpoint(768)
 
   const [hoveredModel, setHoveredModel] = useState<string | null>(null)
@@ -136,7 +138,10 @@ export function ModelSelector({
           <div className="flex flex-col gap-0">
             <span className="text-sm">{model.name}</span>
           </div>
-          <div className="ml-1 flex items-center gap-1" id={`${model.id}-capabilities`}>
+          <div
+            className="ml-1 flex items-center gap-1"
+            id={`${model.id}-capabilities`}
+          >
             {model.vision && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -392,7 +397,9 @@ export function ModelSelector({
               ) : filteredModels.length > 0 ? (
                 filteredModels.map((model) => {
                   const isLocked = !model.accessible
-                  const provider = model.icon ? providerMap.get(model.icon) : null
+                  const provider = model.icon
+                    ? providerMap.get(model.icon)
+                    : null
                   const isSelected = selectedModelId === model.id
 
                   return (
@@ -432,7 +439,10 @@ export function ModelSelector({
                         <div className="flex flex-col gap-0">
                           <span className="text-sm">{model.name}</span>
                         </div>
-                        <div className="ml-1 flex items-center gap-1" id={`dropdown-${model.id}-capabilities`}>
+                        <div
+                          className="ml-1 flex items-center gap-1"
+                          id={`dropdown-${model.id}-capabilities`}
+                        >
                           {model.vision && (
                             <Tooltip>
                               <TooltipTrigger asChild>
@@ -440,7 +450,10 @@ export function ModelSelector({
                                   <Eye className="size-2.5 text-green-600 dark:text-green-400" />
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="z-[9999] text-xs">
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
                                 Vision
                               </TooltipContent>
                             </Tooltip>
@@ -452,7 +465,10 @@ export function ModelSelector({
                                   <Wrench className="size-2.5 text-blue-600 dark:text-blue-400" />
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="z-[9999] text-xs">
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
                                 Tools
                               </TooltipContent>
                             </Tooltip>
@@ -464,7 +480,10 @@ export function ModelSelector({
                                   <Brain className="size-2.5 text-purple-600 dark:text-purple-400" />
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="z-[9999] text-xs">
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
                                 Reasoning
                               </TooltipContent>
                             </Tooltip>
@@ -476,7 +495,10 @@ export function ModelSelector({
                                   <GlobeHemisphereWest className="size-2.5 text-orange-600 dark:text-orange-400" />
                                 </div>
                               </TooltipTrigger>
-                              <TooltipContent side="top" className="z-[9999] text-xs">
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
                                 Web Search
                               </TooltipContent>
                             </Tooltip>
