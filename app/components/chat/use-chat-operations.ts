@@ -1,5 +1,6 @@
 import type { Message } from "@ai-sdk/react"
 import { useCallback } from "react"
+import { useRouter } from "next/navigation"
 
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits } from "@/lib/api"
@@ -38,6 +39,8 @@ export function useChatOperations({
   setHasRateLimitDialog,
   setMessages,
 }: UseChatOperationsProps) {
+  const router = useRouter()
+
   // Chat utilities
   const checkLimitsAndNotify = async (uid: string): Promise<boolean> => {
     try {
@@ -119,11 +122,12 @@ export function useChatOperations({
         console.log("New chat created successfully:", newChat.id)
 
         if (isAuthenticated) {
-          window.history.pushState(null, "", `/c/${newChat.id}`)
+          router.push(`/c/${newChat.id}`)
         } else {
-          // Store guest chat ID for future reference
+          // Store guest chat ID for future reference and navigate to chat page
           localStorage.setItem("guestChatId", newChat.id)
           console.log("Stored guest chat ID:", newChat.id)
+          router.push(`/c/${newChat.id}`)
         }
 
         return newChat.id
