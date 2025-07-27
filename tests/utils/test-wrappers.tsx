@@ -1,8 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import React from "react"
 
-import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
-
 // Mock the UserPreferencesProvider for tests
 const MockUserPreferencesProvider = ({
   children,

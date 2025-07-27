@@ -31,10 +31,21 @@ export async function checkUsage(supabase: SupabaseClient, userId: string) {
     .maybeSingle()
 
   if (userDataError) {
-    throw new Error(`Error fetchClienting user data: ${userDataError.message}`)
+    throw new Error(`Error fetching user data: ${userDataError.message}`)
   }
+
+  // If user not found (guest user without proper auth), return default limits
   if (!userData) {
-    throw new Error(`User record not found for id: ${userId}`)
+    console.log(
+      `Guest user ${userId} not found in database, using default limits`
+    )
+    return {
+      message_count: 0,
+      daily_message_count: 0,
+      daily_reset: new Date().toISOString(),
+      anonymous: true,
+      premium: false,
+    }
   }
 
   // Decide which daily limit to use.
@@ -98,11 +109,18 @@ export async function incrementUsage(
     .eq("id", userId)
     .maybeSingle()
 
-  if (userDataError || !userData) {
-    throw new Error(
-      "Error fetchClienting user data: " +
-        (userDataError?.message || "User not found")
+  if (userDataError) {
+    console.error("Error fetching user data for increment:", userDataError)
+    // Don't throw - just skip incrementing for non-existent users
+    return
+  }
+
+  if (!userData) {
+    console.log(
+      `Guest user ${userId} not in database, skipping usage increment`
     )
+    // Don't throw - guest users without DB entries can still use the app
+    return
   }
 
   const messageCount = userData.message_count || 0
@@ -187,8 +205,16 @@ export async function incrementProUsage(
     .eq("id", userId)
     .maybeSingle()
 
-  if (error || !data) {
-    throw new Error("Failed to fetch user usage for increment")
+  if (error) {
+    console.error("Error fetching pro usage data:", error)
+    return
+  }
+
+  if (!data) {
+    console.log(
+      `Guest user ${userId} not in database, skipping pro usage increment`
+    )
+    return
   }
 
   const count = data.daily_pro_message_count || 0
