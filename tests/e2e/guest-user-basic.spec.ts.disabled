@@ -4,10 +4,6 @@ test.describe("Guest User Basic Functionality", () => {
   test.beforeEach(async ({ page }) => {
     // Clear any existing auth state
     await page.context().clearCookies()
-    await page.evaluate(() => {
-      localStorage.clear()
-      sessionStorage.clear()
-    })
   })
 
   test("should allow guest users to access the app", async ({ page }) => {
