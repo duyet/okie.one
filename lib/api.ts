@@ -257,20 +257,22 @@ export const getOrCreateGuestUserId = async (
 ): Promise<string | null> => {
   if (user?.id) return user.id
 
+  // Primary storage keys that e2e tests expect
+  const primaryKeys = ["guest-user-id", "fallback-guest-id", "guestUserId"]
+
   // Check and migrate all possible old format guest IDs
-  const storageKeys = ["fallback-guest-id", "guest-user-id", "guestUserId"]
-  for (const key of storageKeys) {
+  for (const key of primaryKeys) {
     const storedId = localStorage.getItem(key)
     if (storedId && storedId.startsWith("guest-user-")) {
       console.log(`Migrating old format guest ID from ${key} to UUID`)
       const newGuestId = crypto.randomUUID()
-      localStorage.setItem(key, newGuestId)
-      localStorage.setItem(`guest-id-migration-${storedId}`, newGuestId)
 
-      // Also update the fallback-guest-id to ensure consistency
-      if (key !== "fallback-guest-id") {
-        localStorage.setItem("fallback-guest-id", newGuestId)
+      // Update all primary keys to maintain consistency
+      for (const updateKey of primaryKeys) {
+        localStorage.setItem(updateKey, newGuestId)
       }
+      localStorage.setItem(`guest-id-migration-${storedId}`, newGuestId)
+      return newGuestId
     }
   }
 
@@ -306,6 +308,14 @@ export const getOrCreateGuestUserId = async (
           return await getOrCreatePersistentGuestId()
         }
       }
+
+      // Ensure consistency in localStorage with the authenticated anonymous user ID
+      for (const key of primaryKeys) {
+        if (localStorage.getItem(key) !== anonUserId) {
+          localStorage.setItem(key, anonUserId)
+        }
+      }
+
       return anonUserId
     }
 
@@ -320,7 +330,10 @@ export const getOrCreateGuestUserId = async (
       if (!fallbackGuestId) {
         // Generate a proper UUID for guest users
         fallbackGuestId = crypto.randomUUID()
-        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+        // Store in all primary keys for consistency
+        for (const key of primaryKeys) {
+          localStorage.setItem(key, fallbackGuestId)
+        }
       }
       return fallbackGuestId
     }
@@ -332,7 +345,10 @@ export const getOrCreateGuestUserId = async (
       if (!fallbackGuestId) {
         // Generate a proper UUID for guest users
         fallbackGuestId = crypto.randomUUID()
-        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+        // Store in all primary keys for consistency
+        for (const key of primaryKeys) {
+          localStorage.setItem(key, fallbackGuestId)
+        }
       }
       return fallbackGuestId
     }
@@ -341,6 +357,12 @@ export const getOrCreateGuestUserId = async (
     try {
       await createGuestUser(guestIdFromAuth)
       localStorage.setItem(`guestProfileAttempted_${guestIdFromAuth}`, "true")
+
+      // Store the authenticated guest ID in all primary keys
+      for (const key of primaryKeys) {
+        localStorage.setItem(key, guestIdFromAuth)
+      }
+
       return guestIdFromAuth
     } catch (error) {
       console.error("Error creating guest user profile:", error)
@@ -349,7 +371,10 @@ export const getOrCreateGuestUserId = async (
       if (!fallbackGuestId) {
         // Generate a proper UUID for guest users
         fallbackGuestId = crypto.randomUUID()
-        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+        // Store in all primary keys for consistency
+        for (const key of primaryKeys) {
+          localStorage.setItem(key, fallbackGuestId)
+        }
       }
       return fallbackGuestId
     }
@@ -363,7 +388,10 @@ export const getOrCreateGuestUserId = async (
     if (!fallbackGuestId) {
       // Generate a proper UUID for guest users
       fallbackGuestId = crypto.randomUUID()
-      localStorage.setItem("fallback-guest-id", fallbackGuestId)
+      // Store in all primary keys for consistency
+      for (const key of primaryKeys) {
+        localStorage.setItem(key, fallbackGuestId)
+      }
     }
     return fallbackGuestId
   }

@@ -60,28 +60,40 @@ export async function generateDeviceFingerprint(): Promise<string> {
 
 /**
  * Get or create a persistent guest ID using multiple methods
+ * Ensures consistency across all storage keys that e2e tests expect
  */
 export async function getOrCreatePersistentGuestId(): Promise<string> {
-  // Check multiple storage locations
-  const storageKeys = ["guest-user-id", "fallback-guest-id"]
+  // Primary storage keys - e2e tests check these specific keys
+  const primaryKeys = ["guest-user-id", "fallback-guest-id", "guestUserId"]
 
-  // Try to get from localStorage first
-  for (const key of storageKeys) {
+  // Try to get from localStorage first - check all keys to maintain consistency
+  for (const key of primaryKeys) {
     const id = localStorage.getItem(key)
 
     // Handle old format guest IDs by migrating them
     if (id && id.startsWith("guest-user-")) {
       console.log("Migrating old format guest ID to UUID:", id)
       const newId = crypto.randomUUID()
-      localStorage.setItem(key, newId)
+      // Update all primary keys to maintain consistency
+      for (const updateKey of primaryKeys) {
+        localStorage.setItem(updateKey, newId)
+      }
       localStorage.setItem(`guest-id-migration-${id}`, newId)
       return newId
     }
 
+    // Check if it's a valid UUID
     if (
       id &&
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
     ) {
+      // Found a valid ID, ensure all keys are synchronized
+      for (const syncKey of primaryKeys) {
+        if (localStorage.getItem(syncKey) !== id) {
+          localStorage.setItem(syncKey, id)
+        }
+      }
+      sessionStorage.setItem("guest-user-id", id)
       return id
     }
   }
@@ -94,9 +106,10 @@ export async function getOrCreatePersistentGuestId(): Promise<string> {
       sessionId
     )
   ) {
-    // Restore to localStorage
-    localStorage.setItem("guest-user-id", sessionId)
-    localStorage.setItem("fallback-guest-id", sessionId)
+    // Restore to all localStorage keys
+    for (const key of primaryKeys) {
+      localStorage.setItem(key, sessionId)
+    }
     return sessionId
   }
 
@@ -113,8 +126,10 @@ export async function getOrCreatePersistentGuestId(): Promise<string> {
     if (fingerprints[fingerprintId]) {
       // We've seen this device before, use the stored ID
       const storedId = fingerprints[fingerprintId]
-      localStorage.setItem("guest-user-id", storedId)
-      localStorage.setItem("fallback-guest-id", storedId)
+      // Store in all locations for consistency
+      for (const key of primaryKeys) {
+        localStorage.setItem(key, storedId)
+      }
       sessionStorage.setItem("guest-user-id", storedId)
       return storedId
     }
@@ -126,9 +141,10 @@ export async function getOrCreatePersistentGuestId(): Promise<string> {
     fingerprints[fingerprintId] = newId
     localStorage.setItem("guest-fingerprints", JSON.stringify(fingerprints))
 
-    // Store in all locations
-    localStorage.setItem("guest-user-id", newId)
-    localStorage.setItem("fallback-guest-id", newId)
+    // Store in all primary keys to ensure e2e tests can find it
+    for (const key of primaryKeys) {
+      localStorage.setItem(key, newId)
+    }
     sessionStorage.setItem("guest-user-id", newId)
 
     return newId
@@ -136,8 +152,10 @@ export async function getOrCreatePersistentGuestId(): Promise<string> {
     console.error("Failed to generate device fingerprint:", error)
     // Fallback to random UUID
     const fallbackId = crypto.randomUUID()
-    localStorage.setItem("guest-user-id", fallbackId)
-    localStorage.setItem("fallback-guest-id", fallbackId)
+    // Store in all primary keys
+    for (const key of primaryKeys) {
+      localStorage.setItem(key, fallbackId)
+    }
     sessionStorage.setItem("guest-user-id", fallbackId)
     return fallbackId
   }

@@ -79,13 +79,28 @@ export function useChatOperations({
   }
 
   const ensureChatExists = async (userId: string, input: string) => {
+    // For guest users, check for existing chat but don't rely on it completely
     if (!isAuthenticated) {
       const storedGuestChatId = localStorage.getItem("guestChatId")
-      if (storedGuestChatId) return storedGuestChatId
+      if (storedGuestChatId && messages.length > 0) {
+        // Only reuse existing chat if we have messages (not a fresh start)
+        return storedGuestChatId
+      }
     }
 
-    if (messages.length === 0) {
+    // Create new chat if no messages or need a fresh start
+    if (
+      messages.length === 0 ||
+      (!isAuthenticated && !localStorage.getItem("guestChatId"))
+    ) {
       try {
+        console.log(
+          "Creating new chat for",
+          isAuthenticated ? "authenticated" : "guest",
+          "user:",
+          userId
+        )
+
         const newChat = await createNewChat(
           userId,
           input,
@@ -94,11 +109,21 @@ export function useChatOperations({
           systemPrompt
         )
 
-        if (!newChat) return null
+        if (!newChat) {
+          console.error(
+            "Failed to create new chat - createNewChat returned null/undefined"
+          )
+          return null
+        }
+
+        console.log("New chat created successfully:", newChat.id)
+
         if (isAuthenticated) {
           window.history.pushState(null, "", `/c/${newChat.id}`)
         } else {
+          // Store guest chat ID for future reference
           localStorage.setItem("guestChatId", newChat.id)
+          console.log("Stored guest chat ID:", newChat.id)
         }
 
         return newChat.id
@@ -124,6 +149,8 @@ export function useChatOperations({
         } else if (typeof err === "string") {
           errorMessage = err
         }
+
+        console.error("Failed to create chat:", err)
         toast({
           title: errorMessage,
           status: "error",
@@ -132,6 +159,7 @@ export function useChatOperations({
       }
     }
 
+    // Use existing chatId
     return chatId
   }
 
