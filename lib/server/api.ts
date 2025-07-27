@@ -35,40 +35,17 @@ export async function validateUserIdentity(
         )
       }
 
-      // Ensure guest users exist in the database (handles both old format migrated to UUID and new UUID)
+      // For fallback guest users (when anonymous auth is disabled or fails)
       if (isSupabaseEnabled) {
-        const supabase = await createGuestServerClient()
-        if (supabase) {
-          // Check if this guest user already exists in the database
-          const { data: existingUser } = await supabase
-            .from("users")
-            .select("id")
-            .eq("id", userId)
-            .maybeSingle()
+        console.log(
+          "Fallback guest user detected. These users should use client-side anonymous auth.",
+          "If anonymous sign-ins are disabled in Supabase, enable them in:",
+          "Dashboard > Authentication > Providers > Anonymous Sign-Ins"
+        )
 
-          // If user doesn't exist, create them on first message
-          if (!existingUser) {
-            const { error: insertError } = await supabase.from("users").insert({
-              id: userId,
-              anonymous: true,
-              display_name: "Guest User",
-              email: `${userId}@anonymous.example`,
-              created_at: new Date().toISOString(),
-            })
-
-            if (insertError) {
-              console.error(
-                "Failed to create fallback guest user in DB:",
-                insertError
-              )
-              // Still return the supabase client to allow operation to continue
-            } else {
-              console.log("Created fallback guest user in database:", userId)
-            }
-          }
-
-          return supabase
-        }
+        // We can't create users server-side due to FK constraint
+        // Return null to indicate limited functionality
+        return null
       }
 
       return null // Signal: valid guest user, no Supabase available
