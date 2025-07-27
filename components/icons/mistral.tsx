@@ -3,6 +3,7 @@ import type { SVGProps } from "react"
 const Icon = (props: SVGProps<SVGSVGElement>) => (
   <svg
     aria-label="Mistral"
+    role="img"
     xmlns="http://www.w3.org/2000/svg"
     width={64}
     height={64}

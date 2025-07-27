@@ -4,6 +4,7 @@ export function OkieIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       aria-label="Okie"
+      role="img"
       xmlns="http://www.w3.org/2000/svg"
       width={80}
       height={80}
