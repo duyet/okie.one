@@ -20,8 +20,14 @@ export async function fetchUserProfile(
     return null
   }
 
-  // Don't return anonymous users
-  if (data.anonymous) return null
+  // Handle anonymous users properly - return their profile for guest functionality
+  if (data.anonymous) {
+    return {
+      ...data,
+      profile_image: data.profile_image || "",
+      display_name: data.display_name || "Guest User",
+    }
+  }
 
   return {
     ...data,
