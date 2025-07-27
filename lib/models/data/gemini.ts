@@ -221,10 +221,7 @@ const geminiModels: ModelConfig[] = [
     apiDocs: "https://ai.google.dev/api/docs",
     modelPage: "https://deepmind.google/technologies/gemini",
     icon: "gemini",
-    apiSdk: (
-      apiKey?: string,
-      opts?: { enableSearch?: boolean; enableThink?: boolean }
-    ) =>
+    apiSdk: (apiKey?: string) =>
       openproviders("gemini-2.0-flash-thinking-exp-01-21", undefined, apiKey),
   },
   {

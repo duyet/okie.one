@@ -136,7 +136,7 @@ function useTextStream({
         onError?.(error)
       }
     }
-  }, [])
+  }, [onError])
 
   const markComplete = useCallback(() => {
     if (!completedRef.current) {
