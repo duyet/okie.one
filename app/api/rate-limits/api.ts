@@ -30,8 +30,25 @@ export async function getMessageUsage(
     .eq("id", userId)
     .maybeSingle()
 
-  if (error || !data) {
-    throw new Error(error?.message || "Failed to fetch message usage")
+  if (error) {
+    console.error("Error fetching user message usage:", error)
+    throw new Error(error.message)
+  }
+
+  // If user not found in database (guest user without proper auth)
+  // Return default limits to allow them to use the app
+  if (!data) {
+    console.log("Guest user not found in database, returning default limits")
+    const dailyLimit = isAuthenticated
+      ? AUTH_DAILY_MESSAGE_LIMIT
+      : NON_AUTH_DAILY_MESSAGE_LIMIT
+    return {
+      dailyCount: 0,
+      dailyProCount: 0,
+      dailyLimit,
+      remaining: dailyLimit,
+      remainingPro: DAILY_LIMIT_PRO_MODELS,
+    }
   }
 
   const dailyLimit = isAuthenticated
