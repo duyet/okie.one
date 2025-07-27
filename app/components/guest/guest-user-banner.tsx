@@ -14,9 +14,9 @@ export function GuestUserBanner() {
   if (!user?.anonymous || dismissed) return null
 
   return (
-    <div className="relative bg-secondary/50 border-b border-border px-3 py-2 sm:px-4 sm:py-3">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 max-w-6xl mx-auto">
-        <div className="flex items-start sm:items-center gap-2 sm:gap-3">
+    <div className="relative border-border border-b bg-secondary/50 px-3 py-2 sm:px-4 sm:py-3">
+      <div className="mx-auto flex max-w-6xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-2 sm:items-center sm:gap-3">
           <User className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground sm:mt-0 sm:h-5 sm:w-5" />
           <div className="text-xs sm:text-sm">
             <span className="block text-foreground sm:inline">

@@ -54,7 +54,7 @@ function MorphingDialogProvider({
 }: MorphingDialogProviderProps) {
   const [isOpen, setIsOpen] = useState(false)
   const uniqueId = useId()
-  const triggerRef = useRef<HTMLDivElement>(null!)
+  const triggerRef = useRef<HTMLDivElement>(null)
 
   const contextValue = useMemo(
     () => ({
@@ -145,7 +145,7 @@ function MorphingDialogContent({
   style,
 }: MorphingDialogContentProps) {
   const { setIsOpen, isOpen, uniqueId, triggerRef } = useMorphingDialog()
-  const containerRef = useRef<HTMLDivElement>(null!)
+  const containerRef = useRef<HTMLDivElement>(null)
   const [firstFocusableElement, setFirstFocusableElement] =
     useState<HTMLElement | null>(null)
   const [lastFocusableElement, setLastFocusableElement] =

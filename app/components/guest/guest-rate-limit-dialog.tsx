@@ -38,7 +38,7 @@ export function GuestRateLimitDialog({
               user.
             </p>
             <p className="font-medium">Sign in to continue chatting with:</p>
-            <ul className="list-disc list-inside space-y-1 text-sm">
+            <ul className="list-inside list-disc space-y-1 text-sm">
               <li>1,000 messages per day for free accounts</li>
               <li>Keep all your chat history</li>
               <li>Access to more AI models</li>
@@ -47,7 +47,7 @@ export function GuestRateLimitDialog({
             </ul>
           </AlertDialogDescription>
         </AlertDialogHeader>
-        <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+        <AlertDialogFooter className="flex-col gap-2 sm:flex-row">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Maybe later
           </Button>
