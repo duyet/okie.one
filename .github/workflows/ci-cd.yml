@@ -1,28 +1,56 @@
-name: CI/CD Pipeline
+name: CI/CD
 
 on:
   push:
     branches: [main, develop]
-    tags: ["v*"]
   pull_request:
     branches: [main, develop]
 
+# Global environment variables for all jobs
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
-  NEXT_PUBLIC_VERCEL_URL: ${{ vars.NEXT_PUBLIC_VERCEL_URL }}
+  # Security keys (auto-generated)
+  ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-for-ci' }}
+  CSRF_SECRET: ${{ secrets.CSRF_SECRET || 'test-csrf-secret-for-ci' }}
+  
+  # App configuration
+  NEXT_PUBLIC_APP_NAME: "Okie"
+  NEXT_PUBLIC_VERCEL_URL: "okie.one"
+  
+  # Supabase (optional - guest users work without these)
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || '' }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
+  SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE || '' }}
+  
+  # AI Provider API Keys (optional - BYOK preferred)
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || '' }}
+  ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || '' }}
+  GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY || '' }}
+  MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY || '' }}
+  OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY || '' }}
+  XAI_API_KEY: ${{ secrets.XAI_API_KEY || '' }}
+  PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY || '' }}
+  
+  # Disable local AI in CI
+  OLLAMA_BASE_URL: ""
 
 jobs:
   setup:
-    name: Setup Dependencies
+    name: Setup
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.value }}
+    steps:
+      - name: Generate cache key
+        id: cache-key
+        run: echo "value=deps-${{ hashFiles('**/pnpm-lock.yaml') }}" >> $GITHUB_OUTPUT
+
+  build:
+    name: Build
+    needs: setup
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [20, 22]
-    outputs:
-      cache-key: ${{ steps.deps-cache.outputs.key }}
+        node-version: [22]
 
     steps:
       - name: Checkout repository
@@ -37,25 +65,106 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: "pnpm"
 
-      - name: Generate dependency cache key
-        id: deps-cache
-        run: echo "key=deps-${{ hashFiles('**/pnpm-lock.yaml', '**/package.json') }}" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        id: cache-deps
+      - name: Restore dependencies
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             ~/.pnpm-store
-          key: ${{ steps.deps-cache.outputs.key }}
+          key: ${{ needs.setup.outputs.cache-key }}
           restore-keys: |
-            deps-${{ hashFiles('**/pnpm-lock.yaml') }}
-            deps-
+            ${{ needs.setup.outputs.cache-key }}
 
       - name: Install dependencies
-        if: steps.cache-deps.outputs.cache-hit != 'true'
         run: pnpm install --frozen-lockfile
+
+      - name: Generate build cache key
+        id: build-cache
+        run: echo "key=build-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/package.json', 'next.config.ts', 'tailwind.config.ts') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+            .next/standalone
+            .next/static
+          key: ${{ steps.build-cache.outputs.key }}
+          restore-keys: |
+            build-
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.node-version }}
+          path: |
+            .next/
+            public/
+          retention-days: 30
+
+  e2e:
+    name: E2E Tests
+    needs: setup
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      matrix:
+        node-version: [22]
+
+    # Additional environment variables specific to e2e tests
+    env:
+      # Additional test configuration
+      SKIP_ENV_VALIDATION: "true"
+      NODE_ENV: "test"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "pnpm"
+
+      - name: Restore dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.pnpm-store
+          key: ${{ needs.setup.outputs.cache-key }}
+          restore-keys: |
+            ${{ needs.setup.outputs.cache-key }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Run E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.node-version }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 30
 
   lint-typescript:
     name: Lint & TypeScript Check
@@ -175,172 +284,6 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
-
-  e2e:
-    name: E2E Tests
-    needs: setup
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    strategy:
-      matrix:
-        node-version: [22]
-
-    # Environment variables for e2e tests
-    env:
-      # Security keys (auto-generated)
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-for-ci' }}
-      CSRF_SECRET: ${{ secrets.CSRF_SECRET || 'test-csrf-secret-for-ci' }}
-      
-      # App configuration
-      NEXT_PUBLIC_APP_NAME: "Okie"
-      NEXT_PUBLIC_VERCEL_URL: "okie.one"
-      
-      # Supabase (optional - guest users work without these)
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || '' }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
-      SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE || '' }}
-      
-      # AI Provider API Keys (optional - BYOK preferred)
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY || '' }}
-      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY || '' }}
-      GOOGLE_GENERATIVE_AI_API_KEY: ${{ secrets.GOOGLE_GENERATIVE_AI_API_KEY || '' }}
-      MISTRAL_API_KEY: ${{ secrets.MISTRAL_API_KEY || '' }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY || '' }}
-      XAI_API_KEY: ${{ secrets.XAI_API_KEY || '' }}
-      PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY || '' }}
-      
-      # Disable local AI in CI
-      OLLAMA_BASE_URL: ""
-      
-      # Additional test configuration
-      SKIP_ENV_VALIDATION: "true"
-      NODE_ENV: "test"
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-
-      - name: Restore dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.pnpm-store
-          key: ${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            ${{ needs.setup.outputs.cache-key }}
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
-
-      - name: Build application
-        run: pnpm build
-
-      - name: Run E2E tests
-        run: pnpm test:e2e
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-${{ matrix.node-version }}
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 30
-
-  build:
-    name: Build
-    needs: setup
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22]
-
-    # Environment variables for build
-    env:
-      # Security keys (auto-generated)
-      ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-for-ci' }}
-      CSRF_SECRET: ${{ secrets.CSRF_SECRET || 'test-csrf-secret-for-ci' }}
-      
-      # App configuration
-      NEXT_PUBLIC_APP_NAME: "Okie"
-      NEXT_PUBLIC_VERCEL_URL: "okie.one"
-      
-      # Supabase (optional)
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || '' }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
-      SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE || '' }}
-      
-      # Disable local AI in CI
-      OLLAMA_BASE_URL: ""
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
-
-      - name: Restore dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.pnpm-store
-          key: ${{ needs.setup.outputs.cache-key }}
-          restore-keys: |
-            ${{ needs.setup.outputs.cache-key }}
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Generate build cache key
-        id: build-cache
-        run: echo "key=build-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/package.json', 'next.config.ts', 'tailwind.config.ts') }}" >> $GITHUB_OUTPUT
-
-      - name: Cache Next.js build
-        uses: actions/cache@v4
-        with:
-          path: |
-            .next/cache
-            .next/standalone
-            .next/static
-          key: ${{ steps.build-cache.outputs.key }}
-          restore-keys: |
-            build-
-
-      - name: Build application
-        run: pnpm build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-${{ matrix.node-version }}
-          path: |
-            .next/
-            public/
-          retention-days: 30
-
 
   docker:
     name: Build Docker Image
