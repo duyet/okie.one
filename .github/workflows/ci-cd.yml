@@ -9,15 +9,15 @@ on:
 # Global environment variables for all jobs
 env:
   # Security keys (auto-generated)
-  ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY || 'test-encryption-key-for-ci' }}
-  CSRF_SECRET: ${{ secrets.CSRF_SECRET || 'test-csrf-secret-for-ci' }}
+  ENCRYPTION_KEY: ${{ secrets.ENCRYPTION_KEY }}
+  CSRF_SECRET: ${{ secrets.CSRF_SECRET }}
   
   # App configuration
   NEXT_PUBLIC_APP_NAME: "Okie"
-  NEXT_PUBLIC_VERCEL_URL: "okie.one"
+  NEXT_PUBLIC_VERCEL_URL: ${{ vars.NEXT_PUBLIC_VERCEL_URL || 'localhost:3000' }}
   
   # Supabase (optional - guest users work without these)
-  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || '' }}
+  NEXT_PUBLIC_SUPABASE_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_URL || '' }}
   NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || '' }}
   SUPABASE_SERVICE_ROLE: ${{ secrets.SUPABASE_SERVICE_ROLE || '' }}
   
@@ -31,7 +31,7 @@ env:
   PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY || '' }}
   
   # Disable local AI in CI
-  OLLAMA_BASE_URL: ""
+  DISABLE_OLLAMA: "true"
 
 jobs:
   setup:
@@ -113,12 +113,11 @@ jobs:
       contents: read
     strategy:
       matrix:
-        node-version: [22]
+        node-version: [20, 22]
 
     # Additional environment variables specific to e2e tests
     env:
       # Additional test configuration
-      SKIP_ENV_VALIDATION: "true"
       NODE_ENV: "test"
 
     steps:
