@@ -119,7 +119,7 @@ vi.mock("@/components/prompt-kit/prompt-input", () => ({
 // Mock other components
 vi.mock("@/app/components/chat-input/button-file-upload", () => ({
   ButtonFileUpload: () => (
-    <button data-testid="file-upload-button">Upload</button>
+    <button type="button" data-testid="file-upload-button">Upload</button>
   ),
 }))
 
@@ -132,6 +132,7 @@ vi.mock("@/app/components/chat-input/button-search", () => ({
     onToggle: (selected: boolean) => void
   }) => (
     <button
+      type="button"
       data-testid="search-button"
       onClick={() => onToggle(!isSelected)}
       className={isSelected ? "selected" : ""}
