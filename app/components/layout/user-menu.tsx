@@ -1,5 +1,7 @@
 "use client"
 
+import { SignIn, SignOut, User as UserIcon } from "@phosphor-icons/react"
+import Link from "next/link"
 import { useState } from "react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -22,7 +24,7 @@ import { FeedbackTrigger } from "./feedback/feedback-trigger"
 import { SettingsTrigger } from "./settings/settings-trigger"
 
 export function UserMenu() {
-  const { user } = useUser()
+  const { user, signOut } = useUser()
   const [isMenuOpen, setMenuOpen] = useState(false)
   const [isSettingsOpen, setSettingsOpen] = useState(false)
 
@@ -35,6 +37,13 @@ export function UserMenu() {
     }
   }
 
+  const handleSignOut = async () => {
+    await signOut()
+    window.location.href = "/"
+  }
+
+  const isGuest = user.anonymous
+
   return (
     // fix shadcn/ui / radix bug when dialog into dropdown menu
     <DropdownMenu open={isMenuOpen} onOpenChange={setMenuOpen} modal={false}>
@@ -42,12 +51,22 @@ export function UserMenu() {
         <TooltipTrigger asChild>
           <DropdownMenuTrigger>
             <Avatar className="bg-background hover:bg-muted">
-              <AvatarImage src={user?.profile_image ?? undefined} />
-              <AvatarFallback>{user?.display_name?.charAt(0)}</AvatarFallback>
+              {isGuest ? (
+                <AvatarFallback>
+                  <UserIcon className="h-4 w-4" />
+                </AvatarFallback>
+              ) : (
+                <>
+                  <AvatarImage src={user?.profile_image ?? undefined} />
+                  <AvatarFallback>
+                    {user?.display_name?.charAt(0)}
+                  </AvatarFallback>
+                </>
+              )}
             </Avatar>
           </DropdownMenuTrigger>
         </TooltipTrigger>
-        <TooltipContent>Profile</TooltipContent>
+        <TooltipContent>{isGuest ? "Guest User" : "Profile"}</TooltipContent>
       </Tooltip>
       <DropdownMenuContent
         className="w-56"
@@ -63,15 +82,44 @@ export function UserMenu() {
         }}
       >
         <DropdownMenuItem className="flex flex-col items-start gap-0 no-underline hover:bg-transparent focus:bg-transparent">
-          <span>{user?.display_name}</span>
-          <span className="max-w-full truncate text-muted-foreground">
-            {user?.email}
-          </span>
+          <span>{isGuest ? "Guest User" : user?.display_name}</span>
+          {!isGuest && (
+            <span className="max-w-full truncate text-muted-foreground">
+              {user?.email}
+            </span>
+          )}
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <SettingsTrigger onOpenChange={handleSettingsOpenChange} />
-        <FeedbackTrigger />
-        <AppInfoTrigger />
+        {isGuest ? (
+          <>
+            <DropdownMenuItem asChild>
+              <Link href="/auth" className="cursor-pointer">
+                <SignIn className="mr-2 h-4 w-4" />
+                <span>Sign In</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/auth" className="cursor-pointer">
+                <UserIcon className="mr-2 h-4 w-4" />
+                <span>Create Account</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        ) : (
+          <>
+            <SettingsTrigger onOpenChange={handleSettingsOpenChange} />
+            <FeedbackTrigger />
+            <AppInfoTrigger />
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              className="cursor-pointer"
+            >
+              <SignOut className="mr-2 h-4 w-4" />
+              <span>Sign Out</span>
+            </DropdownMenuItem>
+          </>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

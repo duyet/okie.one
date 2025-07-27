@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { createContext, type ReactNode, useContext } from "react"
+import { useUser } from "@/lib/user-store/provider"
 
 import {
   convertFromApiFormat,
@@ -91,16 +92,11 @@ function saveToLocalStorage(preferences: UserPreferences) {
   localStorage.setItem(LAYOUT_STORAGE_KEY, preferences.layout)
 }
 
-export function UserPreferencesProvider({
-  children,
-  userId,
-  initialPreferences,
-}: {
-  children: ReactNode
-  userId?: string
-  initialPreferences?: UserPreferences
-}) {
-  const isAuthenticated = !!userId
+export function UserPreferencesProvider({ children }: { children: ReactNode }) {
+  const { user } = useUser()
+  const isAuthenticated = !!user?.id && !user?.anonymous
+  const userId = user?.id
+  const initialPreferences = user?.preferences
   const queryClient = useQueryClient()
 
   // Merge initial preferences with defaults

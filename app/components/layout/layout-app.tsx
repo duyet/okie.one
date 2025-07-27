@@ -3,10 +3,14 @@
 import { Header } from "@/app/components/layout/header"
 import { AppSidebar } from "@/app/components/layout/sidebar/app-sidebar"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
+import { useGuestDataMerge } from "@/app/hooks/use-guest-data-merge"
 
 export function LayoutApp({ children }: { children: React.ReactNode }) {
   const { preferences } = useUserPreferences()
   const hasSidebar = preferences.layout === "sidebar"
+
+  // Handle guest data merge when user logs in
+  useGuestDataMerge()
 
   return (
     <div className="flex h-dvh w-full overflow-hidden bg-background">

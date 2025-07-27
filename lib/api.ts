@@ -250,23 +250,38 @@ export async function signInWithGitHub(supabase: SupabaseClient) {
   return signInWithOAuth(supabase, "github")
 }
 
+import { getOrCreatePersistentGuestId } from "@/lib/user/guest-fingerprint"
+
 export const getOrCreateGuestUserId = async (
   user: UserProfile | null
 ): Promise<string | null> => {
   if (user?.id) return user.id
 
+  // Primary storage keys that e2e tests expect
+  const primaryKeys = ["guest-user-id", "fallback-guest-id", "guestUserId"]
+
+  // Check and migrate all possible old format guest IDs
+  for (const key of primaryKeys) {
+    const storedId = localStorage.getItem(key)
+    if (storedId && storedId.startsWith("guest-user-")) {
+      console.log(`Migrating old format guest ID from ${key} to UUID`)
+      const newGuestId = crypto.randomUUID()
+
+      // Update all primary keys to maintain consistency
+      for (const updateKey of primaryKeys) {
+        localStorage.setItem(updateKey, newGuestId)
+      }
+      localStorage.setItem(`guest-id-migration-${storedId}`, newGuestId)
+      return newGuestId
+    }
+  }
+
   const supabase = createClient()
 
   if (!supabase) {
     console.warn("Supabase is not available in this deployment.")
-    // Return a consistent guest user ID for non-Supabase deployments
-    // Use localStorage to maintain consistent ID across sessions
-    let fallbackGuestId = localStorage.getItem("fallback-guest-id")
-    if (!fallbackGuestId) {
-      fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
-      localStorage.setItem("fallback-guest-id", fallbackGuestId)
-    }
-    return fallbackGuestId
+    // Use fingerprint-based persistent ID
+    return await getOrCreatePersistentGuestId()
   }
 
   // Test if Supabase is actually accessible by trying to get existing user
@@ -289,15 +304,18 @@ export const getOrCreateGuestUserId = async (
             "Failed to ensure guest user profile exists for existing anonymous auth user:",
             error
           )
-          // Fall back to manual guest ID
-          let fallbackGuestId = localStorage.getItem("fallback-guest-id")
-          if (!fallbackGuestId) {
-            fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
-            localStorage.setItem("fallback-guest-id", fallbackGuestId)
-          }
-          return fallbackGuestId
+          // Fall back to fingerprint-based guest ID
+          return await getOrCreatePersistentGuestId()
         }
       }
+
+      // Ensure consistency in localStorage with the authenticated anonymous user ID
+      for (const key of primaryKeys) {
+        if (localStorage.getItem(key) !== anonUserId) {
+          localStorage.setItem(key, anonUserId)
+        }
+      }
+
       return anonUserId
     }
 
@@ -310,8 +328,12 @@ export const getOrCreateGuestUserId = async (
       // Fall back to manual guest ID
       let fallbackGuestId = localStorage.getItem("fallback-guest-id")
       if (!fallbackGuestId) {
-        fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
-        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+        // Generate a proper UUID for guest users
+        fallbackGuestId = crypto.randomUUID()
+        // Store in all primary keys for consistency
+        for (const key of primaryKeys) {
+          localStorage.setItem(key, fallbackGuestId)
+        }
       }
       return fallbackGuestId
     }
@@ -321,8 +343,12 @@ export const getOrCreateGuestUserId = async (
       // Fall back to manual guest ID
       let fallbackGuestId = localStorage.getItem("fallback-guest-id")
       if (!fallbackGuestId) {
-        fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
-        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+        // Generate a proper UUID for guest users
+        fallbackGuestId = crypto.randomUUID()
+        // Store in all primary keys for consistency
+        for (const key of primaryKeys) {
+          localStorage.setItem(key, fallbackGuestId)
+        }
       }
       return fallbackGuestId
     }
@@ -331,14 +357,24 @@ export const getOrCreateGuestUserId = async (
     try {
       await createGuestUser(guestIdFromAuth)
       localStorage.setItem(`guestProfileAttempted_${guestIdFromAuth}`, "true")
+
+      // Store the authenticated guest ID in all primary keys
+      for (const key of primaryKeys) {
+        localStorage.setItem(key, guestIdFromAuth)
+      }
+
       return guestIdFromAuth
     } catch (error) {
       console.error("Error creating guest user profile:", error)
       // Fall back to manual guest ID
       let fallbackGuestId = localStorage.getItem("fallback-guest-id")
       if (!fallbackGuestId) {
-        fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
-        localStorage.setItem("fallback-guest-id", fallbackGuestId)
+        // Generate a proper UUID for guest users
+        fallbackGuestId = crypto.randomUUID()
+        // Store in all primary keys for consistency
+        for (const key of primaryKeys) {
+          localStorage.setItem(key, fallbackGuestId)
+        }
       }
       return fallbackGuestId
     }
@@ -350,8 +386,12 @@ export const getOrCreateGuestUserId = async (
     // Supabase is configured but not accessible - use fallback
     let fallbackGuestId = localStorage.getItem("fallback-guest-id")
     if (!fallbackGuestId) {
-      fallbackGuestId = `guest-user-${Math.random().toString(36).substr(2, 9)}`
-      localStorage.setItem("fallback-guest-id", fallbackGuestId)
+      // Generate a proper UUID for guest users
+      fallbackGuestId = crypto.randomUUID()
+      // Store in all primary keys for consistency
+      for (const key of primaryKeys) {
+        localStorage.setItem(key, fallbackGuestId)
+      }
     }
     return fallbackGuestId
   }

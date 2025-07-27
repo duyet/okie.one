@@ -1,5 +1,6 @@
 import type { Message } from "@ai-sdk/react"
 import { useCallback } from "react"
+import { useRouter } from "next/navigation"
 
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits } from "@/lib/api"
@@ -20,6 +21,7 @@ type UseChatOperationsProps = {
     systemPrompt?: string
   ) => Promise<Chats | undefined>
   setHasDialogAuth: (value: boolean) => void
+  setHasRateLimitDialog?: (value: boolean) => void
   setMessages: (
     messages: Message[] | ((messages: Message[]) => Message[])
   ) => void
@@ -34,15 +36,23 @@ export function useChatOperations({
   systemPrompt,
   createNewChat,
   setHasDialogAuth,
+  setHasRateLimitDialog,
   setMessages,
 }: UseChatOperationsProps) {
+  const router = useRouter()
+
   // Chat utilities
   const checkLimitsAndNotify = async (uid: string): Promise<boolean> => {
     try {
       const rateData = await checkRateLimits(uid, isAuthenticated)
 
       if (rateData.remaining === 0 && !isAuthenticated) {
-        setHasDialogAuth(true)
+        // Show rate limit dialog for guest users
+        if (setHasRateLimitDialog) {
+          setHasRateLimitDialog(true)
+        } else {
+          setHasDialogAuth(true)
+        }
         return false
       }
 
@@ -72,13 +82,28 @@ export function useChatOperations({
   }
 
   const ensureChatExists = async (userId: string, input: string) => {
+    // For guest users, check for existing chat but don't rely on it completely
     if (!isAuthenticated) {
       const storedGuestChatId = localStorage.getItem("guestChatId")
-      if (storedGuestChatId) return storedGuestChatId
+      if (storedGuestChatId && messages.length > 0) {
+        // Only reuse existing chat if we have messages (not a fresh start)
+        return storedGuestChatId
+      }
     }
 
-    if (messages.length === 0) {
+    // Create new chat if no messages or need a fresh start
+    if (
+      messages.length === 0 ||
+      (!isAuthenticated && !localStorage.getItem("guestChatId"))
+    ) {
       try {
+        console.log(
+          "Creating new chat for",
+          isAuthenticated ? "authenticated" : "guest",
+          "user:",
+          userId
+        )
+
         const newChat = await createNewChat(
           userId,
           input,
@@ -87,11 +112,22 @@ export function useChatOperations({
           systemPrompt
         )
 
-        if (!newChat) return null
+        if (!newChat) {
+          console.error(
+            "Failed to create new chat - createNewChat returned null/undefined"
+          )
+          return null
+        }
+
+        console.log("New chat created successfully:", newChat.id)
+
         if (isAuthenticated) {
-          window.history.pushState(null, "", `/c/${newChat.id}`)
+          router.push(`/c/${newChat.id}`)
         } else {
+          // Store guest chat ID for future reference and navigate to chat page
           localStorage.setItem("guestChatId", newChat.id)
+          console.log("Stored guest chat ID:", newChat.id)
+          router.push(`/c/${newChat.id}`)
         }
 
         return newChat.id
@@ -117,6 +153,8 @@ export function useChatOperations({
         } else if (typeof err === "string") {
           errorMessage = err
         }
+
+        console.error("Failed to create chat:", err)
         toast({
           title: errorMessage,
           status: "error",
@@ -125,6 +163,7 @@ export function useChatOperations({
       }
     }
 
+    // Use existing chatId
     return chatId
   }
 

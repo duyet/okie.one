@@ -13,6 +13,9 @@
     "test": "vitest run --coverage",
     "test:e2e": "playwright test"
   },
+  "engines": {
+    "node": ">=18.17.0"
+  },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.10",
     "@ai-sdk/google": "^1.2.13",

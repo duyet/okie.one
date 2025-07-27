@@ -217,12 +217,11 @@ export function ChatPreviewPanel({
   }, [chatId, messages.length])
 
   return (
-    <div
+    <section
       className="col-span-3 border-l bg-background"
       onMouseEnter={() => onHover?.(true)}
       onMouseLeave={() => onHover?.(false)}
       key={chatId}
-      role="region"
       aria-label="Chat preview"
     >
       <div className="h-[480px]">
@@ -258,6 +257,6 @@ export function ChatPreviewPanel({
           </ScrollArea>
         )}
       </div>
-    </div>
+    </section>
   )
 }

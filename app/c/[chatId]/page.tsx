@@ -6,11 +6,15 @@ import { MessagesProvider } from "@/lib/chat-store/messages/provider"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { createClient } from "@/lib/supabase/server"
 
+// Force dynamic rendering to prevent caching issues with anonymous users
+export const dynamic = "force-dynamic"
+
 export default async function Page() {
   if (isSupabaseEnabled) {
     const supabase = await createClient()
     if (supabase) {
       const { data: userData, error: userError } = await supabase.auth.getUser()
+      // Allow both authenticated and anonymous users to access chat pages
       if (userError || !userData?.user) {
         redirect("/")
       }

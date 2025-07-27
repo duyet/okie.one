@@ -94,6 +94,13 @@ export async function logUserMessage({
 
   if (error) {
     console.error("Error saving user message:", error)
+
+    // If it's a foreign key constraint error, it means the chat doesn't exist
+    if (error.code === "23503") {
+      console.log(
+        "Chat doesn't exist in database (likely a guest user without proper anonymous auth). Skipping user message save."
+      )
+    }
   }
 }
 

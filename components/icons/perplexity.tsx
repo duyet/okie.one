@@ -10,6 +10,8 @@ export default function PerplexityIcon(props: SVGProps<SVGSVGElement>) {
       shapeRendering="geometricPrecision"
       textRendering="geometricPrecision"
       imageRendering="optimizeQuality"
+      aria-label="Perplexity"
+      role="img"
       {...props}
     >
       <path

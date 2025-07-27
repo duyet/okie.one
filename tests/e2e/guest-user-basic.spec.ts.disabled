@@ -1,0 +1,116 @@
+import { test, expect } from "@playwright/test"
+
+test.describe("Guest User Basic Functionality", () => {
+  test.beforeEach(async ({ page }) => {
+    // Clear any existing auth state
+    await page.context().clearCookies()
+  })
+
+  test("should allow guest users to access the app", async ({ page }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    // Check that the page loads without errors
+    await expect(page).toHaveTitle(/Okie/)
+
+    // Check for the chat interface
+    const messageInput = page.locator("textarea").first()
+    await expect(messageInput).toBeVisible({ timeout: 10000 })
+  })
+
+  test("should show guest user banner", async ({ page }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    // Look for the guest user banner
+    const banner = page.locator('text="You\'re using a guest account"')
+    await expect(banner).toBeVisible({ timeout: 10000 })
+  })
+
+  test("should allow guest users to send messages", async ({ page }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    // Wait for the chat interface to load
+    const messageInput = page.locator("textarea").first()
+    await expect(messageInput).toBeVisible({ timeout: 10000 })
+
+    // Type a message
+    await messageInput.fill("Hello, I am a guest user!")
+
+    // Find and click the send button
+    const sendButton = page
+      .locator('button[aria-label*="Send"]')
+      .or(
+        page.locator("button").filter({
+          hasText: /send/i,
+        })
+      )
+      .or(
+        page
+          .locator('button[type="button"]')
+          .filter({
+            has: page.locator("svg"),
+          })
+          .last()
+      )
+
+    await expect(sendButton).toBeVisible({ timeout: 5000 })
+    await sendButton.click()
+
+    // Wait for the message to appear in the chat
+    await expect(
+      page.locator('text="Hello, I am a guest user!"').first()
+    ).toBeVisible({
+      timeout: 15000,
+    })
+  })
+
+  test("should maintain chat history for guest users across refreshes", async ({
+    page,
+  }) => {
+    await page.goto("/")
+    await page.waitForLoadState("networkidle")
+
+    // Send a message
+    const messageInput = page.locator("textarea").first()
+    await expect(messageInput).toBeVisible({ timeout: 10000 })
+    await messageInput.fill("Test message for persistence")
+
+    const sendButton = page.locator('button[aria-label*="Send"]').or(
+      page
+        .locator('button[type="button"]')
+        .filter({
+          has: page.locator("svg"),
+        })
+        .last()
+    )
+
+    await expect(sendButton).toBeVisible({ timeout: 5000 })
+    await sendButton.click()
+
+    // Wait for the message to appear
+    await expect(
+      page.locator('text="Test message for persistence"').first()
+    ).toBeVisible({
+      timeout: 15000,
+    })
+
+    // Get the chat URL
+    await page.waitForTimeout(2000)
+    const chatUrl = page.url()
+    expect(chatUrl).toContain("/c/")
+
+    // Refresh the page
+    await page.reload()
+    await page.waitForLoadState("networkidle")
+    await page.waitForTimeout(2000)
+
+    // Verify the message is still visible
+    await expect(
+      page.locator('text="Test message for persistence"').first()
+    ).toBeVisible({
+      timeout: 10000,
+    })
+  })
+})

@@ -2,6 +2,7 @@ import type { Message as MessageAISDK } from "@ai-sdk/react"
 import type { ToolInvocationUIPart } from "@ai-sdk/ui-utils"
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 import type React from "react"
+import { useCallback, useMemo } from "react"
 
 import type { ContentPart } from "@/app/types/api.types"
 import {
@@ -71,11 +72,21 @@ export function MessageAssistant({
   const { openArtifact } = useArtifact()
   const { chatId } = useChatSession()
   const { user } = useUser()
+
+  // Memoize the openArtifact handler to prevent unnecessary renders
+  const handleOpenArtifact = useCallback(
+    (artifact: NonNullable<ContentPart["artifact"]>) => {
+      openArtifact(artifact)
+    },
+    [openArtifact]
+  )
   // Use proper type guards for safe type checking
   const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
   const reasoningParts = parts?.find(isReasoningPart)
-  const artifactParts = parts?.filter(isArtifactPart) || []
+  
+  // Memoize artifactParts to prevent unnecessary re-renders
+  const artifactParts = useMemo(() => parts?.filter(isArtifactPart) || [], [parts])
 
   // Debug logging (only when markers present for reduced noise)
   if (children.includes("[ARTIFACT_PREVIEW:") || artifactParts.length > 0) {
@@ -86,6 +97,13 @@ export function MessageAssistant({
       artifactParts: artifactParts.map((p) => p.artifact?.title),
     })
   }
+
+  // Memoize the content rendering to prevent unnecessary re-renders
+  const renderedContent = useMemo(() => {
+    if (children === null || children === "") return null
+    return renderContentWithArtifacts(children, artifactParts, handleOpenArtifact)
+  }, [children, artifactParts, handleOpenArtifact])
+
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
   const searchImageResults =
@@ -148,7 +166,7 @@ export function MessageAssistant({
 
         {contentNullOrEmpty ? null : (
           <div className="message-content-with-artifacts">
-            {renderContentWithArtifacts(children, artifactParts, openArtifact)}
+            {renderedContent}
           </div>
         )}
 
@@ -308,7 +326,9 @@ function renderContentWithArtifacts(
           <div key={`artifact-${artifactId}`} className="my-4">
             <ArtifactPreview
               artifact={artifact}
-              onClick={() => openArtifact(artifact)}
+              onClick={() => {
+                openArtifact(artifact)
+              }}
             />
           </div>
         )

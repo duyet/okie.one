@@ -106,6 +106,16 @@ export async function saveFinalAssistantMessage(
 
   if (error) {
     console.error("Error saving final assistant message:", error)
+
+    // If it's a foreign key constraint error, it means the chat doesn't exist
+    // This can happen for guest users when anonymous auth is disabled
+    if (error.code === "23503") {
+      console.log(
+        "Chat doesn't exist in database (likely a guest user without proper auth). Skipping message save."
+      )
+      return null
+    }
+
     throw new Error(`Failed to save assistant message: ${error.message}`)
   } else {
     console.log("Assistant message saved successfully (merged).")

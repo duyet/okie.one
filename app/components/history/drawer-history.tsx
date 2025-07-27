@@ -216,6 +216,8 @@ export function DrawerHistory({
                   }
                 }
               }}
+              role="button"
+              tabIndex={0}
             >
               <Link
                 href={`/c/${chat.id}`}

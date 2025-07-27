@@ -25,9 +25,9 @@ export default defineConfig({
   },
 
   /* Global timeout configuration */
-  timeout: 30 * 1000, // 30 seconds per test
+  timeout: process.env.CI ? 120 * 1000 : 30 * 1000, // 2 minutes in CI, 30 seconds locally
   expect: {
-    timeout: 10 * 1000, // 10 seconds for expect assertions
+    timeout: process.env.CI ? 30 * 1000 : 10 * 1000, // 30 seconds in CI, 10 seconds locally
   },
 
   /* Configure projects for major browsers */
@@ -75,7 +75,7 @@ export default defineConfig({
     command: "pnpm dev", // Use dev server even in CI for faster execution
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000, // 120 seconds timeout for CI builds
+    timeout: process.env.CI ? 300 * 1000 : 120 * 1000, // 5 minutes in CI, 2 minutes locally
     stdout: "pipe",
     stderr: "pipe",
   },

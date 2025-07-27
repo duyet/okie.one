@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, type ReactNode, useContext, useState } from "react"
+import { createContext, type ReactNode, useCallback, useContext, useState } from "react"
 
 import type { ContentPart } from "@/app/types/api.types"
 
@@ -19,16 +19,16 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
     ContentPart["artifact"]
   > | null>(null)
 
-  const openArtifact = (artifact: NonNullable<ContentPart["artifact"]>) => {
+  const openArtifact = useCallback((artifact: NonNullable<ContentPart["artifact"]>) => {
     setCurrentArtifact(artifact)
     setIsOpen(true)
-  }
+  }, [])
 
-  const closeArtifact = () => {
+  const closeArtifact = useCallback(() => {
     setIsOpen(false)
     // Keep the artifact data for a moment to allow exit animation
     setTimeout(() => setCurrentArtifact(null), 300)
-  }
+  }, [])
 
   return (
     <ArtifactContext.Provider

@@ -8,6 +8,8 @@ const OpenRouterIcon = (props: SVGProps<SVGSVGElement>) => (
     width={64}
     viewBox="0 0 64 64"
     xmlns="http://www.w3.org/2000/svg"
+    aria-label="OpenRouter"
+    role="img"
     {...props}
   >
     <path

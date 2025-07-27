@@ -66,7 +66,10 @@ export function useChatCore({
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
   const prevChatIdRef = useRef<string | null>(chatId)
-  const isAuthenticated = useMemo(() => !!user?.id, [user?.id])
+  const isAuthenticated = useMemo(
+    () => !!user?.id && !user?.anonymous,
+    [user?.id, user?.anonymous]
+  )
   const systemPrompt = useMemo(
     () => user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
     [user?.system_prompt]
@@ -133,7 +136,8 @@ export function useChatCore({
                 "🚀 Early artifact detection - opening sidebar:",
                 firstArtifact.title
               )
-              openArtifact(firstArtifact)
+              // Defer artifact opening to avoid setState-in-render warning
+              setTimeout(() => openArtifact(firstArtifact), 0)
             }
           }
         }
@@ -157,7 +161,8 @@ export function useChatCore({
               "📌 Auto-opening artifact in sidebar:",
               firstArtifact.title
             )
-            openArtifact(firstArtifact)
+            // Defer artifact opening to avoid setState-in-render warning
+            setTimeout(() => openArtifact(firstArtifact), 0)
           }
 
           // Replace inline code blocks with artifact placeholders in the content
