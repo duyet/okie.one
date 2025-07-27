@@ -1,6 +1,12 @@
 "use client"
 
-import { createContext, type ReactNode, useCallback, useContext, useState } from "react"
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react"
 
 import type { ContentPart } from "@/app/types/api.types"
 
@@ -19,10 +25,13 @@ export function ArtifactProvider({ children }: { children: ReactNode }) {
     ContentPart["artifact"]
   > | null>(null)
 
-  const openArtifact = useCallback((artifact: NonNullable<ContentPart["artifact"]>) => {
-    setCurrentArtifact(artifact)
-    setIsOpen(true)
-  }, [])
+  const openArtifact = useCallback(
+    (artifact: NonNullable<ContentPart["artifact"]>) => {
+      setCurrentArtifact(artifact)
+      setIsOpen(true)
+    },
+    []
+  )
 
   const closeArtifact = useCallback(() => {
     setIsOpen(false)

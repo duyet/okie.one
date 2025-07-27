@@ -62,6 +62,7 @@ export function useChatCore({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [enableSearch, setEnableSearch] = useState(false)
+  const [enableThink, setEnableThink] = useState(false)
 
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
@@ -328,6 +329,7 @@ export function useChatCore({
           isAuthenticated,
           systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
           enableSearch,
+          enableThink,
         },
         experimental_attachments: attachments || undefined,
       }
@@ -364,6 +366,7 @@ export function useChatCore({
     isAuthenticated,
     systemPrompt,
     enableSearch,
+    enableThink,
     handleSubmit,
     cacheAndAddMessage,
     clearDraft,
@@ -498,6 +501,8 @@ export function useChatCore({
     setHasDialogAuth,
     enableSearch,
     setEnableSearch,
+    enableThink,
+    setEnableThink,
 
     // Actions
     submit,

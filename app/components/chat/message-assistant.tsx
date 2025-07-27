@@ -84,9 +84,12 @@ export function MessageAssistant({
   const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
   const reasoningParts = parts?.find(isReasoningPart)
-  
+
   // Memoize artifactParts to prevent unnecessary re-renders
-  const artifactParts = useMemo(() => parts?.filter(isArtifactPart) || [], [parts])
+  const artifactParts = useMemo(
+    () => parts?.filter(isArtifactPart) || [],
+    [parts]
+  )
 
   // Debug logging (only when markers present for reduced noise)
   if (children.includes("[ARTIFACT_PREVIEW:") || artifactParts.length > 0) {
@@ -101,7 +104,11 @@ export function MessageAssistant({
   // Memoize the content rendering to prevent unnecessary re-renders
   const renderedContent = useMemo(() => {
     if (children === null || children === "") return null
-    return renderContentWithArtifacts(children, artifactParts, handleOpenArtifact)
+    return renderContentWithArtifacts(
+      children,
+      artifactParts,
+      handleOpenArtifact
+    )
   }, [children, artifactParts, handleOpenArtifact])
 
   const contentNullOrEmpty = children === null || children === ""

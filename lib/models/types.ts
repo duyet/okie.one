@@ -36,7 +36,7 @@ type ModelConfig = {
   // apiSdk?: () => LanguageModelV1 // "openai("gpt-4.1-nano")"
   apiSdk?: (
     apiKey?: string,
-    opts?: { enableSearch?: boolean }
+    opts?: { enableSearch?: boolean; enableThink?: boolean }
   ) => LanguageModelV1
 
   accessible?: boolean // true if the model is accessible to the user

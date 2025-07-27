@@ -118,6 +118,8 @@ function ChatInner() {
     isSubmitting,
     enableSearch,
     setEnableSearch,
+    enableThink,
+    setEnableThink,
     submit,
     handleSuggestion,
     handleReload,
@@ -172,6 +174,8 @@ function ChatInner() {
       status,
       setEnableSearch,
       enableSearch,
+      setEnableThink,
+      enableThink,
     }),
     [
       input,
@@ -192,6 +196,8 @@ function ChatInner() {
       status,
       setEnableSearch,
       enableSearch,
+      setEnableThink,
+      enableThink,
     ]
   )
 
