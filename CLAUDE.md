@@ -184,6 +184,48 @@ OLLAMA_BASE_URL=http://localhost:11434
 }
 ```
 
+### Sequential Thinking MCP (Advanced Reasoning)
+**Sequential Thinking MCP** provides advanced reasoning capabilities for models that don't have native reasoning support, enabling step-by-step analysis through the MCP (Model Context Protocol) framework.
+
+**Key Features**:
+- **Universal Reasoning**: Enables reasoning mode for non-reasoning models
+- **Step-by-Step Analysis**: Breaks down complex problems into sequential steps
+- **Collapsible Steps**: Interactive UI to expand/collapse reasoning process
+- **Authentication Required**: Feature requires user authentication
+
+**UI Behavior**:
+- **Non-reasoning models**: Shows toggle button "Sequential Thinking MCP"
+- **Reasoning models**: Shows dropdown with options:
+  - "Disable Thinking" 
+  - "Thinking (Native)" - Uses model's built-in reasoning
+  - "Sequential Thinking MCP" - Uses MCP-based reasoning
+- **Guest users**: Shows authentication popover when clicked
+
+**Components**:
+- `app/components/chat-input/button-think.tsx` - Think mode selector with MCP option
+- `app/components/chat/reasoning-steps.tsx` - Sequential reasoning steps display
+- `app/components/chat/use-chat-core.ts` - Thinking mode state management
+
+**Implementation Details**:
+- `ThinkingMode` type: `"none" | "regular" | "sequential"`
+- State managed via `thinkingMode` in `useChatCore`
+- API passes `thinkingMode` parameter to enable MCP processing
+- Response includes structured reasoning steps for display
+
+**Testing**:
+- E2E tests in `tests/e2e/sequential-thinking-mcp.spec.ts`
+- UI-focused tests in `tests/e2e/sequential-thinking-simple.spec.ts` 
+- Math integration tests in `tests/e2e/sequential-thinking-math.spec.ts`
+- Tests UI behavior, authentication bypass, and button functionality
+- Full integration testing requires MCP server setup and AI provider API keys
+
+**Test Environment Setup**:
+For complete E2E testing of Sequential Reasoning responses:
+1. **MCP Server**: Sequential Thinking MCP server must be running
+2. **API Keys**: AI provider API keys configured in environment
+3. **Database**: Clean test database with proper guest user support
+4. **Development Mode**: Tests run in development/test environment to bypass authentication
+
 ### Enhanced Model Selector
 The model selector now includes visual capability indicators and quick settings access.
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
-import { useCallback, useEffect } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 import { ModelSelector } from "@/components/common/model-selector/base"
 import {
@@ -62,10 +62,15 @@ export function ChatInput({
   setThinkingMode,
   thinkingMode,
 }: ChatInputProps) {
+  const [isMounted, setIsMounted] = useState(false)
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
   const hasThinkingSupport = Boolean(selectModelConfig?.tools)
   const hasNativeReasoning = Boolean(selectModelConfig?.reasoning)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const isOnlyWhitespace = useCallback(
     (text: string) => !/[^\s]/.test(text),
@@ -220,7 +225,12 @@ export function ChatInput({
                 <Button
                   size="sm"
                   className="size-9 rounded-full transition-all duration-300 ease-out"
-                  disabled={!value || isSubmitting || isOnlyWhitespace(value)}
+                  disabled={
+                    !isMounted ||
+                    !value ||
+                    isSubmitting ||
+                    isOnlyWhitespace(value)
+                  }
                   type="button"
                   onClick={handleSend}
                   aria-label={status === "streaming" ? "Stop" : "Send message"}

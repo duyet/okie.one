@@ -1,0 +1,8 @@
+
+> okie@0.1.0 lint /Users/duet/project/okie/okie.one
+> biome lint
+
+The number of diagnostics exceeds the limit allowed. Use --max-diagnostics to increase it.
+Diagnostics not shown: 129.
+Checked 349 files in 123ms. No fixes applied.
+Found 148 warnings.

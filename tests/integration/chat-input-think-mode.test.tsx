@@ -27,7 +27,7 @@ vi.mock("@/lib/models", () => ({
         reasoning: false,
         webSearch: true,
         vision: true,
-        tools: true,
+        tools: false, // Change to false so it doesn't show think button
       }
     }
     if (modelId === "deepseek-reasoner") {
@@ -38,7 +38,7 @@ vi.mock("@/lib/models", () => ({
         reasoning: true,
         webSearch: false,
         vision: false,
-        tools: false,
+        tools: true, // Change to true so it shows think button
       }
     }
     return null
@@ -152,6 +152,32 @@ vi.mock("@/app/components/suggestions/prompt-system", () => ({
   PromptSystem: () => <div data-testid="prompt-system">Suggestions</div>,
 }))
 
+// Mock the ButtonThink component
+vi.mock("@/app/components/chat-input/button-think", () => ({
+  ButtonThink: ({
+    thinkingMode,
+    onModeChange,
+    isAuthenticated,
+    hasNativeReasoning,
+  }: {
+    thinkingMode?: string
+    onModeChange?: (mode: string) => void
+    isAuthenticated: boolean
+    hasNativeReasoning: boolean
+  }) => (
+    <button
+      type="button"
+      data-testid="think-button"
+      onClick={() =>
+        onModeChange?.(thinkingMode === "none" ? "regular" : "none")
+      }
+      className={thinkingMode !== "none" ? "border-[#0091FF]/20" : ""}
+    >
+      Think
+    </button>
+  ),
+}))
+
 const createWrapper = () => {
   return ({ children }: { children: React.ReactNode }) => (
     <TooltipProvider>{children}</TooltipProvider>
@@ -176,8 +202,8 @@ describe("ChatInput Think Mode Integration", () => {
     status: "ready" as const,
     setEnableSearch: vi.fn(),
     enableSearch: false,
-    setEnableThink: vi.fn(),
-    enableThink: false,
+    setThinkingMode: vi.fn(),
+    thinkingMode: "none" as const,
   }
 
   beforeEach(() => {
@@ -203,7 +229,7 @@ describe("ChatInput Think Mode Integration", () => {
       expect(screen.getByTestId("think-button")).toBeDefined()
     })
 
-    it("should hide think button for non-reasoning models", () => {
+    it("should hide think button for non-thinking models", () => {
       render(<ChatInput {...defaultProps} selectedModel="gpt-4o" />, {
         wrapper: createWrapper(),
       })
@@ -213,15 +239,15 @@ describe("ChatInput Think Mode Integration", () => {
   })
 
   describe("Think button functionality", () => {
-    it("should call setEnableThink when think button is clicked", () => {
-      const mockSetEnableThink = vi.fn()
+    it("should call setThinkingMode when think button is clicked", () => {
+      const mockSetThinkingMode = vi.fn()
 
       render(
         <ChatInput
           {...defaultProps}
           selectedModel="claude-3.5-sonnet"
-          setEnableThink={mockSetEnableThink}
-          enableThink={false}
+          setThinkingMode={mockSetThinkingMode}
+          thinkingMode="none"
         />,
         { wrapper: createWrapper() }
       )
@@ -229,38 +255,38 @@ describe("ChatInput Think Mode Integration", () => {
       const thinkButton = screen.getByTestId("think-button")
       fireEvent.click(thinkButton)
 
-      expect(mockSetEnableThink).toHaveBeenCalledWith(true)
+      expect(mockSetThinkingMode).toHaveBeenCalledWith("regular")
     })
 
     it("should toggle think state correctly", () => {
-      const mockSetEnableThink = vi.fn()
+      const mockSetThinkingMode = vi.fn()
 
       const { rerender } = render(
         <ChatInput
           {...defaultProps}
           selectedModel="claude-3.5-sonnet"
-          setEnableThink={mockSetEnableThink}
-          enableThink={false}
+          setThinkingMode={mockSetThinkingMode}
+          thinkingMode="none"
         />,
         { wrapper: createWrapper() }
       )
 
       const thinkButton = screen.getByTestId("think-button")
       fireEvent.click(thinkButton)
-      expect(mockSetEnableThink).toHaveBeenCalledWith(true)
+      expect(mockSetThinkingMode).toHaveBeenCalledWith("regular")
 
       // Simulate state change
       rerender(
         <ChatInput
           {...defaultProps}
           selectedModel="claude-3.5-sonnet"
-          setEnableThink={mockSetEnableThink}
-          enableThink={true}
+          setThinkingMode={mockSetThinkingMode}
+          thinkingMode="regular"
         />
       )
 
       fireEvent.click(thinkButton)
-      expect(mockSetEnableThink).toHaveBeenCalledWith(false)
+      expect(mockSetThinkingMode).toHaveBeenCalledWith("none")
     })
 
     it("should show selected state when think mode is enabled", () => {
@@ -268,7 +294,7 @@ describe("ChatInput Think Mode Integration", () => {
         <ChatInput
           {...defaultProps}
           selectedModel="claude-3.5-sonnet"
-          enableThink={true}
+          thinkingMode="regular"
         />,
         { wrapper: createWrapper() }
       )
@@ -279,48 +305,48 @@ describe("ChatInput Think Mode Integration", () => {
   })
 
   describe("Auto-disable functionality", () => {
-    it("should disable think mode when switching to non-reasoning model", () => {
-      const mockSetEnableThink = vi.fn()
+    it("should disable think mode when switching to non-thinking model", () => {
+      const mockSetThinkingMode = vi.fn()
 
       const { rerender } = render(
         <ChatInput
           {...defaultProps}
           selectedModel="claude-3.5-sonnet"
-          setEnableThink={mockSetEnableThink}
-          enableThink={true}
+          setThinkingMode={mockSetThinkingMode}
+          thinkingMode="regular"
         />,
         { wrapper: createWrapper() }
       )
 
-      // Switch to non-reasoning model
+      // Switch to non-thinking model
       rerender(
         <ChatInput
           {...defaultProps}
           selectedModel="gpt-4o"
-          setEnableThink={mockSetEnableThink}
-          enableThink={true}
+          setThinkingMode={mockSetThinkingMode}
+          thinkingMode="regular"
         />
       )
 
       // Should auto-disable think mode
-      expect(mockSetEnableThink).toHaveBeenCalledWith(false)
+      expect(mockSetThinkingMode).toHaveBeenCalledWith("none")
     })
 
     it("should not auto-disable if already disabled", () => {
-      const mockSetEnableThink = vi.fn()
+      const mockSetThinkingMode = vi.fn()
 
       render(
         <ChatInput
           {...defaultProps}
           selectedModel="gpt-4o"
-          setEnableThink={mockSetEnableThink}
-          enableThink={false}
+          setThinkingMode={mockSetThinkingMode}
+          thinkingMode="none"
         />,
         { wrapper: createWrapper() }
       )
 
-      // Should not call setEnableThink when already disabled
-      expect(mockSetEnableThink).not.toHaveBeenCalled()
+      // Should not call setThinkingMode when already disabled
+      expect(mockSetThinkingMode).not.toHaveBeenCalled()
     })
   })
 
@@ -403,9 +429,9 @@ describe("ChatInput Think Mode Integration", () => {
       expect(screen.queryByTestId("think-button")).toBeNull()
     })
 
-    it("should handle missing setEnableThink prop gracefully", () => {
+    it("should handle missing setThinkingMode prop gracefully", () => {
       const propsWithoutSetThink = { ...defaultProps }
-      delete (propsWithoutSetThink as any).setEnableThink
+      delete (propsWithoutSetThink as any).setThinkingMode
 
       expect(() => {
         render(

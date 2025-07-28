@@ -59,3 +59,7 @@ export function Reasoning({ reasoning, isStreaming }: ReasoningProps) {
     </div>
   )
 }
+
+// Export as ReasoningDisplay for backward compatibility
+export const ReasoningDisplay = Reasoning
+export default Reasoning

@@ -17,6 +17,7 @@ type MessageProps = {
   parts?: MessageType["parts"]
   status?: "streaming" | "ready" | "submitted" | "error"
   className?: string
+  toolInvocations?: Array<{ toolCall?: unknown; [key: string]: unknown }>
 }
 
 export function Message({
@@ -32,6 +33,7 @@ export function Message({
   parts,
   status,
   className,
+  toolInvocations,
 }: MessageProps) {
   const [copied, setCopied] = useState(false)
 
@@ -60,6 +62,18 @@ export function Message({
   }
 
   if (variant === "assistant") {
+    console.log("🔍 Message component - assistant message:", {
+      id,
+      children:
+        typeof children === "string"
+          ? `${children.substring(0, 200)}...`
+          : children,
+      parts: parts,
+      partsCount: parts?.length || 0,
+      partsTypes: parts?.map((p) => p?.type) || [],
+      status,
+    })
+
     return (
       <MessageAssistant
         id={id}
@@ -71,6 +85,7 @@ export function Message({
         parts={parts}
         status={status}
         className={className}
+        toolInvocations={toolInvocations}
       >
         {children}
       </MessageAssistant>

@@ -27,12 +27,8 @@ type UseChatCoreProps = {
   chatId: string | null
   user: UserProfile | null
   files: File[]
-  createOptimisticAttachments: (
-    files: File[]
-  ) => Array<{ name: string; contentType: string; url: string }>
   setFiles: (files: File[]) => void
   checkLimitsAndNotify: (uid: string) => Promise<boolean>
-  cleanupOptimisticAttachments: (attachments?: Array<{ url?: string }>) => void
   ensureChatExists: (uid: string, input: string) => Promise<string | null>
   handleFileUploads: (
     uid: string,
@@ -50,10 +46,8 @@ export function useChatCore({
   chatId,
   user,
   files,
-  createOptimisticAttachments,
   setFiles,
   checkLimitsAndNotify,
-  cleanupOptimisticAttachments,
   ensureChatExists,
   handleFileUploads,
   selectedModel,
@@ -65,6 +59,29 @@ export function useChatCore({
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [enableSearch, setEnableSearch] = useState(false)
   const [thinkingMode, setThinkingMode] = useState<ThinkingMode>("none")
+
+  // State to track streaming tool invocations for the current message
+  const [streamingToolInvocations, setStreamingToolInvocations] = useState<
+    Record<string, Array<{ toolCall?: unknown; [key: string]: unknown }>>
+  >({})
+  const [currentStreamingMessageId, setCurrentStreamingMessageId] = useState<
+    string | null
+  >(null)
+
+  // Convert current state to unified tools format
+  const getToolsConfig = useCallback(() => {
+    const tools: Array<{ type: string; name?: string }> = []
+
+    if (enableSearch) {
+      tools.push({ type: "web_search" })
+    }
+
+    if (thinkingMode === "sequential") {
+      tools.push({ type: "mcp", name: "server-sequential-thinking" })
+    }
+
+    return tools
+  }, [enableSearch, thinkingMode])
 
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
@@ -121,6 +138,128 @@ export function useChatCore({
       }
     }
   }, [artifactsToOpen, openArtifact])
+
+  // Real-time tool invocation processing during streaming
+  const processStreamingToolInvocations = useCallback(
+    (message: Message) => {
+      if (message.role === "assistant") {
+        // Check if message has toolInvocations property from AI SDK
+        const messageWithToolInvocations = message as Message & {
+          toolInvocations?: Array<{
+            toolCall?: unknown
+            [key: string]: unknown
+          }>
+        }
+
+        // Get stored streaming tool invocations for this message
+        // First check by actual message ID, then by streaming message ID
+        let storedToolInvocations = streamingToolInvocations[message.id] || []
+
+        // If no tool invocations found by message ID, check if this is the streaming message
+        if (
+          storedToolInvocations.length === 0 &&
+          currentStreamingMessageId &&
+          currentStreamingMessageId.startsWith("streaming-")
+        ) {
+          storedToolInvocations =
+            streamingToolInvocations[currentStreamingMessageId] || []
+
+          // Transfer tool invocations from streaming ID to actual message ID
+          if (storedToolInvocations.length > 0) {
+            setStreamingToolInvocations((prev) => {
+              const newState = { ...prev }
+              newState[message.id] = storedToolInvocations
+              // Clean up the temporary streaming ID
+              if (currentStreamingMessageId) {
+                delete newState[currentStreamingMessageId]
+              }
+              return newState
+            })
+            setCurrentStreamingMessageId(null)
+          }
+        }
+
+        const allToolInvocations = [
+          ...(messageWithToolInvocations.toolInvocations || []),
+          ...storedToolInvocations,
+        ]
+
+        if (allToolInvocations.length > 0) {
+          console.log("🔧 Processing streaming tool invocations:", {
+            messageId: message.id,
+            toolInvocationsCount: allToolInvocations.length,
+            toolInvocations: allToolInvocations,
+          })
+
+          // Extract reasoning steps from tool invocations
+          const reasoningSteps = allToolInvocations
+            .filter((ti) => {
+              // Handle both direct tool invocations and tool call callbacks
+              const toolName =
+                (ti as { toolName?: string })?.toolName ||
+                (ti.toolCall as { toolName?: string })?.toolName
+              const args =
+                (ti as { args?: Record<string, unknown> })?.args ||
+                (ti.toolCall as { args?: Record<string, unknown> })?.args
+              const result =
+                (ti as { result?: Record<string, unknown> })?.result || args // Use args as result for streaming calls
+
+              return (
+                toolName === "addReasoningStep" &&
+                result &&
+                typeof result === "object" &&
+                "title" in result &&
+                "content" in result
+              )
+            })
+            .map((ti) => {
+              const args =
+                (ti as { args?: Record<string, unknown> })?.args ||
+                (ti.toolCall as { args?: Record<string, unknown> })?.args
+              const result =
+                (ti as { result?: Record<string, unknown> })?.result || args // Use args as result for streaming calls
+
+              return {
+                title: (result as { title?: string })?.title || "",
+                content: (result as { content?: string })?.content || "",
+                nextStep: (result as { nextStep?: string })?.nextStep,
+              }
+            })
+
+          if (reasoningSteps.length > 0) {
+            console.log(
+              "🧠 Found reasoning steps from streaming tool invocations:",
+              reasoningSteps
+            )
+
+            // Add reasoning steps to the message parts array for UI rendering
+            const existingParts = message.parts || []
+            const reasoningParts = reasoningSteps.map((step) => ({
+              type: "sequential-reasoning-step" as const,
+              step: step,
+            }))
+
+            // Create a new message with the reasoning parts added
+            const updatedMessage = {
+              ...message,
+              parts: [
+                ...existingParts.filter(
+                  (p) =>
+                    (p as { type?: string }).type !==
+                    "sequential-reasoning-step"
+                ),
+                ...reasoningParts,
+              ],
+            }
+
+            return updatedMessage as Message
+          }
+        }
+      }
+      return message
+    },
+    [streamingToolInvocations, currentStreamingMessageId]
+  )
 
   // Real-time artifact processing during streaming with improved caching
   const processStreamingArtifacts = useCallback((message: Message) => {
@@ -250,13 +389,54 @@ export function useChatCore({
       cacheAndAddMessage(message)
     },
     onError: handleError,
+    // Add tool invocation callbacks for streaming
+    onToolCall: (toolCall) => {
+      console.log("🔧 Tool call during streaming:", toolCall)
+
+      // Create a temporary message ID for streaming if no current message exists
+      let messageId: string
+
+      // Find the current assistant message (last message with assistant role)
+      const currentMessage = messages.findLast(
+        (msg) => msg.role === "assistant"
+      )
+
+      if (currentMessage) {
+        messageId = currentMessage.id
+        console.log(
+          "🔧 Associating tool call with existing message:",
+          messageId
+        )
+      } else {
+        // Create a temporary streaming message ID if no current message exists
+        messageId = currentStreamingMessageId || `streaming-${Date.now()}`
+        if (!currentStreamingMessageId) {
+          setCurrentStreamingMessageId(messageId)
+        }
+        console.log(
+          "🔧 Associating tool call with streaming message:",
+          messageId
+        )
+      }
+
+      // Store tool invocation by message ID
+      setStreamingToolInvocations((prev) => ({
+        ...prev,
+        [messageId]: [...(prev[messageId] || []), toolCall],
+      }))
+    },
   })
 
-  // Process artifacts in streaming messages (after useChat initialization)
+  // Process both artifacts and tool invocations in streaming messages (after useChat initialization)
   const processedMessages = useMemo(() => {
     if (!messages) return []
-    return messages.map(processStreamingArtifacts)
-  }, [messages, processStreamingArtifacts])
+    return messages.map((message) => {
+      // Apply both processing functions in sequence
+      const withToolInvocations = processStreamingToolInvocations(message)
+      const withArtifacts = processStreamingArtifacts(withToolInvocations)
+      return withArtifacts
+    })
+  }, [messages, processStreamingArtifacts, processStreamingToolInvocations])
 
   // Handle search params on mount
   useEffect(() => {
@@ -288,26 +468,31 @@ export function useChatCore({
   const submit = useCallback(async () => {
     setIsSubmitting(true)
 
+    // Clear streaming tool invocations for new submission
+    setStreamingToolInvocations({})
+    setCurrentStreamingMessageId(null)
+
     const uid = await getOrCreateGuestUserId(user)
     if (!uid) {
       setIsSubmitting(false)
       return
     }
 
-    const optimisticId = `optimistic-${Date.now().toString()}`
-    const optimisticAttachments =
-      files.length > 0 ? createOptimisticAttachments(files) : []
+    // Let AI SDK handle optimistic updates automatically
+    // const optimisticId = `optimistic-${Date.now().toString()}`
+    // const optimisticAttachments =
+    //   files.length > 0 ? createOptimisticAttachments(files) : []
 
-    const optimisticMessage = {
-      id: optimisticId,
-      content: input,
-      role: "user" as const,
-      createdAt: new Date(),
-      experimental_attachments:
-        optimisticAttachments.length > 0 ? optimisticAttachments : undefined,
-    }
+    // const optimisticMessage = {
+    //   id: optimisticId,
+    //   content: input,
+    //   role: "user" as const,
+    //   createdAt: new Date(),
+    //   experimental_attachments:
+    //     optimisticAttachments.length > 0 ? optimisticAttachments : undefined,
+    // }
 
-    setMessages((prev) => [...prev, optimisticMessage])
+    // setMessages((prev) => [...prev, optimisticMessage])
     setInput("")
 
     const submittedFiles = [...files]
@@ -316,16 +501,12 @@ export function useChatCore({
     try {
       const allowed = await checkLimitsAndNotify(uid)
       if (!allowed) {
-        setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         setIsSubmitting(false)
         return
       }
 
       const currentChatId = await ensureChatExists(uid, input)
       if (!currentChatId) {
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         setIsSubmitting(false)
         return
       }
@@ -335,8 +516,6 @@ export function useChatCore({
           title: `The message you submitted was too long, please submit something shorter. (Max ${MESSAGE_MAX_LENGTH} characters)`,
           status: "error",
         })
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         setIsSubmitting(false)
         return
       }
@@ -345,10 +524,6 @@ export function useChatCore({
       if (submittedFiles.length > 0) {
         attachments = await handleFileUploads(uid, currentChatId)
         if (attachments === null) {
-          setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-          cleanupOptimisticAttachments(
-            optimisticMessage.experimental_attachments
-          )
           setIsSubmitting(false)
           return
         }
@@ -361,6 +536,8 @@ export function useChatCore({
           model: selectedModel,
           isAuthenticated,
           systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+          tools: getToolsConfig(),
+          // Legacy support for backward compatibility
           enableSearch,
           enableThink: thinkingMode === "regular",
           thinkingMode,
@@ -369,17 +546,12 @@ export function useChatCore({
       }
 
       handleSubmit(undefined, options)
-      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
-      cacheAndAddMessage(optimisticMessage)
       clearDraft()
 
       if (messages.length > 0) {
         bumpChat(currentChatId)
       }
     } catch {
-      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
       toast({ title: "Failed to send message", status: "error" })
     } finally {
       setIsSubmitting(false)
@@ -387,13 +559,10 @@ export function useChatCore({
   }, [
     user,
     files,
-    createOptimisticAttachments,
     input,
-    setMessages,
     setInput,
     setFiles,
     checkLimitsAndNotify,
-    cleanupOptimisticAttachments,
     ensureChatExists,
     handleFileUploads,
     selectedModel,
@@ -401,8 +570,8 @@ export function useChatCore({
     systemPrompt,
     enableSearch,
     thinkingMode,
+    getToolsConfig,
     handleSubmit,
-    cacheAndAddMessage,
     clearDraft,
     messages.length,
     bumpChat,
@@ -412,28 +581,17 @@ export function useChatCore({
   const handleSuggestion = useCallback(
     async (suggestion: string) => {
       setIsSubmitting(true)
-      const optimisticId = `optimistic-${Date.now().toString()}`
-      const optimisticMessage = {
-        id: optimisticId,
-        content: suggestion,
-        role: "user" as const,
-        createdAt: new Date(),
-      }
-
-      setMessages((prev) => [...prev, optimisticMessage])
 
       try {
         const uid = await getOrCreateGuestUserId(user)
 
         if (!uid) {
-          setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
           setIsSubmitting(false)
           return
         }
 
         const allowed = await checkLimitsAndNotify(uid)
         if (!allowed) {
-          setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
           setIsSubmitting(false)
           return
         }
@@ -441,7 +599,6 @@ export function useChatCore({
         const currentChatId = await ensureChatExists(uid, suggestion)
 
         if (!currentChatId) {
-          setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
           setIsSubmitting(false)
           return
         }
@@ -463,9 +620,7 @@ export function useChatCore({
           },
           options
         )
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       } catch {
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
         toast({ title: "Failed to send suggestion", status: "error" })
       } finally {
         setIsSubmitting(false)
@@ -478,7 +633,6 @@ export function useChatCore({
       append,
       checkLimitsAndNotify,
       isAuthenticated,
-      setMessages,
     ]
   )
 
@@ -496,6 +650,8 @@ export function useChatCore({
         model: selectedModel,
         isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+        tools: getToolsConfig(),
+        // Legacy support for backward compatibility
         enableThink: thinkingMode === "regular",
         thinkingMode,
       },
@@ -509,6 +665,7 @@ export function useChatCore({
     isAuthenticated,
     systemPrompt,
     thinkingMode,
+    getToolsConfig,
     reload,
   ])
 

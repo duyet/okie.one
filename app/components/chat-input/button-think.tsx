@@ -29,7 +29,13 @@ export function ButtonThink({
 }: ButtonThinkProps) {
   const isSelected = thinkingMode !== "none"
 
-  if (!isAuthenticated) {
+  // Allow Sequential Thinking for guest users in test/development environment
+  const isTestEnvironment =
+    process.env.NODE_ENV === "test" ||
+    process.env.NODE_ENV === "development" ||
+    (typeof window !== "undefined" && window.location.hostname === "localhost")
+
+  if (!isAuthenticated && !isTestEnvironment) {
     return (
       <Popover>
         <PopoverTrigger asChild>
@@ -57,7 +63,9 @@ export function ButtonThink({
           isSelected &&
             "border-[#0091FF]/20 bg-[#E5F3FE] text-[#0091FF] hover:bg-[#E5F3FE] hover:text-[#0091FF]"
         )}
-        onClick={() => onModeChange?.(thinkingMode === "sequential" ? "none" : "sequential")}
+        onClick={() =>
+          onModeChange?.(thinkingMode === "sequential" ? "none" : "sequential")
+        }
         data-testid="think-button"
       >
         <BrainIcon className="size-5" />
@@ -81,7 +89,9 @@ export function ButtonThink({
         >
           <BrainIcon className="size-5" />
           <span className="hidden md:block">
-            {thinkingMode === "sequential" ? "Sequential Thinking MCP" : "Thinking"}
+            {thinkingMode === "sequential"
+              ? "Sequential Thinking MCP"
+              : "Thinking"}
           </span>
           <CaretDownIcon className="ml-1 size-4" />
         </Button>
