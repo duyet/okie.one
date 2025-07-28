@@ -115,7 +115,7 @@ const mockGetAllModels = getAllModels as MockedFunction<typeof getAllModels>
 const mockParseArtifacts = parseArtifacts as MockedFunction<
   typeof parseArtifacts
 >
-const mockStreamText = streamText as MockedFunction<any>
+const mockStreamText = streamText as MockedFunction<typeof streamText>
 
 describe("Chat API Token Tracking", () => {
   const mockSupabase = {
@@ -189,7 +189,7 @@ describe("Chat API Token Tracking", () => {
         .fn()
         .mockReturnValue(new Response("mock-stream")),
     }
-    mockStreamText.mockReturnValue(mockResult as any)
+    mockStreamText.mockReturnValue(mockResult as ReturnType<typeof streamText>)
   })
 
   afterEach(() => {
