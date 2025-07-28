@@ -113,7 +113,7 @@ function SidebarProvider({
               // biome-ignore lint/suspicious/noDocumentCookie: Intentional fallback for browser compatibility
               document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
             }
-          } catch (_error) {
+          } catch {
             // Silent fallback to document.cookie if Cookie Store API fails
             // biome-ignore lint/suspicious/noDocumentCookie: Intentional fallback for error handling
             document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`

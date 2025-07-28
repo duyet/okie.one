@@ -43,7 +43,7 @@ export function DrawerHistory({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const _params = useParams<{ chatId: string }>()
+  // const _params = useParams<{ chatId: string }>()
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
