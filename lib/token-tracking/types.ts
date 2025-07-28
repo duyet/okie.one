@@ -93,6 +93,29 @@ export interface TokenTrackingConfig {
   costPerOutputToken: Record<string, number> // provider-model -> cost per 1k output tokens
 }
 
+// RPC function return types
+export interface TimingAnalytics {
+  user_id: string
+  avg_duration_ms: number
+  avg_time_to_first_token_ms: number
+  avg_time_to_first_chunk_ms: number
+  avg_streaming_duration_ms: number
+  total_messages: number
+  usage_date: string
+}
+
+export interface DailyModelSummary {
+  usage_date: string
+  provider_id: string
+  model_id: string
+  total_tokens: number
+  total_input_tokens: number
+  total_output_tokens: number
+  total_messages: number
+  total_cost_usd: number
+  avg_duration_ms: number
+}
+
 // Cost estimation models (prices per 1K tokens in USD)
 // IMPORTANT: All values below are per 1,000 tokens, not per token
 export const TOKEN_COSTS: Record<string, { input: number; output: number }> = {

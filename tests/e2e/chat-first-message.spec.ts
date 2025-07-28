@@ -1,12 +1,12 @@
 import { expect, test } from "@playwright/test"
-import { getChatPlaceholder } from "../helpers/app-config"
+
 import {
   prepareTestEnvironment,
-  waitForChatInput,
   sendMessage,
-  waitForAIResponse,
   setupNetworkCapture,
   takeDebugScreenshot,
+  waitForAIResponse,
+  waitForChatInput,
 } from "../helpers/test-helpers"
 
 test.describe("First Message from Home Page", () => {

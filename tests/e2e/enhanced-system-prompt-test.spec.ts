@@ -139,7 +139,7 @@ test.describe("Enhanced System Prompt - Sequential Thinking Encouragement", () =
         }
 
         results.push(result)
-      } catch (error: unknown) {
+      } catch (_error: unknown) {
         results.push({
           name: testCase.name,
           message: testCase.message,
@@ -173,7 +173,7 @@ test.describe("Enhanced System Prompt - Sequential Thinking Encouragement", () =
     const complexResults = results.filter(
       (r) => r.name.includes("Comparison") || r.name.includes("Multi-step")
     )
-    const complexToolUsage = complexResults.filter(
+    const _complexToolUsage = complexResults.filter(
       (r) => !r.error && r.actuallyUsedTools
     ).length
 

@@ -186,7 +186,7 @@ test.describe("Sequential Thinking MCP - Tool Invocation Logic", () => {
         }
 
         results.push(result)
-      } catch (error: unknown) {
+      } catch (_error: unknown) {
         results.push({
           name: testCase.name,
           message: testCase.message,

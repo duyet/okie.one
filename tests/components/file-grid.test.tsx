@@ -18,21 +18,41 @@ vi.mock("@/app/files/file-status-indicator", () => ({
 
 // Mock next/image
 vi.mock("next/image", () => ({
-  default: ({ src, alt, ...props }: any) => (
-    <img src={src} alt={alt} {...props} />
+  default: ({
+    src,
+    alt,
+    ...props
+  }: {
+    src: string
+    alt: string
+    [key: string]: unknown
+  }) => (
+    <div data-testid="mock-image" data-src={src} data-alt={alt} {...props} />
   ),
 }))
 
 // Mock dropdown menu components
 vi.mock("@/components/ui/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children, ...props }: any) => (
-    <button {...props}>{children}</button>
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
   ),
-  DropdownMenuContent: ({ children }: any) => (
+  DropdownMenuTrigger: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode
+    [key: string]: unknown
+  }) => <button {...props}>{children}</button>,
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dropdown-content">{children}</div>
   ),
-  DropdownMenuItem: ({ children, onClick }: any) => (
+  DropdownMenuItem: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode
+    onClick?: () => void
+  }) => (
     <button type="button" onClick={onClick}>
       {children}
     </button>
@@ -82,10 +102,10 @@ describe("FileGrid", () => {
       <FileGrid files={mockFiles} onDelete={onDelete} onDownload={onDownload} />
     )
 
-    // Check for image preview (only PNG file shows as image)
-    const images = screen.getAllByRole("img")
+    // Check for image preview using the mocked image component (div with data-testid)
+    const images = screen.getAllByTestId("mock-image")
     expect(images).toHaveLength(1)
-    expect(images[0].getAttribute("src")).toBe(
+    expect(images[0].getAttribute("data-src")).toBe(
       "https://example.com/test-image.png"
     )
   })

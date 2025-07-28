@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test"
-import { getChatPlaceholder } from "../helpers/app-config"
+
 import {
   clearBrowserState,
   prepareTestEnvironment,
-  waitForChatInput,
   sendMessage,
-  waitForAIResponse,
   setupNetworkCapture,
   takeDebugScreenshot,
+  waitForAIResponse,
+  waitForChatInput,
 } from "../helpers/test-helpers"
 
 test.describe("Guest User Chat", () => {
@@ -95,7 +95,7 @@ test.describe("Guest User Chat", () => {
             hasResponse: responseResult.hasResponse,
             responseTime: responseResult.responseTime,
           })
-        } catch (error: unknown) {
+        } catch (_error: unknown) {
           console.log(
             "ℹ️ No AI response for guest user (may be expected due to API limits)"
           )

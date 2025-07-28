@@ -1,15 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
+interface TestMessage {
+  id: string
+  role: "user" | "assistant"
+  content: string
+  createdAt: Date
+}
+
 describe("Home to Chat Navigation Message Persistence", () => {
   beforeEach(() => {
     // Mock sessionStorage
     const storage: Record<string, string> = {}
     global.sessionStorage = {
-      getItem: vi.fn((key) => storage[key] || null),
-      setItem: vi.fn((key, value) => {
+      getItem: vi.fn((key: string) => storage[key] || null),
+      setItem: vi.fn((key: string, value: string) => {
         storage[key] = value
       }),
-      removeItem: vi.fn((key) => {
+      removeItem: vi.fn((key: string) => {
         delete storage[key]
       }),
       clear: vi.fn(() =>
@@ -17,16 +24,16 @@ describe("Home to Chat Navigation Message Persistence", () => {
       ),
       key: vi.fn(),
       length: 0,
-    }
+    } as Storage
   })
 
   it("should persist messages through navigation from home to chat", () => {
     const sessionKey = "okie-pending-messages"
 
     // Step 1: User sends message from home page (chatId = null)
-    const userMessage = {
+    const userMessage: TestMessage = {
       id: "user-msg-1",
-      role: "user" as const,
+      role: "user",
       content: "hello",
       createdAt: new Date(),
     }
@@ -55,15 +62,10 @@ describe("Home to Chat Navigation Message Persistence", () => {
     const sessionKey = "okie-pending-messages"
 
     // User message
-    const messages: Array<{
-      id: string
-      role: "user" | "assistant"
-      content: string
-      createdAt: Date
-    }> = [
+    const messages: TestMessage[] = [
       {
         id: "1",
-        role: "user" as const,
+        role: "user",
         content: "hello",
         createdAt: new Date(),
       },
@@ -77,9 +79,9 @@ describe("Home to Chat Navigation Message Persistence", () => {
     expect(restored).toBeTruthy()
 
     // AI response comes in
-    const aiMessage = {
+    const aiMessage: TestMessage = {
       id: "2",
-      role: "assistant" as const,
+      role: "assistant",
       content: "Hello! How can I help you?",
       createdAt: new Date(),
     }

@@ -1,13 +1,16 @@
 import { expect, test } from "@playwright/test"
+
 import {
   clearBrowserState,
-  setupSequentialThinking,
   sendMessage,
+  setupNetworkCapture,
+  setupSequentialThinking,
+  takeDebugScreenshot,
   waitForAIResponse,
   waitForPageReady,
-  takeDebugScreenshot,
-  setupNetworkCapture,
 } from "../helpers/test-helpers"
+
+// Type definitions for test data - defined inline where used
 
 /**
  * Enhanced Sequential Thinking MCP test using new helper functions
@@ -58,7 +61,7 @@ test.describe("Sequential Thinking MCP - Enhanced", () => {
       const responseText = await messageContent.textContent()
       console.log(
         "📝 Response preview:",
-        responseText?.substring(0, 300) + "..."
+        `${responseText?.substring(0, 300)}...`
       )
 
       // Look for mathematical calculation indicators
@@ -80,7 +83,7 @@ test.describe("Sequential Thinking MCP - Enhanced", () => {
         (req) =>
           req.postData?.thinkingMode === "sequential" ||
           req.postData?.tools?.some(
-            (tool: any) =>
+            (tool: Record<string, unknown>) =>
               tool.type === "mcp" && tool.name === "server-sequential-thinking"
           )
       )

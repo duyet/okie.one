@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test"
+
 import { getChatPlaceholder } from "./app-config"
 
 /**
@@ -284,7 +285,7 @@ export async function waitForAIResponse(
   const expectReasoning = options.expectReasoning ?? false
   const startTime = Date.now()
   let hasResponse = false
-  let reasoningFound = false
+  const reasoningFound = false
 
   console.log("⏳ Waiting for AI response...")
 
@@ -307,7 +308,7 @@ export async function waitForAIResponse(
           await expect(messageLocator).toBeVisible({ timeout: checkInterval })
           responseVisible = true
           break
-        } catch (error) {
+        } catch (_error) {
           console.log(`AI response check ${i + 1}/${maxChecks}...`)
           if (i === maxChecks - 1) {
             await takeDebugScreenshot(page, "ai-response-timeout")
@@ -334,7 +335,7 @@ export async function waitForAIResponse(
           let reasoningFound = false
 
           // Wait longer for reasoning to appear (MCP can be slow)
-          for (let selector of reasoningSelectors) {
+          for (const selector of reasoningSelectors) {
             try {
               const reasoningSteps = page.locator(selector)
               await reasoningSteps.first().waitFor({ timeout: 10000 })
@@ -348,7 +349,7 @@ export async function waitForAIResponse(
                 reasoningFound = true
                 break
               }
-            } catch (error) {
+            } catch (_error) {
               // Continue to next selector
             }
           }
@@ -375,7 +376,7 @@ export async function waitForAIResponse(
       'text*="Failed"',
     ]
 
-    for (let selector of errorSelectors) {
+    for (const selector of errorSelectors) {
       try {
         const errorMessages = page.locator(selector)
         const errorCount = await errorMessages.count()
@@ -388,7 +389,7 @@ export async function waitForAIResponse(
             console.log(`  ${i + 1}: ${errorText}`)
           }
         }
-      } catch (error) {
+      } catch (_error) {
         // Continue checking other selectors
       }
     }
@@ -416,14 +417,16 @@ export async function waitForMCPToolInvocation(
   toolName: string,
   options: MCPToolOptions = {}
 ) {
-  const timeout = options.timeout || 30000
+  const _timeout = options.timeout || 30000
   const expectSuccess = options.expectSuccess ?? true
 
   console.log(`⏳ Waiting for MCP tool invocation: ${toolName}`)
 
   try {
     // Look for tool invocation indicators in the UI
-    const toolIndicator = page.locator(`[data-testid*="tool"], [class*="tool"]`)
+    const _toolIndicator = page.locator(
+      `[data-testid*="tool"], [class*="tool"]`
+    )
 
     // Wait for tool activity
     await page.waitForTimeout(5000) // Allow time for tool to be invoked
@@ -493,35 +496,56 @@ export async function takeDebugScreenshot(page: Page, name: string) {
   }
 }
 
+interface NetworkRequest {
+  url: string
+  method: string
+  postData?: {
+    model?: string
+    thinkingMode?: string
+    enableThink?: boolean
+    messages?: Record<string, unknown>[]
+    userId?: string
+    isAuthenticated?: boolean
+    tools?: Record<string, unknown>[]
+    headers?: Record<string, string>
+  } | null
+  response?: {
+    status: number
+    statusText: string
+    body?: string
+    headers?: Record<string, string>
+  } | null
+  timestamp?: number
+}
+
 /**
  * Capture network requests for debugging
  */
 export function setupNetworkCapture(page: Page): {
-  requests: Array<{
-    url: string
-    method: string
-    postData?: any
-    response?: any
-    timestamp?: number
-  }>
+  requests: NetworkRequest[]
   logs: string[]
 } {
-  const requests: Array<{
-    url: string
-    method: string
-    postData?: any
-    response?: any
-    timestamp?: number
-  }> = []
+  const requests: NetworkRequest[] = []
   const logs: string[] = []
 
   // Capture requests
   page.on("request", (request) => {
     const postData = request.postData()
-    const requestData = {
+    let parsedPostData = null
+
+    if (postData) {
+      try {
+        parsedPostData = JSON.parse(postData)
+      } catch (_error) {
+        console.warn("Failed to parse postData as JSON:", postData)
+        parsedPostData = { raw: postData }
+      }
+    }
+
+    const requestData: NetworkRequest = {
       url: request.url(),
       method: request.method(),
-      postData: postData ? JSON.parse(postData) : undefined,
+      postData: parsedPostData,
       timestamp: Date.now(),
     }
 
@@ -546,14 +570,16 @@ export function setupNetworkCapture(page: Page): {
         if (requestIndex !== -1) {
           requests[requestIndex].response = {
             status: response.status(),
+            statusText: response.statusText(),
             body: responseText,
+            headers: response.headers(),
           }
         }
 
         console.log("📥 API Response:", {
           url: response.url(),
           status: response.status(),
-          preview: responseText.substring(0, 200) + "...",
+          preview: `${responseText.substring(0, 200)}...`,
         })
       } catch (error) {
         console.error("❌ Error capturing response:", error)

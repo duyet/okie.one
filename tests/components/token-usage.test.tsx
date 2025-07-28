@@ -6,10 +6,10 @@ import { TokenAnalytics } from "@/app/analytics/token-usage"
 
 // Mock the recharts components
 vi.mock("recharts", () => ({
-  ResponsiveContainer: ({ children }: any) => (
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
-  LineChart: ({ children }: any) => (
+  LineChart: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="line-chart">{children}</div>
   ),
   Line: () => <div data-testid="line" />,
@@ -18,11 +18,11 @@ vi.mock("recharts", () => ({
   CartesianGrid: () => <div data-testid="cartesian-grid" />,
   Tooltip: () => <div data-testid="tooltip" />,
   Legend: () => <div data-testid="legend" />,
-  BarChart: ({ children }: any) => (
+  BarChart: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="bar-chart">{children}</div>
   ),
   Bar: () => <div data-testid="bar" />,
-  PieChart: ({ children }: any) => (
+  PieChart: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="pie-chart">{children}</div>
   ),
   Pie: () => <div data-testid="pie" />,

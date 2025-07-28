@@ -5,7 +5,7 @@
  * native reasoning support. Based on official MCP Sequential Thinking Server.
  */
 
-import type { ToolSet } from "ai"
+import type { Tool, ToolSet } from "ai"
 
 import { SEQUENTIAL_THINKING_SYSTEM_PROMPT } from "./prompts"
 import { addReasoningStepTool, sequentialThinkingTool } from "./tools"
@@ -40,9 +40,9 @@ export class SequentialThinkingServer {
   getTools(): ToolSet {
     return {
       // Official MCP Sequential Thinking tool
-      sequentialthinking: sequentialThinkingTool as any,
+      sequentialthinking: sequentialThinkingTool as Tool,
       // Legacy tool for backward compatibility
-      addReasoningStep: addReasoningStepTool as any,
+      addReasoningStep: addReasoningStepTool as Tool,
     }
   }
 

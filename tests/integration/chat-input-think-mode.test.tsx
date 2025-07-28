@@ -105,9 +105,9 @@ vi.mock("@/components/prompt-kit/prompt-input", () => ({
   PromptInput: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="prompt-input">{children}</div>
   ),
-  PromptInputTextarea: (props: any) => (
-    <textarea data-testid="prompt-textarea" {...props} />
-  ),
+  PromptInputTextarea: (
+    props: React.TextareaHTMLAttributes<HTMLTextAreaElement>
+  ) => <textarea data-testid="prompt-textarea" {...props} />,
   PromptInputActions: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="prompt-actions">{children}</div>
   ),
@@ -157,8 +157,6 @@ vi.mock("@/app/components/chat-input/button-think", () => ({
   ButtonThink: ({
     thinkingMode,
     onModeChange,
-    isAuthenticated,
-    hasNativeReasoning,
   }: {
     thinkingMode?: string
     onModeChange?: (mode: string) => void
@@ -431,7 +429,8 @@ describe("ChatInput Think Mode Integration", () => {
 
     it("should handle missing setThinkingMode prop gracefully", () => {
       const propsWithoutSetThink = { ...defaultProps }
-      delete (propsWithoutSetThink as any).setThinkingMode
+      delete (propsWithoutSetThink as Partial<typeof defaultProps>)
+        .setThinkingMode
 
       expect(() => {
         render(

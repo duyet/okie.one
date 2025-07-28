@@ -79,11 +79,11 @@ test.describe("Sequential Thinking MCP - UI Rendering Check", () => {
     const toolIndicators = page.locator(
       "text=/tool|Tool|reasoning|Reasoning|step|Step/"
     )
-    const toolIndicatorCount = await toolIndicators.count()
+    const _toolIndicatorCount = await toolIndicators.count()
 
     // Check page HTML for hidden reasoning content
     const pageContent = await page.content()
-    const hasHiddenReasoning =
+    const _hasHiddenReasoning =
       pageContent.includes("addReasoningStep") ||
       pageContent.includes("sequential") ||
       pageContent.includes("reasoning")

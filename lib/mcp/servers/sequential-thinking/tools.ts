@@ -3,6 +3,7 @@
  * Based on official MCP Sequential Thinking Server implementation
  */
 
+import type { CoreMessage } from "ai"
 import { z } from "zod"
 
 import type {
@@ -212,7 +213,11 @@ export const addReasoningStepTool = {
   }),
   execute: async (
     params: ReasoningStepParams,
-    _context?: any
+    _context?: {
+      toolCallId: string
+      messages: CoreMessage[]
+      abortSignal?: AbortSignal
+    }
   ): Promise<SequentialThinkingResult> => {
     try {
       console.log(

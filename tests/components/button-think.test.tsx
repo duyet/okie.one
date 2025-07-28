@@ -4,6 +4,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { ButtonThink } from "@/app/components/chat-input/button-think"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
+// Mock the UserPreferencesProvider hook
+vi.mock("@/lib/user-preference-store/provider", () => ({
+  useUserPreferences: () => ({
+    preferences: {
+      mcpSettings: {
+        "sequential-thinking": true,
+      },
+    },
+    updatePreferences: vi.fn(),
+    isLoading: false,
+    isMcpServerEnabled: vi.fn((serverId: string) => {
+      return serverId === "sequential-thinking"
+    }),
+  }),
+}))
+
 // Mock the Popover components
 vi.mock("@/components/ui/popover", () => ({
   Popover: ({ children }: { children: React.ReactNode }) => (

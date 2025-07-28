@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test"
+
 import { getAppName } from "../helpers/app-config"
 
 test.describe("Homepage", () => {

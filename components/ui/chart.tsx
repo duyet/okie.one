@@ -108,13 +108,15 @@ const ChartTooltipContent = React.forwardRef<
     payload?: ChartDataItem[]
     label?: string
     labelKey?: string
-    labelFormatter?: (value: unknown, payload: ChartDataItem[]) => React.ReactNode
+    labelFormatter?: (
+      value: unknown,
+      payload: ChartDataItem[]
+    ) => React.ReactNode
     formatter?: (
       value: unknown,
       name: string,
       props: ChartDataItem
     ) => [React.ReactNode, React.ReactNode]
-    color?: string
     hideLabel?: boolean
     hideIndicator?: boolean
     indicator?: "line" | "dot" | "dashed"
@@ -131,7 +133,6 @@ const ChartTooltipContent = React.forwardRef<
       labelKey,
       labelFormatter,
       formatter,
-      color,
       hideLabel = false,
       hideIndicator = false,
       indicator = "dot",
@@ -176,7 +177,7 @@ const ChartTooltipContent = React.forwardRef<
 
             return (
               <div
-                key={`${key}-${index}`}
+                key={`${key}-${item.dataKey || item.name || index}`}
                 className="flex w-full items-center text-xs"
               >
                 {!hideIndicator && (
@@ -206,10 +207,11 @@ const ChartTooltipContent = React.forwardRef<
                   </div>
                   <span className="font-medium font-mono text-foreground tabular-nums">
                     {formatter
-                      ? formatter(item.value, item.name || '', item)[0]
-                      : typeof item.value === 'string' || typeof item.value === 'number' 
+                      ? formatter(item.value, item.name || "", item)[0]
+                      : typeof item.value === "string" ||
+                          typeof item.value === "number"
                         ? item.value.toLocaleString()
-                        : String(item.value || '')}
+                        : String(item.value || "")}
                   </span>
                 </div>
               </div>
@@ -254,7 +256,7 @@ const ChartLegend = React.forwardRef<
 
         return (
           <div
-            key={`${key}-${index}`}
+            key={`${key}-${item.dataKey || item.name || index}`}
             className="flex items-center gap-1.5 text-sm"
           >
             <div

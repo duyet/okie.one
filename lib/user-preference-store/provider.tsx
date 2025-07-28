@@ -5,6 +5,7 @@ import { createContext, type ReactNode, useContext } from "react"
 
 import { useUser } from "@/lib/user-store/provider"
 
+import { getMcpServerConfig } from "./mcp-config"
 import {
   convertFromApiFormat,
   convertToApiFormat,
@@ -32,6 +33,8 @@ interface UserPreferencesContextType {
   setMultiModelEnabled: (enabled: boolean) => void
   toggleModelVisibility: (modelId: string) => void
   isModelHidden: (modelId: string) => boolean
+  setMcpServerEnabled: (serverId: string, enabled: boolean) => void
+  isMcpServerEnabled: (serverId: string) => boolean
   isLoading: boolean
 }
 
@@ -222,6 +225,22 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
     return (preferences.hiddenModels || []).includes(modelId)
   }
 
+  const setMcpServerEnabled = (serverId: string, enabled: boolean) => {
+    updatePreferences({
+      mcpSettings: {
+        ...preferences.mcpSettings,
+        [serverId]: enabled,
+      },
+    })
+  }
+
+  const isMcpServerEnabled = (serverId: string) => {
+    // Use centralized config for default values
+    const config = getMcpServerConfig(serverId)
+    const defaultValue = config?.defaultEnabled ?? false
+    return preferences.mcpSettings?.[serverId] ?? defaultValue
+  }
+
   return (
     <UserPreferencesContext.Provider
       value={{
@@ -233,6 +252,8 @@ export function UserPreferencesProvider({ children }: { children: ReactNode }) {
         setMultiModelEnabled,
         toggleModelVisibility,
         isModelHidden,
+        setMcpServerEnabled,
+        isMcpServerEnabled,
         isLoading,
       }}
     >

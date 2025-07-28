@@ -98,7 +98,7 @@ describe("FileStats", () => {
       const { rerender } = render(<FileStats files={[testFile]} />)
 
       expect(screen.getByText(expected)).toBeDefined()
-      rerender(<></>)
+      rerender(<FileStats files={[]} />)
     })
   })
 
@@ -114,11 +114,11 @@ describe("FileStats", () => {
     const filesWithMissingTypes: FileWithChat[] = [
       {
         ...mockFiles[0],
-        file_type: null as any,
+        file_type: null,
       },
       {
         ...mockFiles[1],
-        file_type: undefined as any,
+        file_type: null,
       },
     ]
 

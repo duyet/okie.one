@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { streamText } from "ai"
 import {
   afterEach,
@@ -16,11 +17,45 @@ import {
   validateAndTrackUsage,
 } from "@/app/api/chat/api"
 import { POST } from "@/app/api/chat/route"
+import type { Database } from "@/app/types/database.types"
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { getAllModels } from "@/lib/models"
+import type { ModelConfig } from "@/lib/models/types"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
 import type { TokenUsageMetrics } from "@/lib/token-tracking/types"
+import type { ProviderWithoutOllama } from "@/lib/user-keys"
+
+// Test helper types for streamText callbacks - simplified for testing
+type OnFinishCallback = (params: {
+  response: {
+    messages: Array<{
+      role: "assistant" | "user" | "system"
+      content: string | Array<{ type: string; text?: string; url?: string }>
+    }>
+  }
+  usage: {
+    promptTokens: number
+    completionTokens: number
+    totalTokens: number
+    cachedTokens?: number
+  }
+  finishReason: string
+}) => void | Promise<void>
+
+type OnChunkCallback = () => void
+
+// Simplified config type for testing
+interface MockStreamTextConfig {
+  onFinish?: OnFinishCallback
+  onChunk?: OnChunkCallback
+  [key: string]: unknown
+}
+
+// Minimal mock return type for streamText
+interface MockStreamTextResult {
+  toDataStreamResponse: () => Response
+}
 
 // Mock all external dependencies
 vi.mock("@/lib/token-tracking/api", () => ({
@@ -87,7 +122,7 @@ describe("Chat API Token Tracking", () => {
     from: vi.fn(),
     insert: vi.fn(),
     select: vi.fn(),
-  }
+  } as unknown as SupabaseClient<Database>
 
   const sampleRequest = {
     messages: [{ role: "user" as const, content: "Hello" }],
@@ -100,11 +135,20 @@ describe("Chat API Token Tracking", () => {
     message_group_id: "group-789",
   }
 
-  const sampleModelConfig = {
+  const sampleModelConfig: ModelConfig = {
     id: "gpt-4o",
     name: "GPT-4 Omni",
     provider: "OpenAI",
     providerId: "openai",
+    baseProviderId: "openai",
+    modelFamily: "GPT-4",
+    contextWindow: 128000,
+    maxOutputTokens: 4096,
+    vision: false,
+    tools: true,
+    reasoning: false,
+    webSearch: false,
+    openSource: false,
     apiSdk: vi.fn().mockReturnValue("mock-api-sdk"),
   }
 
@@ -131,14 +175,14 @@ describe("Chat API Token Tracking", () => {
     vi.setSystemTime(mockDate)
 
     // Setup default mock implementations
-    mockValidateAndTrackUsage.mockResolvedValue(mockSupabase as any)
+    mockValidateAndTrackUsage.mockResolvedValue(mockSupabase)
     mockIncrementMessageCount.mockResolvedValue(undefined)
     mockLogUserMessage.mockResolvedValue(undefined)
     mockStoreAssistantMessage.mockResolvedValue("msg-123")
-    mockGetAllModels.mockResolvedValue([sampleModelConfig] as any)
+    mockGetAllModels.mockResolvedValue([sampleModelConfig])
     mockGetProviderForModel.mockReturnValue("openai")
     mockParseArtifacts.mockReturnValue([])
-    mockRecordTokenUsage.mockResolvedValue({} as any)
+    mockRecordTokenUsage.mockResolvedValue({} as never)
 
     // Mock streamText with proper structure
     const mockResult = {
@@ -146,7 +190,7 @@ describe("Chat API Token Tracking", () => {
         .fn()
         .mockReturnValue(new Response("mock-stream")),
     }
-    mockStreamText.mockReturnValue(mockResult as any)
+    mockStreamText.mockReturnValue(mockResult as ReturnType<typeof streamText>)
   })
 
   afterEach(() => {
@@ -155,37 +199,16 @@ describe("Chat API Token Tracking", () => {
 
   describe("Token Usage Recording", () => {
     it("should record token usage successfully after AI response", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
       // Capture the onFinish callback when streamText is called
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -235,12 +258,12 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle timing metrics when chunks are received", async () => {
-      let onFinishCallback: any
-      let onChunkCallback: any
+      let onFinishCallback: OnFinishCallback
+      let onChunkCallback: OnChunkCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
-        onChunkCallback = config.onChunk
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
+        if (config.onChunk) onChunkCallback = config.onChunk
         return {
           toDataStreamResponse: vi
             .fn()
@@ -266,7 +289,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -315,10 +338,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle cached tokens from AI SDK usage data", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -344,7 +367,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -384,10 +407,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle missing cachedTokens in usage data", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -413,7 +436,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -455,10 +478,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should calculate totalTokens when not provided by AI SDK", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -484,7 +507,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -527,10 +550,10 @@ describe("Chat API Token Tracking", () => {
 
   describe("Error Handling", () => {
     it("should not fail chat when token tracking fails", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -556,7 +579,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       // Make recordTokenUsage throw an error
@@ -591,10 +614,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should skip token recording when usage data is missing", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -620,7 +643,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -647,10 +670,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should skip token recording when assistantMessageId is missing", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -676,7 +699,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       // Make storeAssistantMessage return null
@@ -705,10 +728,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should skip token recording when Supabase is not available", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -734,7 +757,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       // Make validateAndTrackUsage return null (no Supabase)
@@ -763,10 +786,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle provider mapping errors gracefully", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -792,7 +815,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -838,10 +861,10 @@ describe("Chat API Token Tracking", () => {
       for (const testCase of testCases) {
         vi.clearAllMocks()
 
-        let onFinishCallback: any
+        let onFinishCallback: OnFinishCallback
 
-        mockStreamText.mockImplementation((config: any) => {
-          onFinishCallback = config.onFinish
+        mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+          if (config.onFinish) onFinishCallback = config.onFinish
           return {
             toDataStreamResponse: vi
               .fn()
@@ -871,17 +894,17 @@ describe("Chat API Token Tracking", () => {
             logprobs: undefined,
             responseMessages: [],
             roundtrips: [],
-          } as any
+          } as MockStreamTextResult
         })
 
         mockGetProviderForModel.mockReturnValue(
-          testCase.expectedProvider as any
+          testCase.expectedProvider as ProviderWithoutOllama
         )
-        mockValidateAndTrackUsage.mockResolvedValue(mockSupabase as any)
+        mockValidateAndTrackUsage.mockResolvedValue(mockSupabase)
         mockStoreAssistantMessage.mockResolvedValue("msg-123")
         mockGetAllModels.mockResolvedValue([
           { ...sampleModelConfig, id: testCase.model },
-        ] as any)
+        ])
 
         const request = new Request("http://localhost:3000/api/chat", {
           method: "POST",
@@ -918,12 +941,12 @@ describe("Chat API Token Tracking", () => {
 
   describe("Timing Edge Cases", () => {
     it("should handle multiple chunk callbacks correctly", async () => {
-      let onFinishCallback: any
-      let onChunkCallback: any
+      let onFinishCallback: OnFinishCallback
+      let onChunkCallback: OnChunkCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
-        onChunkCallback = config.onChunk
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
+        if (config.onChunk) onChunkCallback = config.onChunk
         return {
           toDataStreamResponse: vi
             .fn()
@@ -949,7 +972,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -998,10 +1021,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle timing when no chunks are received", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -1027,7 +1050,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -1069,12 +1092,12 @@ describe("Chat API Token Tracking", () => {
 
   describe("Cost Calculation Integration", () => {
     it("should pass timing and cost data to recordTokenUsage", async () => {
-      let onFinishCallback: any
-      let onChunkCallback: any
+      let onFinishCallback: OnFinishCallback
+      let onChunkCallback: OnChunkCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
-        onChunkCallback = config.onChunk
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
+        if (config.onChunk) onChunkCallback = config.onChunk
         return {
           toDataStreamResponse: vi
             .fn()
@@ -1100,7 +1123,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -1156,10 +1179,10 @@ describe("Chat API Token Tracking", () => {
 
   describe("Response Processing", () => {
     it("should handle complex response message formats", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -1185,7 +1208,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -1233,10 +1256,10 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle empty or missing response messages", async () => {
-      let onFinishCallback: any
+      let onFinishCallback: OnFinishCallback
 
-      mockStreamText.mockImplementation((config: any) => {
-        onFinishCallback = config.onFinish
+      mockStreamText.mockImplementation((config: MockStreamTextConfig) => {
+        if (config.onFinish) onFinishCallback = config.onFinish
         return {
           toDataStreamResponse: vi
             .fn()
@@ -1262,7 +1285,7 @@ describe("Chat API Token Tracking", () => {
           logprobs: undefined,
           responseMessages: [],
           roundtrips: [],
-        } as any
+        } as MockStreamTextResult
       })
 
       const request = new Request("http://localhost:3000/api/chat", {

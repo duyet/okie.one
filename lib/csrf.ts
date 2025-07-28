@@ -1,7 +1,11 @@
 import { createHash, randomBytes } from "node:crypto"
 import { cookies } from "next/headers"
 
-const CSRF_SECRET = process.env.CSRF_SECRET!
+const CSRF_SECRET =
+  process.env.CSRF_SECRET ||
+  (() => {
+    throw new Error("CSRF_SECRET environment variable is required")
+  })()
 
 export function generateCsrfToken(): string {
   const raw = randomBytes(32).toString("hex")

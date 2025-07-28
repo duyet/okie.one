@@ -1,9 +1,27 @@
+import type { APIResponse } from "@playwright/test"
 import { expect, test } from "@playwright/test"
-import {
-  takeDebugScreenshot,
-  setupNetworkCapture,
-  prepareTestEnvironment,
-} from "../helpers/test-helpers"
+
+// Interface for test result analysis
+interface ChatTestResult {
+  mode: string
+  status?: number
+  responseTime: number
+  hasStreaming?: boolean
+  responseLength?: number
+  hasCorrectAnswer?: boolean
+  hasShowWork?: boolean
+  hasThinkingMarkers?: boolean
+  hasStepByStep?: boolean
+  hasMCPTools?: boolean
+  hasReasoningStructure?: boolean
+  hasMathContent?: boolean
+  preview?: string
+  success: boolean
+  error?: boolean
+  errorDetails?: string | null
+  errorType?: string
+  errorMessage?: string
+}
 
 /**
  * Comprehensive API tests for chat functionality
@@ -31,8 +49,8 @@ test.describe("Chat API Comprehensive Tests", () => {
     const chatId = createChatId()
 
     console.log("📝 Testing normal chat mode (baseline functionality)")
-    console.log("  User ID:", userId.substring(0, 8) + "...")
-    console.log("  Chat ID:", chatId.substring(0, 8) + "...")
+    console.log("  User ID:", `${userId.substring(0, 8)}...`)
+    console.log("  Chat ID:", `${chatId.substring(0, 8)}...`)
     console.log("  Model: gpt-4.1-nano (fast, reliable)")
     console.log("  Mode: Standard chat (no thinking)")
 
@@ -54,7 +72,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
     console.log("🚀 Sending normal chat request...")
     const startTime = Date.now()
-    let response
+    let response: APIResponse
 
     try {
       response = await request.post(`${baseUrl}/api/chat`, {
@@ -67,7 +85,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       })
 
       const responseTime = Date.now() - startTime
-      console.log("📊 Response received after:", responseTime + "ms")
+      console.log("📊 Response received after:", `${responseTime}ms`)
       console.log("📊 Response status:", response.status())
       console.log(
         "📊 Response headers:",
@@ -84,14 +102,14 @@ test.describe("Chat API Comprehensive Tests", () => {
         const hasMathAnswer = body.includes("4") || body.includes("four") // Should contain the answer
 
         console.log("✅ Normal chat successful")
-        console.log("  Response time:", responseTime + "ms")
-        console.log("  Response length:", body.length + " characters")
+        console.log("  Response time:", `${responseTime}ms`)
+        console.log("  Response length:", `${body.length} characters`)
         console.log("  Has streaming format:", hasStreamingData)
         console.log("  Has substantial content:", hasResponseContent)
         console.log("  Contains expected answer:", hasMathAnswer)
         console.log(
           "  Response preview:",
-          body.substring(0, 150).replace(/\n/g, "\\n") + "..."
+          `${body.substring(0, 150).replace(/\n/g, "\\n")}...`
         )
 
         // Enhanced assertions
@@ -108,7 +126,7 @@ test.describe("Chat API Comprehensive Tests", () => {
         const errorBody = await response.text()
         console.log("❌ Normal chat failed")
         console.log("  Status:", response.status())
-        console.log("  Response time:", responseTime + "ms")
+        console.log("  Response time:", `${responseTime}ms`)
         console.log("  Error body preview:", errorBody.substring(0, 300))
         console.log(
           "  Content-Type:",
@@ -136,7 +154,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       const responseTime = Date.now() - startTime
       console.error(
         "❌ Normal chat request failed after",
-        responseTime + "ms:",
+        `${responseTime}ms:`,
         error
       )
       console.log("🔍 Error details:")
@@ -165,8 +183,8 @@ test.describe("Chat API Comprehensive Tests", () => {
     const chatId = createChatId()
 
     console.log("🧠 Testing reasoning model (native thinking capabilities)")
-    console.log("  User ID:", userId.substring(0, 8) + "...")
-    console.log("  Chat ID:", chatId.substring(0, 8) + "...")
+    console.log("  User ID:", `${userId.substring(0, 8)}...`)
+    console.log("  Chat ID:", `${chatId.substring(0, 8)}...`)
     console.log(
       "  Model: gemini-2.0-flash-thinking-exp-01-21 (native reasoning)"
     )
@@ -193,7 +211,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
     console.log("🧠 Sending reasoning model request...")
     const startTime = Date.now()
-    let response
+    let response: APIResponse
 
     try {
       response = await request.post(`${baseUrl}/api/chat`, {
@@ -206,7 +224,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       })
 
       const responseTime = Date.now() - startTime
-      console.log("📊 Response received after:", responseTime + "ms")
+      console.log("📊 Response received after:", `${responseTime}ms`)
       console.log("📊 Response status:", response.status())
       console.log(
         "📊 Content-Type:",
@@ -237,8 +255,8 @@ test.describe("Chat API Comprehensive Tests", () => {
         const hasStepByStep = body.includes("step") || body.match(/\d+[.)]/g) // Numbered steps
 
         console.log("✅ Reasoning model response analysis:")
-        console.log("  Response time:", responseTime + "ms")
-        console.log("  Response length:", body.length + " characters")
+        console.log("  Response time:", `${responseTime}ms`)
+        console.log("  Response length:", `${body.length} characters`)
         console.log("  Has streaming format:", hasStreamingData)
         console.log("  Has thinking markers:", hasThinkingMarkers)
         console.log("  Has step-by-step structure:", hasStepByStep)
@@ -246,7 +264,7 @@ test.describe("Chat API Comprehensive Tests", () => {
         console.log("  Contains correct answer (36):", hasMathAnswer)
         console.log(
           "  Response preview:",
-          body.substring(0, 200).replace(/\n/g, "\\n") + "..."
+          `${body.substring(0, 200).replace(/\n/g, "\\n")}...`
         )
 
         // Core assertions
@@ -278,7 +296,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
         console.log("❌ Reasoning model failed")
         console.log("  Status:", response.status())
-        console.log("  Response time:", responseTime + "ms")
+        console.log("  Response time:", `${responseTime}ms`)
         console.log("  Error body preview:", errorBody.substring(0, 400))
         console.log(
           "  Content-Type:",
@@ -311,7 +329,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       const responseTime = Date.now() - startTime
       console.error(
         "❌ Reasoning model request failed after",
-        responseTime + "ms:",
+        `${responseTime}ms:`,
         error
       )
       console.log("🔍 Error analysis:")
@@ -346,8 +364,8 @@ test.describe("Chat API Comprehensive Tests", () => {
     const chatId = createChatId()
 
     console.log("🧪 Testing Sequential Thinking MCP (advanced reasoning)")
-    console.log("  User ID:", userId.substring(0, 8) + "...")
-    console.log("  Chat ID:", chatId.substring(0, 8) + "...")
+    console.log("  User ID:", `${userId.substring(0, 8)}...`)
+    console.log("  Chat ID:", `${chatId.substring(0, 8)}...`)
     console.log("  Model: gpt-4.1-nano (non-reasoning, will use MCP)")
     console.log("  Mode: Sequential Thinking MCP enabled")
     console.log("  Expected: MCP tool calls for structured reasoning")
@@ -385,7 +403,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
     console.log("🧪 Sending Sequential Thinking MCP request...")
     const startTime = Date.now()
-    let response
+    let response: APIResponse
 
     try {
       response = await request.post(`${baseUrl}/api/chat`, {
@@ -399,7 +417,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
       const responseTime = Date.now() - startTime
       console.log("📊 MCP Response Analysis:")
-      console.log("  Response time:", responseTime + "ms")
+      console.log("  Response time:", `${responseTime}ms`)
       console.log("  Response status:", response.status())
       console.log(
         "  Content-Type:",
@@ -453,8 +471,8 @@ test.describe("Chat API Comprehensive Tests", () => {
         const hasCorrectAnswer = body.includes("20") || body.includes("twenty") // 25% of 80 = 20
 
         console.log("✅ Sequential Thinking MCP Response Analysis:")
-        console.log("  Response time:", responseTime + "ms")
-        console.log("  Response length:", body.length + " characters")
+        console.log("  Response time:", `${responseTime}ms`)
+        console.log("  Response length:", `${body.length} characters`)
         console.log("  Has streaming format:", hasStreamingData)
         console.log("  Has MCP tool calls:", hasMCPToolCalls)
         console.log("  Has reasoning structure:", hasReasoningStructure)
@@ -523,7 +541,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
         console.log("❌ Sequential Thinking MCP Failed")
         console.log("  Status:", response.status())
-        console.log("  Response time:", responseTime + "ms")
+        console.log("  Response time:", `${responseTime}ms`)
         console.log("  Error body preview:", errorBody.substring(0, 500))
         console.log(
           "  Content-Type:",
@@ -573,7 +591,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       const responseTime = Date.now() - startTime
       console.error(
         "❌ Sequential Thinking MCP request failed after",
-        responseTime + "ms:",
+        `${responseTime}ms:`,
         error
       )
       console.log("🔍 MCP Error Analysis:")
@@ -617,7 +635,7 @@ test.describe("Chat API Comprehensive Tests", () => {
   test("should compare all three modes side by side", async ({ request }) => {
     const testQuestion =
       "What is 30% of 150? Please show your work step by step."
-    const results: any[] = []
+    const results: ChatTestResult[] = []
     const overallStartTime = Date.now()
 
     console.log("🎯 Comprehensive Chat Mode Comparison Test")
@@ -681,7 +699,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
       console.log("✅ Normal mode completed:")
       console.log("  Status:", result.status)
-      console.log("  Response time:", result.responseTime + "ms")
+      console.log("  Response time:", `${result.responseTime}ms`)
       console.log("  Success:", result.success)
       console.log("  Has streaming:", result.hasStreaming)
       console.log("  Response length:", result.responseLength)
@@ -691,7 +709,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       const normalTime = Date.now() - normalStartTime
       console.log(
         "❌ Normal mode failed after",
-        normalTime + "ms:",
+        `${normalTime}ms:`,
         error instanceof Error ? error.message : String(error)
       )
       results.push({
@@ -770,7 +788,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
       console.log("✅ Reasoning mode completed:")
       console.log("  Status:", result.status)
-      console.log("  Response time:", result.responseTime + "ms")
+      console.log("  Response time:", `${result.responseTime}ms`)
       console.log("  Success:", result.success)
       console.log("  Has streaming:", result.hasStreaming)
       console.log("  Has thinking markers:", result.hasThinkingMarkers)
@@ -781,7 +799,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       const reasoningTime = Date.now() - reasoningStartTime
       console.log(
         "❌ Reasoning mode failed after",
-        reasoningTime + "ms:",
+        `${reasoningTime}ms:`,
         error instanceof Error ? error.message : String(error)
       )
       results.push({
@@ -865,7 +883,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
       console.log("✅ Sequential MCP completed:")
       console.log("  Status:", result.status)
-      console.log("  Response time:", result.responseTime + "ms")
+      console.log("  Response time:", `${result.responseTime}ms`)
       console.log("  Success:", result.success)
       console.log("  Has streaming:", result.hasStreaming)
       console.log("  Has MCP tools:", result.hasMCPTools)
@@ -876,7 +894,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       const mcpTime = Date.now() - mcpStartTime
       console.log(
         "❌ Sequential MCP failed after",
-        mcpTime + "ms:",
+        `${mcpTime}ms:`,
         error instanceof Error ? error.message : String(error)
       )
       results.push({
@@ -895,7 +913,7 @@ test.describe("Chat API Comprehensive Tests", () => {
 
     // Comprehensive analysis
     const totalTime = Date.now() - overallStartTime
-    console.log("\n" + "=".repeat(60))
+    console.log(`\n${"=".repeat(60)}`)
     console.log("📊 COMPREHENSIVE CHAT MODE ANALYSIS")
     console.log("=".repeat(60))
 
@@ -914,7 +932,7 @@ test.describe("Chat API Comprehensive Tests", () => {
     console.log("📄 Mode-by-Mode Results:")
     console.log("-".repeat(50))
 
-    results.forEach((result, index) => {
+    results.forEach((result, _index) => {
       const emoji = result.success ? "✅" : "❌"
       const modeEmoji =
         result.mode === "normal"
@@ -1078,7 +1096,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       }
     }
 
-    console.log("\n" + "=".repeat(60))
+    console.log(`\n${"=".repeat(60)}`)
 
     // Enhanced assertions with context
     if (successfulModes === 0) {
@@ -1104,7 +1122,7 @@ test.describe("Chat API Comprehensive Tests", () => {
       )
       console.log("  Normal mode is the baseline for all other functionality")
       console.log("  If normal mode fails, other modes will likely fail too")
-    } else if (normalMode && normalMode.success) {
+    } else if (normalMode?.success) {
       console.log("✅ Baseline functionality confirmed: Normal mode working")
     }
 

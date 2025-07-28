@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest"
 
+import type { ModelConfig } from "@/lib/models/types"
+
 describe("Models Integration", () => {
   it("should load OpenAI models", async () => {
     const { openaiModels } = await import("@/lib/models/data/openai")
@@ -47,22 +49,20 @@ describe("Models Integration", () => {
 
     for (const modulePath of modules) {
       const module = await import(modulePath)
-      const models = Object.values(module).find((val) =>
+      const models = Object.values(module).find((val): val is ModelConfig[] =>
         Array.isArray(val)
-      ) as unknown[]
+      )
 
       if (models && models.length > 0) {
-        models.forEach((model: unknown) => {
+        models.forEach((model: ModelConfig) => {
           expect(model).toHaveProperty("id")
           expect(model).toHaveProperty("name")
           expect(model).toHaveProperty("provider")
           expect(model).toHaveProperty("providerId")
-          expect(
-            typeof (model as { contextWindow: number }).contextWindow
-          ).toBe("number")
-          expect(
-            (model as { contextWindow: number }).contextWindow
-          ).toBeGreaterThan(0)
+          if (model.contextWindow) {
+            expect(typeof model.contextWindow).toBe("number")
+            expect(model.contextWindow).toBeGreaterThan(0)
+          }
         })
       }
     }

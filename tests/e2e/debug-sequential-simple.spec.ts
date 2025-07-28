@@ -1,5 +1,21 @@
 import { expect, test } from "@playwright/test"
 
+type ToolConfig = { type: "mcp"; name: string } | { type: "web_search" }
+
+type ChatRequest = {
+  messages: Array<{ role: string; content: string }>
+  chatId: string
+  userId: string
+  model: string
+  isAuthenticated: boolean
+  systemPrompt: string
+  tools?: ToolConfig[]
+  enableThink?: boolean
+  enableSearch?: boolean
+  thinkingMode?: "none" | "regular" | "sequential"
+  message_group_id?: string
+}
+
 /**
  * Simple debug test for Sequential Thinking MCP
  */
@@ -10,7 +26,11 @@ test.describe("Debug Sequential Thinking MCP - Simple", () => {
     console.log("🧪 Starting simple Sequential Thinking MCP debug test...")
 
     // Capture network requests
-    const chatRequests: any[] = []
+    const chatRequests: Array<{
+      url: string
+      method: string
+      postData?: ChatRequest
+    }> = []
     page.on("request", (request) => {
       if (request.url().includes("/api/chat")) {
         const postData = request.postData()
@@ -72,7 +92,7 @@ test.describe("Debug Sequential Thinking MCP - Simple", () => {
     try {
       await page.waitForURL(/\/c\/[a-f0-9-]+/, { timeout: 10000 })
       console.log("🌐 Successfully navigated to chat page:", page.url())
-    } catch (error: unknown) {
+    } catch (_error: unknown) {
       console.log("⚠️ Navigation timeout or failed")
     }
 
@@ -97,8 +117,10 @@ test.describe("Debug Sequential Thinking MCP - Simple", () => {
       (req) =>
         req.postData?.thinkingMode === "sequential" ||
         req.postData?.tools?.some(
-          (tool: any) =>
-            tool.type === "mcp" && tool.name === "server-sequential-thinking"
+          (tool) =>
+            tool.type === "mcp" &&
+            "name" in tool &&
+            tool.name === "server-sequential-thinking"
         )
     )
 

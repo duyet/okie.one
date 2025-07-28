@@ -18,21 +18,41 @@ vi.mock("@/app/files/file-status-indicator", () => ({
 
 // Mock next/image
 vi.mock("next/image", () => ({
-  default: ({ src, alt, ...props }: any) => (
-    <img src={src} alt={alt} {...props} />
+  default: ({
+    src,
+    alt,
+    ...props
+  }: {
+    src: string
+    alt: string
+    [key: string]: unknown
+  }) => (
+    <div data-testid="mock-image" data-src={src} data-alt={alt} {...props} />
   ),
 }))
 
 // Mock dropdown menu components
 vi.mock("@/components/ui/dropdown-menu", () => ({
-  DropdownMenu: ({ children }: any) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children, ...props }: any) => (
-    <button {...props}>{children}</button>
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
   ),
-  DropdownMenuContent: ({ children }: any) => (
+  DropdownMenuTrigger: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode
+    [key: string]: unknown
+  }) => <button {...props}>{children}</button>,
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dropdown-content">{children}</div>
   ),
-  DropdownMenuItem: ({ children, onClick }: any) => (
+  DropdownMenuItem: ({
+    children,
+    onClick,
+  }: {
+    children: React.ReactNode
+    onClick?: () => void
+  }) => (
     <button type="button" onClick={onClick}>
       {children}
     </button>

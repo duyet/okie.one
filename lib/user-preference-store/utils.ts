@@ -1,3 +1,5 @@
+import { getDefaultMcpSettings } from "./mcp-config"
+
 export type LayoutType = "sidebar" | "fullscreen"
 
 export type UserPreferences = {
@@ -7,6 +9,7 @@ export type UserPreferences = {
   showConversationPreviews: boolean
   multiModelEnabled: boolean
   hiddenModels: string[]
+  mcpSettings: Record<string, boolean>
 }
 
 export const defaultPreferences: UserPreferences = {
@@ -16,6 +19,7 @@ export const defaultPreferences: UserPreferences = {
   showConversationPreviews: true,
   multiModelEnabled: false,
   hiddenModels: [],
+  mcpSettings: getDefaultMcpSettings(),
 }
 
 // API format type definition
@@ -26,19 +30,71 @@ type ApiUserPreferences = {
   show_conversation_previews?: boolean | null
   multi_model_enabled?: boolean | null
   hidden_models?: string[] | null
+  mcp_settings?: Record<string, boolean> | null
 }
+
+import { validators } from "./preference-manager"
 
 // Helper functions to convert between API format (snake_case) and frontend format (camelCase)
 export function convertFromApiFormat(
   apiData: ApiUserPreferences
 ): UserPreferences {
-  return {
-    layout: apiData.layout ?? "fullscreen",
-    promptSuggestions: apiData.prompt_suggestions ?? true,
-    showToolInvocations: apiData.show_tool_invocations ?? true,
-    showConversationPreviews: apiData.show_conversation_previews ?? true,
-    multiModelEnabled: apiData.multi_model_enabled ?? false,
-    hiddenModels: apiData.hidden_models ?? [],
+  try {
+    const layout = apiData.layout ?? defaultPreferences.layout
+    const promptSuggestions =
+      apiData.prompt_suggestions ?? defaultPreferences.promptSuggestions
+    const showToolInvocations =
+      apiData.show_tool_invocations ?? defaultPreferences.showToolInvocations
+    const showConversationPreviews =
+      apiData.show_conversation_previews ??
+      defaultPreferences.showConversationPreviews
+    const multiModelEnabled =
+      apiData.multi_model_enabled ?? defaultPreferences.multiModelEnabled
+    const hiddenModels =
+      apiData.hidden_models ?? defaultPreferences.hiddenModels
+    const mcpSettings = apiData.mcp_settings ?? defaultPreferences.mcpSettings
+
+    // Validate converted data
+    if (!validators.layout(layout)) {
+      console.warn("Invalid layout value from API, using default:", layout)
+    }
+    if (!validators.stringArray(hiddenModels)) {
+      console.warn(
+        "Invalid hiddenModels value from API, using default:",
+        hiddenModels
+      )
+    }
+    if (!validators.mcpSettings(mcpSettings)) {
+      console.warn(
+        "Invalid mcpSettings value from API, using default:",
+        mcpSettings
+      )
+    }
+
+    return {
+      layout: validators.layout(layout) ? layout : defaultPreferences.layout,
+      promptSuggestions: validators.boolean(promptSuggestions)
+        ? promptSuggestions
+        : defaultPreferences.promptSuggestions,
+      showToolInvocations: validators.boolean(showToolInvocations)
+        ? showToolInvocations
+        : defaultPreferences.showToolInvocations,
+      showConversationPreviews: validators.boolean(showConversationPreviews)
+        ? showConversationPreviews
+        : defaultPreferences.showConversationPreviews,
+      multiModelEnabled: validators.boolean(multiModelEnabled)
+        ? multiModelEnabled
+        : defaultPreferences.multiModelEnabled,
+      hiddenModels: validators.stringArray(hiddenModels)
+        ? hiddenModels
+        : defaultPreferences.hiddenModels,
+      mcpSettings: validators.mcpSettings(mcpSettings)
+        ? mcpSettings
+        : defaultPreferences.mcpSettings,
+    }
+  } catch (error) {
+    console.error("Error converting from API format, using defaults:", error)
+    return { ...defaultPreferences }
   }
 }
 
@@ -46,16 +102,40 @@ export function convertToApiFormat(
   preferences: Partial<UserPreferences>
 ): ApiUserPreferences {
   const apiData: ApiUserPreferences = {}
-  if (preferences.layout !== undefined) apiData.layout = preferences.layout
-  if (preferences.promptSuggestions !== undefined)
-    apiData.prompt_suggestions = preferences.promptSuggestions
-  if (preferences.showToolInvocations !== undefined)
-    apiData.show_tool_invocations = preferences.showToolInvocations
-  if (preferences.showConversationPreviews !== undefined)
-    apiData.show_conversation_previews = preferences.showConversationPreviews
-  if (preferences.multiModelEnabled !== undefined)
-    apiData.multi_model_enabled = preferences.multiModelEnabled
-  if (preferences.hiddenModels !== undefined)
-    apiData.hidden_models = preferences.hiddenModels
+
+  // Only include defined values to avoid sending null/undefined
+  const entries = Object.entries(preferences) as Array<
+    [keyof UserPreferences, any]
+  >
+
+  for (const [key, value] of entries) {
+    if (value === undefined) continue
+
+    switch (key) {
+      case "layout":
+        if (validators.layout(value)) apiData.layout = value
+        break
+      case "promptSuggestions":
+        if (validators.boolean(value)) apiData.prompt_suggestions = value
+        break
+      case "showToolInvocations":
+        if (validators.boolean(value)) apiData.show_tool_invocations = value
+        break
+      case "showConversationPreviews":
+        if (validators.boolean(value))
+          apiData.show_conversation_previews = value
+        break
+      case "multiModelEnabled":
+        if (validators.boolean(value)) apiData.multi_model_enabled = value
+        break
+      case "hiddenModels":
+        if (validators.stringArray(value)) apiData.hidden_models = value
+        break
+      case "mcpSettings":
+        if (validators.mcpSettings(value)) apiData.mcp_settings = value
+        break
+    }
+  }
+
   return apiData
 }

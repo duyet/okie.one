@@ -1,0 +1,7 @@
+// Re-export from centralized config for backward compatibility
+export {
+  type McpServerConfig,
+  getAllMcpServerConfigs as MCP_SERVERS,
+  getMcpServerConfig as getMcpServerById,
+  getDefaultMcpSettings,
+} from "@/lib/user-preference-store/mcp-config"

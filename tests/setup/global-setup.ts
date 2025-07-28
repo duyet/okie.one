@@ -1,5 +1,4 @@
 import { chromium, type FullConfig } from "@playwright/test"
-import { createReadStream } from "fs"
 
 /**
  * Global setup for Playwright tests
@@ -22,7 +21,7 @@ async function globalSetup(config: FullConfig) {
 
     for (let i = 0; i < retries; i++) {
       // Progressive delay - start small, increase gradually
-      const delay = Math.min(initialDelay * Math.pow(1.2, i), 5000)
+      const delay = Math.min(initialDelay * 1.2 ** i, 5000)
 
       try {
         console.log(
@@ -76,7 +75,7 @@ async function globalSetup(config: FullConfig) {
                   headingFound = true
                   break
                 }
-              } catch (error) {
+              } catch (_error) {
                 // Continue to next selector
               }
             }
@@ -151,7 +150,7 @@ async function globalSetup(config: FullConfig) {
           break
         } catch (error) {
           console.log(`Think button not found with selector: ${selector}`)
-          continue
+          console.error(error)
         }
       }
 
@@ -180,7 +179,7 @@ async function globalSetup(config: FullConfig) {
       }
 
       // Additional check: look for any MCP-related console messages
-      let mcpLogs: string[] = []
+      const mcpLogs: string[] = []
       page.on("console", (msg) => {
         const text = msg.text()
         if (

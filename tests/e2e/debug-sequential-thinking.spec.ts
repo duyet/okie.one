@@ -1,14 +1,13 @@
-import { expect, type Page, test } from "@playwright/test"
-import { getChatPlaceholder } from "../helpers/app-config"
+import { expect, test } from "@playwright/test"
+
 import {
-  setupSequentialThinkingTest,
   prepareTestEnvironment,
-  setupSequentialThinking,
-  sendMessage,
-  waitForAIResponse,
-  setupNetworkCapture,
+  setupSequentialThinkingTest,
   takeDebugScreenshot,
 } from "../helpers/test-helpers"
+
+// Type definitions for test data
+// ToolConfig and ChatRequestData interfaces are defined inline where used
 
 /**
  * Comprehensive E2E test to debug Sequential Thinking MCP issues
@@ -68,15 +67,20 @@ test.describe("Debug Sequential Thinking MCP", () => {
           console.log("    Messages Count:", request.postData.messages?.length)
           console.log(
             "    User ID:",
-            request.postData.userId?.substring(0, 8) + "..."
+            `${request.postData.userId?.substring(0, 8)}...`
           )
           console.log("    Is Authenticated:", request.postData.isAuthenticated)
 
           if (request.postData.tools) {
             console.log("    🔧 Tools configured:")
-            request.postData.tools.forEach((tool: any, i: number) => {
-              console.log(`      ${i + 1}: ${tool.type} - ${tool.name}`)
-            })
+            request.postData.tools.forEach(
+              (tool: Record<string, unknown>, i: number) => {
+                const toolType = tool.type as string
+                const toolName =
+                  toolType === "mcp" ? (tool.name as string) : toolType
+                console.log(`      ${i + 1}: ${toolType} - ${toolName}`)
+              }
+            )
           } else {
             console.log("    ⚠️ No tools configured")
           }
@@ -86,7 +90,7 @@ test.describe("Debug Sequential Thinking MCP", () => {
           console.log("  📝 Response:")
           console.log("    Status:", request.response.status)
 
-          if (request.response.status === 200) {
+          if (request.response?.status === 200) {
             successfulRequests++
             console.log(
               "    Content-Type:",
@@ -98,7 +102,7 @@ test.describe("Debug Sequential Thinking MCP", () => {
             )
             console.log(
               "    Preview:",
-              request.response.body?.substring(0, 150) + "..."
+              `${request.response.body?.substring(0, 150)}...`
             )
 
             // Enhanced MCP tool detection
@@ -110,24 +114,24 @@ test.describe("Debug Sequential Thinking MCP", () => {
               "addReasoningStep",
               "thoughtNumber",
               "nextThoughtNeeded",
-            ].some((pattern) => request.response.body?.includes(pattern))
+            ].some((pattern) => request.response?.body?.includes(pattern))
 
             console.log("    🧠 MCP Tool Activity:", hasMCPTools)
 
             if (hasMCPTools) {
               console.log("    ✅ Sequential Thinking patterns detected")
             }
-          } else if (request.response.status >= 500) {
+          } else if (request.response?.status >= 500) {
             serverErrors++
             console.log(
               "    🚨 Server Error Body:",
-              request.response.body?.substring(0, 300)
+              request.response?.body?.substring(0, 300)
             )
-          } else if (request.response.status >= 400) {
+          } else if (request.response?.status >= 400) {
             clientErrors++
             console.log(
               "    ⚠️ Client Error Body:",
-              request.response.body?.substring(0, 300)
+              request.response?.body?.substring(0, 300)
             )
           }
         } else {
@@ -241,7 +245,7 @@ test.describe("Debug Sequential Thinking MCP", () => {
         (req) =>
           req.postData?.thinkingMode === "sequential" ||
           req.postData?.tools?.some(
-            (tool: any) =>
+            (tool: Record<string, unknown>) =>
               tool.type === "mcp" && tool.name === "server-sequential-thinking"
           )
       )
@@ -305,9 +309,14 @@ test.describe("Debug Sequential Thinking MCP", () => {
           )
           console.log(`      Tool Count: ${req.postData?.tools?.length || 0}`)
           if (req.postData?.tools) {
-            req.postData.tools.forEach((tool: any, j: number) => {
-              console.log(`        Tool ${j + 1}: ${tool.type} - ${tool.name}`)
-            })
+            req.postData.tools.forEach(
+              (tool: Record<string, unknown>, j: number) => {
+                const toolType = tool.type as string
+                const toolName =
+                  toolType === "mcp" ? (tool.name as string) : toolType
+                console.log(`        Tool ${j + 1}: ${toolType} - ${toolName}`)
+              }
+            )
           }
         })
 
@@ -364,7 +373,7 @@ test.describe("Debug Sequential Thinking MCP", () => {
     }
   })
 
-  test.afterEach(async ({ page }) => {
+  test.afterEach(async ({ page: _page }) => {
     console.log("\n📊 Debug session completed")
     console.log("📅 Timestamp:", new Date().toISOString())
 

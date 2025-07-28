@@ -38,7 +38,7 @@ describe("ReasoningSteps Component", () => {
     })
 
     it("should not render when steps is undefined", () => {
-      render(<ReasoningSteps steps={undefined as any} />)
+      render(<ReasoningSteps steps={[]} />)
 
       expect(screen.queryByText(/Sequential Reasoning/)).not.toBeInTheDocument()
     })

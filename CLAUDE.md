@@ -340,3 +340,7 @@ The model selector now includes visual capability indicators and quick settings 
 - **Linting**: Biome (replaces ESLint + Prettier)
 - **Type Checking**: TypeScript strict mode
 - **Formatting**: Biome formatter
+
+```
+
+Do not use any type
