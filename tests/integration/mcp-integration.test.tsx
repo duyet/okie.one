@@ -159,7 +159,9 @@ describe("MCP Preferences Integration", () => {
             hidden_models: [],
             mcp_settings: {
               "sequential-thinking": false,
-              ...body.mcp_settings,
+              ...(typeof body === "object" && body !== null && "mcp_settings" in body
+                ? (body as any).mcp_settings
+                : {}),
             },
           })
         })
@@ -204,7 +206,9 @@ describe("MCP Preferences Integration", () => {
             mcp_settings: {
               "sequential-thinking": true,
               "new-server": true,
-              ...body.mcp_settings,
+              ...(typeof body === "object" && body !== null && "mcp_settings" in body
+                ? (body as any).mcp_settings
+                : {}),
             },
           })
         })
@@ -262,7 +266,7 @@ describe("MCP Preferences Integration", () => {
   })
 
   describe("localStorage fallback for anonymous users", () => {
-    let localStorageMock: Record<string, string>
+    let localStorageMock: Storage
 
     beforeEach(() => {
       // Mock localStorage
@@ -271,7 +275,9 @@ describe("MCP Preferences Integration", () => {
         setItem: vi.fn(),
         removeItem: vi.fn(),
         clear: vi.fn(),
-      }
+        length: 0,
+        key: vi.fn(),
+      } as unknown as Storage
       Object.defineProperty(window, "localStorage", {
         value: localStorageMock,
         writable: true,
@@ -281,12 +287,23 @@ describe("MCP Preferences Integration", () => {
       mockUserRef.current = {
         id: "anon-id",
         anonymous: true,
+        preferences: {
+          layout: "fullscreen" as const,
+          promptSuggestions: true,
+          showToolInvocations: true,
+          showConversationPreviews: true,
+          multiModelEnabled: false,
+          hiddenModels: [],
+          mcpSettings: {
+            "sequential-thinking": true,
+          },
+        },
       }
     })
 
     test("uses localStorage for anonymous users", async () => {
       // Mock localStorage to return stored preferences with explicit false for sequential-thinking
-      localStorageMock.getItem.mockReturnValue(
+      (localStorageMock.getItem as any).mockReturnValue(
         JSON.stringify({
           layout: "fullscreen",
           promptSuggestions: true,
@@ -327,7 +344,7 @@ describe("MCP Preferences Integration", () => {
       })
 
       // Should save to localStorage instead of API
-      expect(localStorageMock.setItem).toHaveBeenCalledWith(
+      expect(localStorageMock.setItem as any).toHaveBeenCalledWith(
         "user-preferences",
         expect.stringContaining('"mcpSettings"')
       )
@@ -363,7 +380,9 @@ describe("MCP Preferences Integration", () => {
             hidden_models: [],
             mcp_settings: {
               "sequential-thinking": false,
-              ...body.mcp_settings,
+              ...(typeof body === "object" && body !== null && "mcp_settings" in body
+                ? (body as any).mcp_settings
+                : {}),
             },
           })
         })

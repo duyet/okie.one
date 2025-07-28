@@ -43,13 +43,11 @@ describe("ButtonThink MCP Integration", () => {
   }
 
   // Store original values for restoration
-  const originalEnv = process.env.NODE_ENV
   const originalLocation = window.location
 
   beforeEach(() => {
     vi.clearAllMocks()
-    // Reset environment to test default
-    process.env.NODE_ENV = "test"
+    // Environment is already 'test' in test environment
     // Reset window location to localhost (test environment)
     Object.defineProperty(window, "location", {
       value: { hostname: "localhost" },
@@ -62,7 +60,7 @@ describe("ButtonThink MCP Integration", () => {
 
   afterEach(() => {
     // Restore original values
-    process.env.NODE_ENV = originalEnv
+    vi.unstubAllEnvs()
     Object.defineProperty(window, "location", {
       value: originalLocation,
       writable: true,
@@ -218,9 +216,8 @@ describe("ButtonThink MCP Integration", () => {
 
   describe("Authentication handling", () => {
     test("shows auth popover for unauthenticated users (non-test environment)", () => {
-      // Mock non-test environment by directly setting process.env
-      const originalNodeEnv = process.env.NODE_ENV
-      process.env.NODE_ENV = "production"
+      // Mock non-test environment
+      vi.stubEnv("NODE_ENV", "production")
 
       // Mock window.location to not be localhost
       Object.defineProperty(window, "location", {
@@ -234,7 +231,7 @@ describe("ButtonThink MCP Integration", () => {
       expect(screen.getByTestId("auth-popover")).toBeInTheDocument()
 
       // Restore original environment
-      process.env.NODE_ENV = originalNodeEnv
+      vi.unstubAllEnvs()
     })
 
     test("allows Sequential Thinking for unauthenticated users in test environment", () => {

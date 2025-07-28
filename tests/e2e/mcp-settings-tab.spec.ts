@@ -64,10 +64,9 @@ test.describe("MCP Settings Tab", () => {
     await mcpSwitch.click()
 
     // Wait for state change
-    await page.waitForFunction(
-      (element, initial) => element.getAttribute("aria-checked") !== initial,
-      mcpSwitch,
-      initialState
+    await expect(mcpSwitch).not.toHaveAttribute(
+      "aria-checked",
+      initialState || ""
     )
 
     // Verify state changed
@@ -90,10 +89,7 @@ test.describe("MCP Settings Tab", () => {
     const isChecked = await mcpSwitch.getAttribute("aria-checked")
     if (isChecked === "true") {
       await mcpSwitch.click()
-      await page.waitForFunction(
-        (element) => element.getAttribute("aria-checked") === "false",
-        mcpSwitch
-      )
+      await expect(mcpSwitch).toHaveAttribute("aria-checked", "false")
     }
 
     // Close settings modal
@@ -138,10 +134,7 @@ test.describe("MCP Settings Tab", () => {
     const isChecked = await mcpSwitch.getAttribute("aria-checked")
     if (isChecked === "false") {
       await mcpSwitch.click()
-      await page.waitForFunction(
-        (element) => element.getAttribute("aria-checked") === "true",
-        mcpSwitch
-      )
+      await expect(mcpSwitch).toHaveAttribute("aria-checked", "true")
     }
 
     // Close settings modal
