@@ -3,13 +3,14 @@
  */
 
 import { describe, expect, it } from "vitest"
+
 import {
   getMCPServer,
-  hasMCPServer,
   getMCPServerNames,
+  hasMCPServer,
   mcpServers,
-  sequentialThinkingServer,
   SequentialThinkingServer,
+  sequentialThinkingServer,
 } from "@/lib/mcp/servers"
 
 describe("MCP Servers Registry", () => {

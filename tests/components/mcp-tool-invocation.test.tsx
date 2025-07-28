@@ -2,9 +2,9 @@
  * Component tests for MCP ToolInvocation component
  */
 
-import { render, screen, fireEvent } from "@testing-library/react"
-import { describe, expect, it } from "vitest"
 import type { ToolInvocationUIPart } from "@ai-sdk/ui-utils"
+import { fireEvent, render, screen } from "@testing-library/react"
+import { describe, expect, it } from "vitest"
 
 import { ToolInvocation } from "@/app/components/mcp/tools/tool-invocation"
 

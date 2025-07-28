@@ -1,5 +1,4 @@
 import type { Message } from "@ai-sdk/react"
-import { useRouter } from "next/navigation"
 import { useCallback } from "react"
 
 import { toast } from "@/components/ui/toast"
@@ -39,7 +38,12 @@ export function useChatOperations({
   setHasRateLimitDialog,
   setMessages,
 }: UseChatOperationsProps) {
-  const router = useRouter()
+  // Update URL without page reload to preserve streaming (following Zola pattern)
+  const updateUrlForChat = useCallback((chatId: string) => {
+    console.log("Updating URL for chat:", chatId)
+    // Use history.pushState like original Zola implementation
+    window.history.pushState(null, "", `/c/${chatId}`)
+  }, [])
 
   // Chat utilities
   const checkLimitsAndNotify = async (uid: string): Promise<boolean> => {
@@ -133,13 +137,10 @@ export function useChatOperations({
 
         console.log("New chat created successfully:", newChat.id)
 
-        if (isAuthenticated) {
-          router.push(`/c/${newChat.id}`)
-        } else {
-          // Store guest chat ID for future reference and navigate to chat page
+        // Store guest chat ID for future reference but don't navigate yet
+        if (!isAuthenticated) {
           localStorage.setItem("guestChatId", newChat.id)
           console.log("Stored guest chat ID:", newChat.id)
-          router.push(`/c/${newChat.id}`)
         }
 
         return newChat.id
@@ -204,6 +205,7 @@ export function useChatOperations({
     // Utils
     checkLimitsAndNotify,
     ensureChatExists,
+    updateUrlForChat,
 
     // Handlers
     handleDelete,

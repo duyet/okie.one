@@ -5,8 +5,8 @@
  */
 
 import {
-  sequentialThinkingServer,
   SequentialThinkingServer,
+  sequentialThinkingServer,
 } from "./sequential-thinking"
 
 export interface MCPServerRegistry {
@@ -43,4 +43,5 @@ export function getMCPServerNames(): Array<keyof MCPServerRegistry> {
 
 // Re-export specific servers for convenience
 export { sequentialThinkingServer, SequentialThinkingServer }
+
 export * from "./sequential-thinking"

@@ -3,10 +3,11 @@
  */
 
 import { describe, expect, it } from "vitest"
+
 import {
+  SEQUENTIAL_THINKING_SYSTEM_PROMPT,
   SequentialThinkingServer,
   sequentialThinkingServer,
-  SEQUENTIAL_THINKING_SYSTEM_PROMPT,
 } from "@/lib/mcp/servers/sequential-thinking"
 
 describe("Sequential Thinking MCP Server", () => {

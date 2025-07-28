@@ -30,6 +30,7 @@ type UseChatCoreProps = {
   setFiles: (files: File[]) => void
   checkLimitsAndNotify: (uid: string) => Promise<boolean>
   ensureChatExists: (uid: string, input: string) => Promise<string | null>
+  updateUrlForChat: (chatId: string) => void
   handleFileUploads: (
     uid: string,
     chatId: string
@@ -37,6 +38,7 @@ type UseChatCoreProps = {
   selectedModel: string
   clearDraft: () => void
   bumpChat: (chatId: string) => void
+  setHasActiveChatSession: (active: boolean) => void
 }
 
 export function useChatCore({
@@ -49,10 +51,12 @@ export function useChatCore({
   setFiles,
   checkLimitsAndNotify,
   ensureChatExists,
+  updateUrlForChat,
   handleFileUploads,
   selectedModel,
   clearDraft,
   bumpChat,
+  setHasActiveChatSession,
 }: UseChatCoreProps) {
   // State management
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -368,6 +372,10 @@ export function useChatCore({
     return message
   }, [])
 
+  // For new chats (chatId is null), use empty messages to avoid conflicts
+  // For existing chats (chatId exists), use initialMessages from the provider
+  const effectiveInitialMessages = chatId ? initialMessages : []
+
   // Initialize useChat
   const {
     messages,
@@ -382,13 +390,22 @@ export function useChatCore({
     append,
   } = useChat({
     api: API_ROUTE_CHAT,
-    initialMessages,
+    initialMessages: effectiveInitialMessages,
     initialInput: draftValue,
     onFinish: (message) => {
+      console.log("🔍 useChat onFinish:", message)
       // Message already processed by streaming, just cache it
       cacheAndAddMessage(message)
     },
     onError: handleError,
+    // Add debugging for streaming status
+    onResponse: (response) => {
+      console.log("🔍 useChat onResponse - streaming started:", {
+        ok: response.ok,
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+      })
+    },
     // Add tool invocation callbacks for streaming
     onToolCall: (toolCall) => {
       console.log("🔧 Tool call during streaming:", toolCall)
@@ -429,14 +446,85 @@ export function useChatCore({
 
   // Process both artifacts and tool invocations in streaming messages (after useChat initialization)
   const processedMessages = useMemo(() => {
-    if (!messages) return []
-    return messages.map((message) => {
+    console.log("🔍 useChatCore - processing messages:", {
+      rawMessagesCount: messages?.length || 0,
+      rawMessages:
+        messages?.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content:
+            typeof m.content === "string"
+              ? `${m.content.substring(0, 50)}...`
+              : m.content,
+        })) || [],
+      status,
+    })
+
+    if (!messages?.length) return []
+    const processed = messages.map((message) => {
       // Apply both processing functions in sequence
       const withToolInvocations = processStreamingToolInvocations(message)
       const withArtifacts = processStreamingArtifacts(withToolInvocations)
       return withArtifacts
     })
-  }, [messages, processStreamingArtifacts, processStreamingToolInvocations])
+
+    console.log("🔍 useChatCore - processed messages:", {
+      processedCount: processed.length,
+      processedMessages: processed.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content:
+          typeof m.content === "string"
+            ? `${m.content.substring(0, 50)}...`
+            : m.content,
+      })),
+    })
+
+    return processed
+  }, [
+    messages,
+    processStreamingArtifacts,
+    processStreamingToolInvocations,
+    status,
+  ])
+
+  // Track raw messages changes for debugging
+  useEffect(() => {
+    console.log("🔍 Raw messages changed:", {
+      count: messages?.length || 0,
+      status,
+      lastMessage: messages?.[messages.length - 1]?.content || "none",
+    })
+  }, [messages, status])
+
+  // Track initialMessages changes for debugging
+  useEffect(() => {
+    console.log("🔍 initialMessages changed:", {
+      count: initialMessages?.length || 0,
+      initialMessages:
+        initialMessages?.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content:
+            typeof m.content === "string"
+              ? `${m.content.substring(0, 30)}...`
+              : m.content,
+        })) || [],
+    })
+  }, [initialMessages])
+
+  // Signal when we have an active chat session
+  useEffect(() => {
+    // Set active when we're streaming or have messages
+    const hasActiveSession =
+      status === "streaming" ||
+      status === "submitted" ||
+      (messages.length > 0 && !chatId)
+    setHasActiveChatSession(hasActiveSession)
+
+    // Clean up when component unmounts
+    return () => setHasActiveChatSession(false)
+  }, [status, messages.length, chatId, setHasActiveChatSession])
 
   // Handle search params on mount
   useEffect(() => {
@@ -455,17 +543,28 @@ export function useChatCore({
   }, [])
 
   // Reset messages when navigating from a chat to home
-  if (
-    prevChatIdRef.current !== null &&
-    chatId === null &&
-    messages.length > 0
-  ) {
-    setMessages([])
-  }
-  prevChatIdRef.current = chatId
+  // But only if we're not in the middle of streaming
+  useEffect(() => {
+    if (
+      prevChatIdRef.current !== null &&
+      chatId === null &&
+      messages.length > 0 &&
+      status === "ready"
+    ) {
+      setMessages([])
+      hasSentFirstMessageRef.current = false // Reset for new session
+    }
+    prevChatIdRef.current = chatId
+  }, [chatId, messages.length, status, setMessages])
 
   // Submit action
   const submit = useCallback(async () => {
+    console.log("🔍 Submit called - initial state:", {
+      inputLength: input.length,
+      messagesCount: messages.length,
+      status,
+    })
+
     setIsSubmitting(true)
 
     // Clear streaming tool invocations for new submission
@@ -545,7 +644,19 @@ export function useChatCore({
         experimental_attachments: attachments || undefined,
       }
 
+      console.log("🔍 About to call handleSubmit with options:", options)
+      hasSentFirstMessageRef.current = true // Mark that we've sent a message
+
+      // Start streaming first
       handleSubmit(undefined, options)
+      console.log("🔍 handleSubmit call completed")
+
+      // Update URL without reload (if we're not already there)
+      if (!chatId) {
+        console.log("🔍 Updating URL for chat without reload:", currentChatId)
+        updateUrlForChat(currentChatId)
+      }
+
       clearDraft()
 
       if (messages.length > 0) {
@@ -564,6 +675,7 @@ export function useChatCore({
     setFiles,
     checkLimitsAndNotify,
     ensureChatExists,
+    updateUrlForChat,
     handleFileUploads,
     selectedModel,
     isAuthenticated,
@@ -575,6 +687,8 @@ export function useChatCore({
     clearDraft,
     messages.length,
     bumpChat,
+    chatId,
+    status,
   ])
 
   // Handle suggestion

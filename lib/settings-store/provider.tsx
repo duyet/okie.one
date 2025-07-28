@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, type ReactNode, useState } from "react"
+import { createContext, type ReactNode, useContext, useState } from "react"
 
 import type { TabType } from "@/app/components/layout/settings/settings-content"
 
@@ -40,7 +40,9 @@ export function SettingsProvider({ children }: SettingsProviderProps) {
   }
 
   return (
-    <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>
+    <SettingsContext.Provider value={value}>
+      {children}
+    </SettingsContext.Provider>
   )
 }
 

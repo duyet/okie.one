@@ -4,6 +4,9 @@ import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 import type React from "react"
 import { useCallback, useMemo } from "react"
 
+import { ReasoningDisplay as Reasoning } from "@/app/components/mcp/reasoning/reasoning-display"
+import { ReasoningSteps } from "@/app/components/mcp/reasoning/sequential-steps"
+import { ToolInvocation } from "@/app/components/mcp/tools/tool-invocation"
 import type { ContentPart } from "@/app/types/api.types"
 import {
   Message,
@@ -26,11 +29,8 @@ import { cn } from "@/lib/utils"
 import { useArtifact } from "./artifact-context"
 import { ArtifactPreview } from "./artifact-preview"
 import { getSources } from "./get-sources"
-import { ReasoningDisplay as Reasoning } from "@/app/components/mcp/reasoning/reasoning-display"
-import { ReasoningSteps } from "@/app/components/mcp/reasoning/sequential-steps"
 import { SearchImages } from "./search-images"
 import { SourcesList } from "./sources-list"
-import { ToolInvocation } from "@/app/components/mcp/tools/tool-invocation"
 import { UsageMetrics } from "./usage-metrics"
 
 type MessageAssistantProps = {
@@ -95,11 +95,15 @@ export function MessageAssistant({
   const { user } = useUser()
 
   console.log("🔍 MessageAssistant received:", {
+    children: `"${children}"`,
+    childrenType: typeof children,
     partsCount: parts?.length || 0,
     partsTypes: parts?.map((p) => p.type) || [],
     parts: parts,
     toolInvocationsCount: toolInvocations?.length || 0,
     toolInvocations: toolInvocations,
+    status: status,
+    isLast: isLast,
   })
 
   // Memoize the openArtifact handler to prevent unnecessary renders
@@ -251,18 +255,37 @@ export function MessageAssistant({
     })
   }
 
+  const contentNullOrEmpty = children === null || children === ""
+  const isLastStreaming = status === "streaming" && isLast
+
   // Memoize the content rendering to prevent unnecessary re-renders
   const renderedContent = useMemo(() => {
-    if (children === null || children === "") return null
+    // Always render content during streaming, even if empty - it may get populated
+    if (children === null || (children === "" && !isLastStreaming)) return null
     return renderContentWithArtifacts(
       children,
       artifactParts,
       handleOpenArtifact
     )
-  }, [children, artifactParts, handleOpenArtifact])
+  }, [children, artifactParts, handleOpenArtifact, isLastStreaming])
 
-  const contentNullOrEmpty = children === null || children === ""
-  const isLastStreaming = status === "streaming" && isLast
+  // Show content container if we have content OR if we're streaming and have reasoning/tool parts
+  const shouldShowContent =
+    !contentNullOrEmpty ||
+    (isLastStreaming &&
+      (reasoningParts ||
+        sequentialReasoningSteps.length > 0 ||
+        toolInvocationParts.length > 0))
+
+  console.log("🔍 MessageAssistant render decision:", {
+    children: `"${children}"`,
+    contentNullOrEmpty,
+    isLastStreaming,
+    reasoningPartsExists: !!reasoningParts,
+    sequentialReasoningStepsCount: sequentialReasoningSteps.length,
+    toolInvocationPartsCount: toolInvocationParts.length,
+    shouldShowContent,
+  })
   const searchImageResults =
     parts
       ?.filter((part) => {
@@ -340,7 +363,7 @@ export function MessageAssistant({
           />
         )}
 
-        {contentNullOrEmpty ? null : (
+        {shouldShowContent && (
           <div className="message-content-with-artifacts">
             {renderedContent}
           </div>

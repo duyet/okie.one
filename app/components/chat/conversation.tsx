@@ -50,6 +50,8 @@ export function Conversation({
             const hasScrollAnchor =
               isLast && messages.length > initialMessageCount.current
 
+            console.log("Rendering message:", message.id, "Role:", message.role)
+
             // Debug log for assistant messages with tool invocations
             if (message.role === "assistant") {
               console.log("🔍 Conversation - full message object:", {

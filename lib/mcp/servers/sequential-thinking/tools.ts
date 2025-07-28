@@ -4,11 +4,12 @@
  */
 
 import { z } from "zod"
+
 import type {
-  SequentialThinkingResult,
-  SequentialThinkingParams,
-  ThoughtData,
   ReasoningStepParams,
+  SequentialThinkingParams,
+  SequentialThinkingResult,
+  ThoughtData,
 } from "./types"
 
 /**
@@ -83,7 +84,7 @@ You should:
       .describe("Estimated total thoughts needed"),
     isRevision: z
       .boolean()
-      .optional()
+      .default(false)
       .describe("Whether this revises previous thinking"),
     revisesThought: z
       .number()
@@ -100,7 +101,7 @@ You should:
     branchId: z.string().optional().describe("Branch identifier"),
     needsMoreThoughts: z
       .boolean()
-      .optional()
+      .default(false)
       .describe("If more thoughts are needed"),
   }),
   execute: async (
