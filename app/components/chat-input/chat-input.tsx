@@ -17,6 +17,7 @@ import { getModelInfo } from "@/lib/models"
 import { PromptSystem } from "../suggestions/prompt-system"
 import { ButtonFileUpload } from "./button-file-upload"
 import { ButtonSearch } from "./button-search"
+import { ButtonThink } from "./button-think"
 import { FileList } from "./file-list"
 
 type ChatInputProps = {
@@ -37,6 +38,8 @@ type ChatInputProps = {
   status?: "submitted" | "streaming" | "ready" | "error"
   setEnableSearch: (enabled: boolean) => void
   enableSearch: boolean
+  setEnableThink: (enabled: boolean) => void
+  enableThink: boolean
 }
 
 export function ChatInput({
@@ -56,9 +59,12 @@ export function ChatInput({
   status,
   setEnableSearch,
   enableSearch,
+  setEnableThink,
+  enableThink,
 }: ChatInputProps) {
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
+  const hasThinkingSupport = Boolean(selectModelConfig?.reasoning)
 
   const isOnlyWhitespace = useCallback(
     (text: string) => !/[^\s]/.test(text),
@@ -148,6 +154,12 @@ export function ChatInput({
     }
   }, [hasSearchSupport, enableSearch, setEnableSearch])
 
+  useMemo(() => {
+    if (!hasThinkingSupport && enableThink) {
+      setEnableThink?.(false)
+    }
+  }, [hasThinkingSupport, enableThink, setEnableThink])
+
   return (
     <div className="relative flex w-full flex-col gap-4">
       {hasSuggestions && (
@@ -178,12 +190,13 @@ export function ChatInput({
                 model={selectedModel}
                 isUserAuthenticated={isUserAuthenticated}
               />
-              <ModelSelector
-                selectedModelId={selectedModel}
-                setSelectedModelId={onSelectModel}
-                isUserAuthenticated={isUserAuthenticated}
-                className="rounded-full"
-              />
+              {hasThinkingSupport && (
+                <ButtonThink
+                  isSelected={enableThink}
+                  onToggle={setEnableThink}
+                  isAuthenticated={isUserAuthenticated}
+                />
+              )}
               {hasSearchSupport ? (
                 <ButtonSearch
                   isSelected={enableSearch}
@@ -192,24 +205,32 @@ export function ChatInput({
                 />
               ) : null}
             </div>
-            <PromptInputAction
-              tooltip={status === "streaming" ? "Stop" : "Send"}
-            >
-              <Button
-                size="sm"
-                className="size-9 rounded-full transition-all duration-300 ease-out"
-                disabled={!value || isSubmitting || isOnlyWhitespace(value)}
-                type="button"
-                onClick={handleSend}
-                aria-label={status === "streaming" ? "Stop" : "Send message"}
+            <div className="flex gap-2">
+              <ModelSelector
+                selectedModelId={selectedModel}
+                setSelectedModelId={onSelectModel}
+                isUserAuthenticated={isUserAuthenticated}
+                className="rounded-full"
+              />
+              <PromptInputAction
+                tooltip={status === "streaming" ? "Stop" : "Send"}
               >
-                {status === "streaming" ? (
-                  <StopIcon className="size-4" />
-                ) : (
-                  <ArrowUpIcon className="size-4" />
-                )}
-              </Button>
-            </PromptInputAction>
+                <Button
+                  size="sm"
+                  className="size-9 rounded-full transition-all duration-300 ease-out"
+                  disabled={!value || isSubmitting || isOnlyWhitespace(value)}
+                  type="button"
+                  onClick={handleSend}
+                  aria-label={status === "streaming" ? "Stop" : "Send message"}
+                >
+                  {status === "streaming" ? (
+                    <StopIcon className="size-4" />
+                  ) : (
+                    <ArrowUpIcon className="size-4" />
+                  )}
+                </Button>
+              </PromptInputAction>
+            </div>
           </PromptInputActions>
         </PromptInput>
       </div>

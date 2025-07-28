@@ -4,8 +4,14 @@ import {
   CaretDownIcon,
   MagnifyingGlassIcon,
   StarIcon,
+  Eye,
+  Wrench,
+  Brain,
+  GlobeHemisphereWest,
+  GearIcon,
 } from "@phosphor-icons/react"
-import { useRef, useState } from "react"
+import { useRef, useState, useMemo } from "react"
+import { useRouter } from "next/navigation"
 
 import { PopoverContentAuth } from "@/app/components/chat-input/popover-content-auth"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"
@@ -56,11 +62,22 @@ export function ModelSelector({
 }: ModelSelectorProps) {
   const { models, isLoading: isLoadingModels, favoriteModels } = useModel()
   const { isModelHidden } = useUserPreferences()
+  const router = useRouter()
 
   const currentModel = models.find((model) => model.id === selectedModelId)
-  const currentProvider = PROVIDERS.find(
-    (provider) => provider.id === currentModel?.icon
-  )
+
+  // Create provider map for better performance and type safety
+  const providerMap = useMemo(() => {
+    const map = new Map()
+    PROVIDERS.forEach((provider) => {
+      map.set(provider.id, provider)
+    })
+    return map
+  }, [])
+
+  const currentProvider = currentModel?.icon
+    ? providerMap.get(currentModel.icon)
+    : null
   const isMobile = useBreakpoint(768)
 
   const [hoveredModel, setHoveredModel] = useState<string | null>(null)
@@ -86,15 +103,20 @@ export function ModelSelector({
 
   const renderModelItem = (model: ModelConfig) => {
     const isLocked = !model.accessible
-    const provider = PROVIDERS.find((provider) => provider.id === model.icon)
+    const provider = model.icon ? providerMap.get(model.icon) : null
+    const isSelected = selectedModelId === model.id
 
     return (
       <button
         key={model.id}
         type="button"
+        role="option"
+        aria-selected={isSelected}
+        aria-label={`Select ${model.name} model`}
+        aria-describedby={`${model.id}-capabilities`}
         className={cn(
           "flex w-full items-center justify-between px-3 py-2 text-left",
-          selectedModelId === model.id && "bg-accent"
+          isSelected && "bg-accent"
         )}
         onClick={() => {
           if (isLocked) {
@@ -116,6 +138,59 @@ export function ModelSelector({
           <div className="flex flex-col gap-0">
             <span className="text-sm">{model.name}</span>
           </div>
+          <div
+            className="ml-1 flex items-center gap-1"
+            id={`${model.id}-capabilities`}
+          >
+            {model.vision && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-green-100 p-1 dark:bg-green-900/20">
+                    <Eye className="size-2.5 text-green-600 dark:text-green-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="z-[9999] text-xs">
+                  Vision
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {model.tools && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-blue-100 p-1 dark:bg-blue-900/20">
+                    <Wrench className="size-2.5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="z-[9999] text-xs">
+                  Tools
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {model.reasoning && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">
+                    <Brain className="size-2.5 text-purple-600 dark:text-purple-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="z-[9999] text-xs">
+                  Reasoning
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {model.webSearch && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="rounded-full bg-orange-100 p-1 dark:bg-orange-900/20">
+                    <GlobeHemisphereWest className="size-2.5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="z-[9999] text-xs">
+                  Web Search
+                </TooltipContent>
+              </Tooltip>
+            )}
+          </div>
         </div>
         {isLocked && (
           <div className="flex items-center gap-0.5 rounded-full border border-input bg-accent px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
@@ -130,12 +205,15 @@ export function ModelSelector({
   // Get the hovered model data
   const hoveredModelData = models.find((model) => model.id === hoveredModel)
 
-  const filteredModels = filterAndSortModels(
-    models,
-    favoriteModels || [],
-    searchQuery,
-    isModelHidden
-  )
+  // Memoize expensive filtering operations for better performance
+  const filteredModels = useMemo(() => {
+    return filterAndSortModels(
+      models,
+      favoriteModels || [],
+      searchQuery,
+      isModelHidden
+    )
+  }, [models, favoriteModels, searchQuery, isModelHidden])
 
   const trigger = (
     <Button
@@ -239,6 +317,23 @@ export function ModelSelector({
                   </a>
                 </div>
               )}
+
+              {/* Settings link separator and link */}
+              <div className="mx-4 my-2 border-border border-t" />
+              <div className="px-4 pb-2">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setIsDrawerOpen(false)
+                    // Navigate to settings page using Next.js router
+                    router.push("/settings?tab=models")
+                  }}
+                >
+                  <GearIcon className="size-4 text-muted-foreground" />
+                  <span>Manage Models</span>
+                </button>
+              </div>
             </div>
           </DrawerContent>
         </Drawer>
@@ -302,16 +397,21 @@ export function ModelSelector({
               ) : filteredModels.length > 0 ? (
                 filteredModels.map((model) => {
                   const isLocked = !model.accessible
-                  const provider = PROVIDERS.find(
-                    (provider) => provider.id === model.icon
-                  )
+                  const provider = model.icon
+                    ? providerMap.get(model.icon)
+                    : null
+                  const isSelected = selectedModelId === model.id
 
                   return (
                     <DropdownMenuItem
                       key={model.id}
+                      role="option"
+                      aria-selected={isSelected}
+                      aria-label={`Select ${model.name} model`}
+                      aria-describedby={`dropdown-${model.id}-capabilities`}
                       className={cn(
                         "flex w-full items-center justify-between px-3 py-2",
-                        selectedModelId === model.id && "bg-accent"
+                        isSelected && "bg-accent"
                       )}
                       onSelect={() => {
                         if (isLocked) {
@@ -339,6 +439,71 @@ export function ModelSelector({
                         <div className="flex flex-col gap-0">
                           <span className="text-sm">{model.name}</span>
                         </div>
+                        <div
+                          className="ml-1 flex items-center gap-1"
+                          id={`dropdown-${model.id}-capabilities`}
+                        >
+                          {model.vision && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-green-100 p-1 dark:bg-green-900/20">
+                                  <Eye className="size-2.5 text-green-600 dark:text-green-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
+                                Vision
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {model.tools && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-blue-100 p-1 dark:bg-blue-900/20">
+                                  <Wrench className="size-2.5 text-blue-600 dark:text-blue-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
+                                Tools
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {model.reasoning && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">
+                                  <Brain className="size-2.5 text-purple-600 dark:text-purple-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
+                                Reasoning
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                          {model.webSearch && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="rounded-full bg-orange-100 p-1 dark:bg-orange-900/20">
+                                  <GlobeHemisphereWest className="size-2.5 text-orange-600 dark:text-orange-400" />
+                                </div>
+                              </TooltipTrigger>
+                              <TooltipContent
+                                side="top"
+                                className="z-[9999] text-xs"
+                              >
+                                Web Search
+                              </TooltipContent>
+                            </Tooltip>
+                          )}
+                        </div>
                       </div>
                       {isLocked && (
                         <div className="flex items-center gap-0.5 rounded-full border border-input bg-accent px-1.5 py-0.5 font-medium text-[10px] text-muted-foreground">
@@ -363,6 +528,23 @@ export function ModelSelector({
                   </a>
                 </div>
               )}
+
+              {/* Settings link separator and link */}
+              <div className="mx-1 my-1 border-border border-t" />
+              <div className="px-1">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => {
+                    setIsDropdownOpen(false)
+                    // Navigate to settings page using Next.js router
+                    router.push("/settings?tab=models")
+                  }}
+                >
+                  <GearIcon className="size-4 text-muted-foreground" />
+                  <span>Manage Models</span>
+                </button>
+              </div>
             </div>
 
             {/* Submenu positioned absolutely */}

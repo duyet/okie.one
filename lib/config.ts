@@ -43,6 +43,7 @@ export const FREE_MODELS_IDS = [
   "gpt-4.1-nano",
   "gpt-4.1-mini",
   "gpt-4o-mini",
+  "gemini-2.0-flash-thinking-exp-01-21",
 ]
 
 export const MODEL_DEFAULT = "gpt-4.1-nano"

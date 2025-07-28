@@ -30,6 +30,7 @@ type ChatRequest = {
   isAuthenticated: boolean
   systemPrompt: string
   enableSearch: boolean
+  enableThink: boolean
   message_group_id?: string
 }
 
@@ -58,6 +59,7 @@ export async function POST(req: Request) {
       isAuthenticated,
       systemPrompt,
       enableSearch,
+      enableThink,
       message_group_id,
     } = requestBody
 
@@ -144,7 +146,7 @@ export async function POST(req: Request) {
     }
 
     const result = streamText({
-      model: modelConfig.apiSdk(apiKey, { enableSearch }),
+      model: modelConfig.apiSdk(apiKey, { enableSearch, enableThink }),
       system: effectiveSystemPrompt,
       messages: messages,
       tools: {} as ToolSet,
