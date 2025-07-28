@@ -112,7 +112,6 @@ export async function getDailyLeaderboard(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
     const { data, error } = await (supabase as any).rpc(
       "get_daily_token_leaderboard",
@@ -157,7 +156,6 @@ export async function getUserTokenAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
     const { data, error } = await (supabase as any).rpc(
       "get_user_token_analytics",
@@ -395,7 +393,6 @@ export async function getTimingAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
     const { data, error } = await (supabase as any).rpc(
       "get_timing_analytics",
@@ -440,7 +437,6 @@ export async function getDailyTokenUsageByModel(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
     const { data, error } = await (supabase as any).rpc(
       "get_daily_model_token_summary",

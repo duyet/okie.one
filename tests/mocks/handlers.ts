@@ -62,7 +62,9 @@ export const handlers = [
       hidden_models: [],
       mcp_settings: {
         "sequential-thinking": true,
-        ...body.mcp_settings,
+        ...(typeof body === "object" && body !== null && "mcp_settings" in body
+          ? body.mcp_settings
+          : {}),
       },
     })
   }),
