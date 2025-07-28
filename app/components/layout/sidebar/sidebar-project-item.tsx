@@ -172,27 +172,6 @@ export function SidebarProjectItem({ project }: SidebarProjectItemProps) {
     [handleSave, handleCancel]
   )
 
-  const handleContainerClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (isEditing) {
-        e.stopPropagation()
-      }
-    },
-    [isEditing]
-  )
-
-  const handleContainerKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault()
-        if (isEditing) {
-          e.stopPropagation()
-        }
-      }
-    },
-    [isEditing]
-  )
-
   const handleSaveClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -243,14 +222,7 @@ export function SidebarProjectItem({ project }: SidebarProjectItemProps) {
   )
 
   return (
-    <div
-      className={containerClassName}
-      onClick={handleContainerClick}
-      onKeyDown={handleContainerKeyDown}
-      role="button"
-      tabIndex={0}
-      ref={containerRef}
-    >
+    <div className={containerClassName} ref={containerRef}>
       {isEditing ? (
         <div className="flex items-center rounded-md bg-accent py-1 pr-1 pl-2">
           <FolderIcon size={20} className="mr-2 flex-shrink-0 text-primary" />

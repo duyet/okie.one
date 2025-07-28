@@ -110,8 +110,6 @@ export function ModelSelector({
       <button
         key={model.id}
         type="button"
-        role="option"
-        aria-selected={isSelected}
         aria-label={`Select ${model.name} model`}
         aria-describedby={`${model.id}-capabilities`}
         className={cn(
@@ -405,8 +403,6 @@ export function ModelSelector({
                   return (
                     <DropdownMenuItem
                       key={model.id}
-                      role="option"
-                      aria-selected={isSelected}
                       aria-label={`Select ${model.name} model`}
                       aria-describedby={`dropdown-${model.id}-capabilities`}
                       className={cn(

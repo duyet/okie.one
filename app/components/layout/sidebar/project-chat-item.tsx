@@ -88,27 +88,6 @@ export function ProjectChatItem({ chat, formatDate }: ProjectChatItemProps) {
     [handleSave, handleCancel]
   )
 
-  const handleContainerClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (isEditing) {
-        e.stopPropagation()
-      }
-    },
-    [isEditing]
-  )
-
-  const handleContainerKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault()
-        if (isEditing) {
-          e.stopPropagation()
-        }
-      }
-    },
-    [isEditing]
-  )
-
   const handleSaveClick = useCallback(
     (e: React.MouseEvent) => {
       e.stopPropagation()
@@ -155,14 +134,7 @@ export function ProjectChatItem({ chat, formatDate }: ProjectChatItemProps) {
 
   if (isEditing) {
     return (
-      <div
-        className={containerClassName}
-        onClick={handleContainerClick}
-        onKeyDown={handleContainerKeyDown}
-        role="button"
-        tabIndex={0}
-        ref={containerRef}
-      >
+      <div className={containerClassName} ref={containerRef}>
         <div className="flex items-center p-3">
           <ChatCircleIcon
             size={16}
@@ -197,14 +169,7 @@ export function ProjectChatItem({ chat, formatDate }: ProjectChatItemProps) {
   }
 
   return (
-    <div
-      className={containerClassName}
-      onClick={handleContainerClick}
-      onKeyDown={handleContainerKeyDown}
-      role="button"
-      tabIndex={0}
-      ref={containerRef}
-    >
+    <div className={containerClassName} ref={containerRef}>
       <Link
         href={`/c/${chat.id}`}
         className="block p-3"

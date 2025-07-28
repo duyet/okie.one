@@ -14,7 +14,8 @@ type SuggestionsProps = {
   value?: string
 }
 
-const MotionPromptSuggestion = motion.create(PromptSuggestion)
+// Create a motion wrapper for PromptSuggestion
+const MotionPromptSuggestion = motion.div
 
 export const Suggestions = memo(function Suggestions({
   onValueChange,
@@ -70,8 +71,6 @@ export const Suggestions = memo(function Suggestions({
         {SUGGESTIONS_CONFIG.map((suggestion, index) => (
           <MotionPromptSuggestion
             key={suggestion.label}
-            onClick={() => handleCategoryClick(suggestion)}
-            className="capitalize"
             initial="initial"
             animate="animate"
             transition={{
@@ -83,8 +82,13 @@ export const Suggestions = memo(function Suggestions({
               animate: { opacity: 1, scale: 1 },
             }}
           >
-            <suggestion.icon className="size-4" />
-            {suggestion.label}
+            <PromptSuggestion
+              onClick={() => handleCategoryClick(suggestion)}
+              className="capitalize"
+            >
+              <suggestion.icon className="size-4" />
+              {suggestion.label}
+            </PromptSuggestion>
           </MotionPromptSuggestion>
         ))}
       </motion.div>
@@ -113,10 +117,6 @@ export const Suggestions = memo(function Suggestions({
         {activeCategoryData?.items.map((suggestion: string, index: number) => (
           <MotionPromptSuggestion
             key={`${activeCategoryData?.label}-${suggestion}-${index}`}
-            highlight={activeCategoryData.highlight}
-            type="button"
-            onClick={() => handleSuggestionClick(suggestion)}
-            className="block h-full text-left"
             initial="initial"
             animate="animate"
             variants={{
@@ -128,7 +128,14 @@ export const Suggestions = memo(function Suggestions({
               delay: index * 0.05,
             }}
           >
-            {suggestion}
+            <PromptSuggestion
+              highlight={activeCategoryData.highlight}
+              type="button"
+              onClick={() => handleSuggestionClick(suggestion)}
+              className="block h-full text-left"
+            >
+              {suggestion}
+            </PromptSuggestion>
           </MotionPromptSuggestion>
         ))}
       </motion.div>

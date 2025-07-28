@@ -5,7 +5,7 @@ import { expect, test } from "@playwright/test"
  * for questions that would benefit from step-by-step reasoning
  */
 test.describe("Enhanced System Prompt - Sequential Thinking Encouragement", () => {
-  const baseUrl = "http://localhost:3002"
+  const baseUrl = "http://localhost:3000"
 
   const createGuestUserId = () => crypto.randomUUID()
   const createChatId = () => crypto.randomUUID()
@@ -139,7 +139,7 @@ test.describe("Enhanced System Prompt - Sequential Thinking Encouragement", () =
         }
 
         results.push(result)
-      } catch (error) {
+      } catch (error: unknown) {
         results.push({
           name: testCase.name,
           message: testCase.message,

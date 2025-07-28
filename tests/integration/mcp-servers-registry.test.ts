@@ -23,7 +23,7 @@ describe("MCP Servers Registry", () => {
     })
 
     it("should return null for invalid server name", () => {
-      const server = getMCPServer("nonexistent-server" as any)
+      const server = getMCPServer("nonexistent-server" as never)
 
       expect(server).toBeNull()
     })

@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test"
+import { getAppName } from "../helpers/app-config"
 
 test.describe("Homepage", () => {
   test("should load the homepage", async ({ page }) => {
     await page.goto("/")
 
     // Check that the page loads
-    await expect(page).toHaveTitle(/Okie/i)
+    await expect(page).toHaveTitle(new RegExp(getAppName(), "i"))
 
     // Check for key elements
     await expect(page.locator("body")).toBeVisible()

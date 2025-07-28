@@ -1,6 +1,6 @@
 "use client"
 
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import * as React from "react"
 
@@ -34,6 +34,20 @@ export interface ChartConfig {
     color?: string
     theme?: Record<string, string>
   }
+}
+
+interface ChartDataItem {
+  value?: unknown
+  name?: string
+  dataKey?: string
+  color?: string
+  payload?: Record<string, unknown>
+}
+
+interface ChartLegendItem {
+  value: string
+  type?: string
+  color?: string
 }
 
 interface ChartContainerProps extends React.ComponentProps<"div"> {
@@ -91,14 +105,14 @@ const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   {
     active?: boolean
-    payload?: any[]
+    payload?: ChartDataItem[]
     label?: string
     labelKey?: string
-    labelFormatter?: (value: any, payload: any[]) => React.ReactNode
+    labelFormatter?: (value: unknown, payload: ChartDataItem[]) => React.ReactNode
     formatter?: (
-      value: any,
-      name: any,
-      props: any
+      value: unknown,
+      name: string,
+      props: ChartDataItem
     ) => [React.ReactNode, React.ReactNode]
     color?: string
     hideLabel?: boolean
@@ -133,13 +147,13 @@ const ChartTooltipContent = React.forwardRef<
       return null
     }
 
-    const renderLabel = () => {
+    const renderLabel = (): React.ReactNode => {
       if (hideLabel) return null
       if (labelFormatter && payload) {
         return labelFormatter(label, payload)
       }
-      if (labelKey && payload?.[0]) {
-        return payload[0].payload[labelKey]
+      if (labelKey && payload?.[0]?.payload) {
+        return payload[0].payload[labelKey] as React.ReactNode
       }
       return label
     }
@@ -192,8 +206,10 @@ const ChartTooltipContent = React.forwardRef<
                   </div>
                   <span className="font-medium font-mono text-foreground tabular-nums">
                     {formatter
-                      ? formatter(item.value, item.name, item)[0]
-                      : item.value?.toLocaleString()}
+                      ? formatter(item.value, item.name || '', item)[0]
+                      : typeof item.value === 'string' || typeof item.value === 'number' 
+                        ? item.value.toLocaleString()
+                        : String(item.value || '')}
                   </span>
                 </div>
               </div>
@@ -215,9 +231,9 @@ const ChartLegend = React.forwardRef<
       color?: string
     }>
     nameKey?: string
-    onMouseEnter?: (data: any, index: number) => void
-    onMouseLeave?: (data: any, index: number) => void
-    onClick?: (data: any, index: number) => void
+    onMouseEnter?: (data: ChartLegendItem, index: number) => void
+    onMouseLeave?: (data: ChartLegendItem, index: number) => void
+    onClick?: (data: ChartLegendItem, index: number) => void
   }
 >(({ className, payload, nameKey, ...props }, ref) => {
   const { config, getColor } = useChart()

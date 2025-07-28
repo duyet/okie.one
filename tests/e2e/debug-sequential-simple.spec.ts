@@ -31,7 +31,7 @@ test.describe("Debug Sequential Thinking MCP - Simple", () => {
     })
 
     // Go to home page
-    await page.goto("http://localhost:3002")
+    await page.goto("/")
     console.log("🌐 Navigated to home page")
 
     // Wait for page to load
@@ -72,7 +72,7 @@ test.describe("Debug Sequential Thinking MCP - Simple", () => {
     try {
       await page.waitForURL(/\/c\/[a-f0-9-]+/, { timeout: 10000 })
       console.log("🌐 Successfully navigated to chat page:", page.url())
-    } catch (error) {
+    } catch (error: unknown) {
       console.log("⚠️ Navigation timeout or failed")
     }
 

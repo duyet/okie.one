@@ -15,7 +15,7 @@ test.describe("Sequential Thinking MCP - UI Rendering Check", () => {
     })
 
     // Go to home page
-    await page.goto("http://localhost:3002")
+    await page.goto("/")
 
     // Wait for page to load
     await expect(page.locator("h1")).toContainText("What's on your mind?")

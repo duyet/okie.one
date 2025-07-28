@@ -6,7 +6,7 @@ import { expect, test } from "@playwright/test"
  * while complex reasoning tasks should trigger MCP tools
  */
 test.describe("Sequential Thinking MCP - Tool Invocation Logic", () => {
-  const baseUrl = "http://localhost:3002"
+  const baseUrl = "http://localhost:3000"
 
   const createGuestUserId = () => crypto.randomUUID()
   const createChatId = () => crypto.randomUUID()
@@ -186,7 +186,7 @@ test.describe("Sequential Thinking MCP - Tool Invocation Logic", () => {
         }
 
         results.push(result)
-      } catch (error) {
+      } catch (error: unknown) {
         results.push({
           name: testCase.name,
           message: testCase.message,

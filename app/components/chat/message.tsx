@@ -43,8 +43,6 @@ export function Message({
     setTimeout(() => setCopied(false), 500)
   }
 
-  console.log("Variant:", variant, " - ID:", id)
-
   if (variant === "user") {
     return (
       <MessageUser

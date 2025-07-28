@@ -202,23 +202,7 @@ export function DrawerHistory({
               </form>
             </div>
           ) : (
-            <div
-              className="group flex items-center justify-between rounded-lg px-2 py-1.5"
-              onClick={() => {
-                if (params.chatId === chat.id) {
-                  handleOpenChange(false)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  if (params.chatId === chat.id) {
-                    handleOpenChange(false)
-                  }
-                }
-              }}
-              role="button"
-              tabIndex={0}
-            >
+            <div className="group flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left">
               <Link
                 href={`/c/${chat.id}`}
                 key={chat.id}
