@@ -150,20 +150,34 @@ export const validators = {
 }
 
 /**
+ * Type for preferences data during migration (can be partial or unknown structure)
+ */
+type PreferencesData = Record<string, unknown>
+
+/**
+ * Type for migration function that transforms preferences from one version to another
+ */
+type MigrationFunction = (preferences: PreferencesData) => PreferencesData
+
+/**
  * Migration utilities for preference schema changes
  */
 export class PreferenceMigrator {
   private migrations: Array<{
     version: number
-    migrate: (preferences: any) => any
+    migrate: MigrationFunction
   }> = []
 
-  addMigration(version: number, migrate: (preferences: any) => any) {
+  addMigration(version: number, migrate: MigrationFunction) {
     this.migrations.push({ version, migrate })
     this.migrations.sort((a, b) => a.version - b.version)
   }
 
-  migrate(preferences: any, fromVersion: number, toVersion: number): any {
+  migrate(
+    preferences: PreferencesData,
+    fromVersion: number,
+    toVersion: number
+  ): PreferencesData {
     let result = preferences
 
     for (const migration of this.migrations) {

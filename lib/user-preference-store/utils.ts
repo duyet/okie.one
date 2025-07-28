@@ -105,7 +105,7 @@ export function convertToApiFormat(
 
   // Only include defined values to avoid sending null/undefined
   const entries = Object.entries(preferences) as Array<
-    [keyof UserPreferences, any]
+    [keyof UserPreferences, UserPreferences[keyof UserPreferences]]
   >
 
   for (const [key, value] of entries) {

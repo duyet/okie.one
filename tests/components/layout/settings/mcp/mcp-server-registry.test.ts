@@ -177,7 +177,9 @@ describe("MCP Server Registry", () => {
         // Icons can be either functions or React components (objects with $$typeof)
         const isValidComponent =
           typeof server.icon === "function" ||
-          (typeof server.icon === "object" && !!server.icon.$$typeof)
+          (typeof server.icon === "object" &&
+            server.icon !== null &&
+            "$$typeof" in server.icon)
         expect(isValidComponent).toBe(true)
       })
     })

@@ -351,8 +351,8 @@ describe("MCP Preferences Integration", () => {
       })
 
       // Mock slow API response
-      let resolveApiCall: (value: Response) => void
-      const apiPromise = new Promise((resolve) => {
+      let resolveApiCall: (value: Response) => void = () => {}
+      const apiPromise = new Promise<Response>((resolve) => {
         resolveApiCall = resolve
       })
       mockFetch.mockReturnValue(apiPromise)
@@ -386,7 +386,7 @@ describe("MCP Preferences Integration", () => {
               "sequential-thinking": false,
             },
           }),
-      })
+      } as Response)
 
       await waitFor(() => {
         expect(result.current.isMcpServerEnabled("sequential-thinking")).toBe(
