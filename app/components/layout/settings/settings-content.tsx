@@ -30,12 +30,22 @@ import { ModelsSettings } from "./models/models-settings"
 
 type SettingsContentProps = {
   isDrawer?: boolean
+  activeTab?: TabType
+  onTabChange?: (tab: TabType) => void
 }
 
-type TabType = "general" | "appearance" | "models" | "connections"
+export type TabType = "general" | "appearance" | "models" | "connections"
 
-export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
-  const [activeTab, setActiveTab] = useState<TabType>("general")
+export function SettingsContent({
+  isDrawer = false,
+  activeTab: controlledActiveTab,
+  onTabChange,
+}: SettingsContentProps) {
+  const [internalActiveTab, setInternalActiveTab] = useState<TabType>("general")
+
+  // Use controlled tab if provided, otherwise use internal state
+  const activeTab = controlledActiveTab ?? internalActiveTab
+  const setActiveTab = onTabChange ?? setInternalActiveTab
 
   return (
     <div

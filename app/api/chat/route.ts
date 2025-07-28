@@ -231,7 +231,7 @@ ${mcpServer.getSystemPromptEnhancement()}`
 
         default:
           console.log(
-            `❓ Unknown tool type: ${"type" in tool ? tool.type : "unknown"}`
+            `❓ Unknown tool type: ${typeof tool === "object" && tool !== null && "type" in tool && typeof (tool as { type: unknown }).type === "string" ? (tool as { type: string }).type : "unknown"}`
           )
       }
     }

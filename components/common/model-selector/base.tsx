@@ -10,7 +10,6 @@ import {
   StarIcon,
   Wrench,
 } from "@phosphor-icons/react"
-import { useRouter } from "next/navigation"
 import { useMemo, useRef, useState } from "react"
 
 import { PopoverContentAuth } from "@/app/components/chat-input/popover-content-auth"
@@ -41,6 +40,7 @@ import { useModel } from "@/lib/model-store/provider"
 import { filterAndSortModels } from "@/lib/model-store/utils"
 import type { ModelConfig } from "@/lib/models/types"
 import { PROVIDERS } from "@/lib/providers"
+import { useSettings } from "@/lib/settings-store/provider"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { cn } from "@/lib/utils"
 
@@ -62,7 +62,7 @@ export function ModelSelector({
 }: ModelSelectorProps) {
   const { models, isLoading: isLoadingModels, favoriteModels } = useModel()
   const { isModelHidden } = useUserPreferences()
-  const router = useRouter()
+  const { openSettings } = useSettings()
 
   const currentModel = models.find((model) => model.id === selectedModelId)
 
@@ -326,8 +326,8 @@ export function ModelSelector({
                   className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => {
                     setIsDrawerOpen(false)
-                    // Navigate to settings page using Next.js router
-                    router.push("/settings?tab=models")
+                    // Open settings modal with models tab
+                    openSettings("models")
                   }}
                 >
                   <GearIcon className="size-4 text-muted-foreground" />
@@ -537,8 +537,8 @@ export function ModelSelector({
                   className="flex w-full items-center gap-3 rounded-sm px-3 py-2 text-left text-sm hover:bg-accent hover:text-accent-foreground"
                   onClick={() => {
                     setIsDropdownOpen(false)
-                    // Navigate to settings page using Next.js router
-                    router.push("/settings?tab=models")
+                    // Open settings modal with models tab
+                    openSettings("models")
                   }}
                 >
                   <GearIcon className="size-4 text-muted-foreground" />
