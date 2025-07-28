@@ -1,6 +1,5 @@
 "use client"
 
-
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
@@ -249,13 +248,13 @@ const ChartLegend = React.forwardRef<
       className={cn("flex items-center justify-center gap-4", className)}
       {...props}
     >
-      {payload.map((item, index) => {
+      {payload.map((item) => {
         const key = nameKey || item.value
         const itemConfig = config[key] || {}
 
         return (
           <div
-            key={`${key}-${item.dataKey || item.name || index}`}
+            key={`chart-legend-${key}`}
             className="flex items-center gap-1.5 text-sm"
           >
             <div

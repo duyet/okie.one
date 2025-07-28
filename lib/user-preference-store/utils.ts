@@ -1,4 +1,4 @@
-import { getDefaultMcpSettings } from "./mcp-config"
+import { getDefaultMcpSettings } from "./mcp-config-server"
 
 export type LayoutType = "sidebar" | "fullscreen"
 

@@ -1,8 +1,5 @@
 // Token tracking API utilities
 
-import type { SupabaseClient } from "@supabase/supabase-js"
-
-import type { Database } from "@/app/types/database.types"
 import { createClient } from "@/lib/supabase/server"
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
 
@@ -115,7 +112,9 @@ export async function getDailyLeaderboard(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as SupabaseClient<Database>).rpc(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
+    const { data, error } = await (supabase as any).rpc(
       "get_daily_token_leaderboard",
       {
         target_date: date,
@@ -158,7 +157,9 @@ export async function getUserTokenAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as SupabaseClient<Database>).rpc(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
+    const { data, error } = await (supabase as any).rpc(
       "get_user_token_analytics",
       {
         target_user_id: userId,
@@ -394,7 +395,9 @@ export async function getTimingAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as SupabaseClient<Database>).rpc(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
+    const { data, error } = await (supabase as any).rpc(
       "get_timing_analytics",
       {
         target_user_id: userId,
@@ -437,7 +440,9 @@ export async function getDailyTokenUsageByModel(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as SupabaseClient<Database>).rpc(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // biome-ignore lint/suspicious/noExplicitAny: Database types don't include RPC functions
+    const { data, error } = await (supabase as any).rpc(
       "get_daily_model_token_summary",
       {
         days_back: daysBack,

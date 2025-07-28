@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/server"
 import { getUserProfile } from "@/lib/user/api"
 
 export async function DELETE(
@@ -15,7 +15,7 @@ export async function DELETE(
     }
 
     const { fileId } = await params
-    const supabase = createClient()
+    const supabase = await createClient()
 
     if (!supabase) {
       return NextResponse.json(

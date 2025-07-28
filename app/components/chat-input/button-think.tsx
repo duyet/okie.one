@@ -48,9 +48,17 @@ export const ButtonThink = memo(function ButtonThink({
   const { isTestEnvironment } = useEnvironmentContext()
 
   const isSelected = thinkingMode !== "none"
-  const isSequentialThinkingEnabled = isMcpServerEnabled(
-    MCP_SERVER_IDS.SEQUENTIAL_THINKING
-  )
+
+  // Safely check MCP server state with error handling
+  let isSequentialThinkingEnabled = false
+  try {
+    isSequentialThinkingEnabled = isMcpServerEnabled(
+      MCP_SERVER_IDS.SEQUENTIAL_THINKING
+    )
+  } catch (error) {
+    console.warn("Failed to check MCP server state:", error)
+    isSequentialThinkingEnabled = false
+  }
 
   // Compute availability once
   const availability = useMemo(
