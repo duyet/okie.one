@@ -213,7 +213,7 @@ export const addReasoningStepTool = {
   }),
   execute: async (
     params: ReasoningStepParams,
-    context?: {
+    _context?: {
       toolCallId: string
       messages: CoreMessage[]
       abortSignal?: AbortSignal

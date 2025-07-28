@@ -6,7 +6,6 @@ import {
   X,
 } from "@phosphor-icons/react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
