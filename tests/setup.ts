@@ -28,13 +28,19 @@ global.indexedDB = {
   open: vi.fn().mockReturnValue(mockIDBRequest),
   deleteDatabase: vi.fn().mockReturnValue(mockIDBRequest),
   databases: vi.fn().mockResolvedValue([]),
-} as any
+} as unknown as IDBFactory
 
 // Ensure document.body exists for React Testing Library
 beforeAll(() => {
   if (!document.body) {
     document.body = document.createElement("body")
   }
+
+  // Mock window.scrollTo for JSDOM compatibility with motion library
+  Object.defineProperty(window, "scrollTo", {
+    value: vi.fn(),
+    writable: true,
+  })
 })
 
 // Start server before all tests

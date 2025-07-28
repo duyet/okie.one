@@ -50,15 +50,9 @@ export const mockComponents = {
     children: React.ReactNode
     onClick?: () => void
   }) => (
-    <div
-      onClick={onClick}
-      onKeyDown={(e) => e.key === "Enter" && onClick?.()}
-      role="button"
-      tabIndex={0}
-      data-testid="dropdown-item"
-    >
+    <button onClick={onClick} data-testid="dropdown-item" type="button">
       {children}
-    </div>
+    </button>
   ),
   DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="dropdown-trigger">{children}</div>
