@@ -18,6 +18,15 @@ export interface ReasoningPart {
   reasoning: string
 }
 
+export interface SequentialReasoningStepPart {
+  type: "sequential-reasoning-step"
+  step: {
+    title: string
+    content: string
+    nextStep?: "continue" | "finalAnswer"
+  }
+}
+
 export interface SourcePart {
   type: "source"
   source: {

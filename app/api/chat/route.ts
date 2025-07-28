@@ -1,5 +1,6 @@
 import type { Attachment } from "@ai-sdk/ui-utils"
 import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
+import { z } from "zod"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -31,6 +32,7 @@ type ChatRequest = {
   systemPrompt: string
   enableSearch: boolean
   enableThink: boolean
+  thinkingMode?: "none" | "regular" | "sequential"
   message_group_id?: string
 }
 
@@ -60,6 +62,7 @@ export async function POST(req: Request) {
       systemPrompt,
       enableSearch,
       enableThink,
+      thinkingMode = "none",
       message_group_id,
     } = requestBody
 
@@ -145,12 +148,66 @@ export async function POST(req: Request) {
         undefined
     }
 
+    // Configure tools based on thinking mode
+    let tools: ToolSet = {}
+    let sequentialSystemPrompt = effectiveSystemPrompt
+
+    if (
+      thinkingMode === "sequential" &&
+      (model.includes("claude") || model.includes("gpt"))
+    ) {
+      // For sequential thinking mode, add the reasoning step tool
+      tools = {
+        addReasoningStep: {
+          description: "Add a step to the reasoning process.",
+          parameters: z.object({
+            title: z.string().describe("The title of the reasoning step"),
+            content: z
+              .string()
+              .describe(
+                "The content of the reasoning step. WRITE OUT ALL OF YOUR WORK. Where relevant, prove things mathematically."
+              ),
+            nextStep: z
+              .enum(["continue", "finalAnswer"])
+              .describe(
+                "Whether to continue with another step or provide the final answer"
+              ),
+          }),
+          execute: async (params) => params,
+        },
+      }
+
+      // Add sequential thinking instructions to system prompt
+      sequentialSystemPrompt = `${effectiveSystemPrompt}
+
+You are an expert AI assistant that explains your reasoning step by step when sequential thinking mode is enabled.
+You approach every question scientifically and methodically.
+For each step, provide a title that describes what you're doing in that step, along with the content. Decide if you need another step or if you're ready to give the final answer.
+
+Follow these guidelines:
+- Answer every question mathematically where possible.
+- USE AS MANY REASONING STEPS AS NECESSARY. AT LEAST 3-5.
+- BE AWARE OF YOUR LIMITATIONS AS AN LLM AND WHAT YOU CAN AND CANNOT DO.
+- IN YOUR REASONING, INCLUDE EXPLORATION OF ALTERNATIVE ANSWERS.
+- CONSIDER YOU MAY BE WRONG, AND IF YOU ARE WRONG IN YOUR REASONING, WHERE IT WOULD BE.
+- FULLY TEST ALL OTHER POSSIBILITIES.
+- WHEN YOU SAY YOU ARE RE-EXAMINING, ACTUALLY RE-EXAMINE, AND USE ANOTHER APPROACH TO DO SO.
+- USE MULTIPLE METHODS TO DERIVE THE ANSWER. USE BEST PRACTICES.
+- Explain why you are right and why you are wrong.
+- If you need to count letters, separate each letter by one dash on either side and identify it by the iterator.
+
+Use the addReasoningStep function for each step of your reasoning.`
+    }
+
     const result = streamText({
-      model: modelConfig.apiSdk(apiKey, { enableSearch, enableThink }),
-      system: effectiveSystemPrompt,
+      model: modelConfig.apiSdk(apiKey, {
+        enableSearch,
+        enableThink: enableThink || thinkingMode === "sequential",
+      }),
+      system: sequentialSystemPrompt,
       messages: messages,
-      tools: {} as ToolSet,
-      maxSteps: 10,
+      tools: tools,
+      maxSteps: thinkingMode === "sequential" ? 15 : 10,
       onError: (err: unknown) => {
         console.error("Streaming error occurred:", err)
         // Don't set streamError anymore - let the AI SDK handle it through the stream

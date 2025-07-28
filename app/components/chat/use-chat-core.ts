@@ -15,6 +15,7 @@ import type { Attachment } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
 import type { MessagePart } from "@/lib/type-guards/message-parts"
 import type { UserProfile } from "@/lib/user/types"
+import type { ContentPart } from "@/app/types/api.types"
 
 import { useArtifact } from "./artifact-context"
 
@@ -100,18 +101,41 @@ export function useChatCore({
   }, [])
 
   // Cache for storing processed messages to prevent infinite processing and ensure consistency
+  // Implement LRU cache with max size to prevent memory leaks
+  const MAX_CACHE_SIZE = 100
   const processedMessagesCache = useRef<Map<string, Message>>(new Map())
+
+  // Track artifacts that need to be opened
+  const [artifactsToOpen, setArtifactsToOpen] = useState<
+    ContentPart["artifact"][]
+  >([])
+
+  // Open artifacts outside of render
+  useEffect(() => {
+    if (artifactsToOpen.length > 0) {
+      const firstArtifact = artifactsToOpen[0]
+      if (firstArtifact) {
+        openArtifact(firstArtifact)
+        setArtifactsToOpen([])
+      }
+    }
+  }, [artifactsToOpen, openArtifact])
 
   // Real-time artifact processing during streaming with improved caching
   const processStreamingArtifacts = useCallback(
     (message: Message) => {
       if (message.role === "assistant" && typeof message.content === "string") {
-        // Use a more lenient cache key that allows updates during streaming
-        const contentLength = message.content.length
-        const cacheKey = `${message.id}-${Math.floor(contentLength / 100) * 100}` // Cache per 100 chars
+        // Use a stable cache key based on message ID and content hash
+        // This prevents race conditions and UI flicker during streaming
+        const contentHash = message.content
+          .split("")
+          .reduce((acc, char, idx) => {
+            return acc + char.charCodeAt(0) * (idx + 1)
+          }, 0)
+        const cacheKey = `${message.id}-${contentHash}`
 
         // Skip processing very short content (lowered threshold to avoid skipping normal messages)
-        if (contentLength < 10) {
+        if (message.content.length < 10) {
           return message
         }
 
@@ -137,8 +161,8 @@ export function useChatCore({
                 "🚀 Early artifact detection - opening sidebar:",
                 firstArtifact.title
               )
-              // Defer artifact opening to avoid setState-in-render warning
-              setTimeout(() => openArtifact(firstArtifact), 0)
+              // Queue artifact to be opened outside of render
+              setArtifactsToOpen([firstArtifact])
             }
           }
         }
@@ -162,8 +186,8 @@ export function useChatCore({
               "📌 Auto-opening artifact in sidebar:",
               firstArtifact.title
             )
-            // Defer artifact opening to avoid setState-in-render warning
-            setTimeout(() => openArtifact(firstArtifact), 0)
+            // Queue artifact to be opened outside of render
+            setArtifactsToOpen([firstArtifact])
           }
 
           // Replace inline code blocks with artifact placeholders in the content
@@ -193,6 +217,14 @@ export function useChatCore({
           }
 
           // Store the processed message in cache for consistency across renders
+          // Implement LRU eviction when cache exceeds max size
+          if (processedMessagesCache.current.size >= MAX_CACHE_SIZE) {
+            // Remove the oldest entry (first key in the Map)
+            const firstKey = processedMessagesCache.current.keys().next().value
+            if (firstKey) {
+              processedMessagesCache.current.delete(firstKey)
+            }
+          }
           processedMessagesCache.current.set(
             cacheKey,
             updatedMessage as Message
@@ -202,7 +234,7 @@ export function useChatCore({
       }
       return message
     },
-    [openArtifact]
+    [setArtifactsToOpen]
   )
 
   // Initialize useChat
@@ -240,6 +272,13 @@ export function useChatCore({
       requestAnimationFrame(() => setInput(prompt))
     }
   }, [prompt, setInput])
+
+  // Cleanup cache on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      processedMessagesCache.current.clear()
+    }
+  }, [])
 
   // Reset messages when navigating from a chat to home
   if (

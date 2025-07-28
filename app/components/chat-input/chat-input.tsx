@@ -1,7 +1,7 @@
 "use client"
 
 import { ArrowUpIcon, StopIcon } from "@phosphor-icons/react"
-import { useCallback, useMemo } from "react"
+import { useCallback, useEffect } from "react"
 
 import { ModelSelector } from "@/components/common/model-selector/base"
 import {
@@ -17,7 +17,7 @@ import { getModelInfo } from "@/lib/models"
 import { PromptSystem } from "../suggestions/prompt-system"
 import { ButtonFileUpload } from "./button-file-upload"
 import { ButtonSearch } from "./button-search"
-import { ButtonThink } from "./button-think"
+import { ButtonThink, type ThinkingMode } from "./button-think"
 import { FileList } from "./file-list"
 
 type ChatInputProps = {
@@ -38,8 +38,8 @@ type ChatInputProps = {
   status?: "submitted" | "streaming" | "ready" | "error"
   setEnableSearch: (enabled: boolean) => void
   enableSearch: boolean
-  setEnableThink: (enabled: boolean) => void
-  enableThink: boolean
+  setThinkingMode: (mode: ThinkingMode) => void
+  thinkingMode: ThinkingMode
 }
 
 export function ChatInput({
@@ -59,8 +59,8 @@ export function ChatInput({
   status,
   setEnableSearch,
   enableSearch,
-  setEnableThink,
-  enableThink,
+  setThinkingMode,
+  thinkingMode,
 }: ChatInputProps) {
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
@@ -148,17 +148,17 @@ export function ChatInput({
     [onFileUpload, isUserAuthenticated]
   )
 
-  useMemo(() => {
+  useEffect(() => {
     if (!hasSearchSupport && enableSearch) {
       setEnableSearch?.(false)
     }
   }, [hasSearchSupport, enableSearch, setEnableSearch])
 
-  useMemo(() => {
-    if (!hasThinkingSupport && enableThink) {
-      setEnableThink?.(false)
+  useEffect(() => {
+    if (!hasThinkingSupport && thinkingMode !== "none") {
+      setThinkingMode?.("none")
     }
-  }, [hasThinkingSupport, enableThink, setEnableThink])
+  }, [hasThinkingSupport, thinkingMode, setThinkingMode])
 
   return (
     <div className="relative flex w-full flex-col gap-4">
@@ -192,8 +192,8 @@ export function ChatInput({
               />
               {hasThinkingSupport && (
                 <ButtonThink
-                  isSelected={enableThink}
-                  onToggle={setEnableThink}
+                  thinkingMode={thinkingMode}
+                  onModeChange={setThinkingMode}
                   isAuthenticated={isUserAuthenticated}
                 />
               )}

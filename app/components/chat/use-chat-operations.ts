@@ -82,12 +82,27 @@ export function useChatOperations({
   }
 
   const ensureChatExists = async (userId: string, input: string) => {
-    // For guest users, check for existing chat but don't rely on it completely
+    // For guest users, check for existing chat but validate it still exists
     if (!isAuthenticated) {
       const storedGuestChatId = localStorage.getItem("guestChatId")
       if (storedGuestChatId && messages.length > 0) {
-        // Only reuse existing chat if we have messages (not a fresh start)
-        return storedGuestChatId
+        // Validate the chat still exists before reusing it
+        try {
+          // For guest users, we just verify the chat exists in our local state
+          // since they don't have database access
+          const chatExists = messages.some(
+            (msg) => msg.chatId === storedGuestChatId
+          )
+          if (chatExists) {
+            return storedGuestChatId
+          } else {
+            // Chat doesn't exist anymore, remove from localStorage
+            localStorage.removeItem("guestChatId")
+          }
+        } catch (error) {
+          console.error("Error validating guest chat:", error)
+          localStorage.removeItem("guestChatId")
+        }
       }
     }
 
@@ -170,20 +185,22 @@ export function useChatOperations({
   // Message handlers
   const handleDelete = useCallback(
     (id: string) => {
-      setMessages(messages.filter((message) => message.id !== id))
+      setMessages((prevMessages) =>
+        prevMessages.filter((message) => message.id !== id)
+      )
     },
-    [messages, setMessages]
+    [setMessages]
   )
 
   const handleEdit = useCallback(
     (id: string, newText: string) => {
-      setMessages(
-        messages.map((message) =>
+      setMessages((prevMessages) =>
+        prevMessages.map((message) =>
           message.id === id ? { ...message, content: newText } : message
         )
       )
     },
-    [messages, setMessages]
+    [setMessages]
   )
 
   return {

@@ -22,6 +22,7 @@ import { ArtifactPanel } from "./artifact-panel"
 import { useChatCore } from "./use-chat-core"
 import { useChatOperations } from "./use-chat-operations"
 import { useFileUpload } from "./use-file-upload"
+import { ErrorBoundary } from "../error-boundary"
 
 const FeedbackWidget = dynamic(
   () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
@@ -286,8 +287,10 @@ function ChatInner() {
 
 export function Chat() {
   return (
-    <ArtifactProvider>
-      <ChatInner />
-    </ArtifactProvider>
+    <ErrorBoundary>
+      <ArtifactProvider>
+        <ChatInner />
+      </ArtifactProvider>
+    </ErrorBoundary>
   )
 }
