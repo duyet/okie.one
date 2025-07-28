@@ -26,6 +26,7 @@ import { useArtifact } from "./artifact-context"
 import { ArtifactPreview } from "./artifact-preview"
 import { getSources } from "./get-sources"
 import { Reasoning } from "./reasoning"
+import { ReasoningSteps } from "./reasoning-steps"
 import { SearchImages } from "./search-images"
 import { SourcesList } from "./sources-list"
 import { ToolInvocation } from "./tool-invocation"
@@ -53,6 +54,10 @@ type ToolInvocationData = {
       type: string
       results?: unknown[]
     }>
+  } & {
+    title?: string
+    content?: string
+    nextStep?: "continue" | "finalAnswer"
   }
 }
 
@@ -84,6 +89,29 @@ export function MessageAssistant({
   const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
   const reasoningParts = parts?.find(isReasoningPart)
+
+  // Extract sequential reasoning steps from tool invocations
+  const sequentialReasoningSteps = toolInvocationParts
+    .filter((part) => {
+      const ti = part.toolInvocation as ToolInvocationData
+      return (
+        ti.state === "result" &&
+        ti.toolName === "addReasoningStep" &&
+        ti.result &&
+        typeof ti.result === "object" &&
+        "title" in ti.result &&
+        "content" in ti.result
+      )
+    })
+    .map((part) => {
+      const ti = part.toolInvocation as ToolInvocationData
+      // Safely extract the result with proper type checking
+      return {
+        title: ti.result?.title || "",
+        content: ti.result?.content || "",
+        nextStep: ti.result?.nextStep
+      }
+    })
 
   // Memoize artifactParts to prevent unnecessary re-renders
   const artifactParts = useMemo(
@@ -151,11 +179,30 @@ export function MessageAssistant({
           />
         )}
 
+        {sequentialReasoningSteps.length > 0 && (
+          <ReasoningSteps
+            steps={sequentialReasoningSteps}
+            isStreaming={status === "streaming"}
+          />
+        )}
+
         {toolInvocationParts &&
           toolInvocationParts.length > 0 &&
-          preferences.showToolInvocations && (
+          preferences.showToolInvocations &&
+          // Don't show tool invocations for addReasoningStep since we're displaying them as reasoning steps
+          toolInvocationParts.filter(
+            (part) =>
+              (part.toolInvocation as ToolInvocationData)?.toolName !==
+              "addReasoningStep"
+          ).length > 0 && (
             <ToolInvocation
-              toolInvocations={toolInvocationParts as ToolInvocationUIPart[]}
+              toolInvocations={
+                toolInvocationParts.filter(
+                  (part) =>
+                    (part.toolInvocation as ToolInvocationData)?.toolName !==
+                    "addReasoningStep"
+                ) as ToolInvocationUIPart[]
+              }
             />
           )}
 

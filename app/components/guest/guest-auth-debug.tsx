@@ -1,9 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { createClient } from "@/lib/supabase/client"
 
 export function GuestAuthDebug() {
   const [debugInfo, setDebugInfo] = useState<string[]>([])

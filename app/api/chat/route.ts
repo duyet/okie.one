@@ -152,10 +152,7 @@ export async function POST(req: Request) {
     let tools: ToolSet = {}
     let sequentialSystemPrompt = effectiveSystemPrompt
 
-    if (
-      thinkingMode === "sequential" &&
-      (model.includes("claude") || model.includes("gpt"))
-    ) {
+    if (thinkingMode === "sequential") {
       // For sequential thinking mode, add the reasoning step tool
       tools = {
         addReasoningStep: {

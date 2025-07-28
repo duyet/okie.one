@@ -64,7 +64,8 @@ export function ChatInput({
 }: ChatInputProps) {
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
-  const hasThinkingSupport = Boolean(selectModelConfig?.reasoning)
+  const hasThinkingSupport = Boolean(selectModelConfig?.tools)
+  const hasNativeReasoning = Boolean(selectModelConfig?.reasoning)
 
   const isOnlyWhitespace = useCallback(
     (text: string) => !/[^\s]/.test(text),
@@ -195,6 +196,7 @@ export function ChatInput({
                   thinkingMode={thinkingMode}
                   onModeChange={setThinkingMode}
                   isAuthenticated={isUserAuthenticated}
+                  hasNativeReasoning={hasNativeReasoning}
                 />
               )}
               {hasSearchSupport ? (

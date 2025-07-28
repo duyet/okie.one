@@ -17,12 +17,12 @@ import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 
+import { ErrorBoundary } from "../error-boundary"
 import { ArtifactProvider, useArtifact } from "./artifact-context"
 import { ArtifactPanel } from "./artifact-panel"
 import { useChatCore } from "./use-chat-core"
 import { useChatOperations } from "./use-chat-operations"
 import { useFileUpload } from "./use-file-upload"
-import { ErrorBoundary } from "../error-boundary"
 
 const FeedbackWidget = dynamic(
   () => import("./feedback-widget").then((mod) => mod.FeedbackWidget),
@@ -119,8 +119,8 @@ function ChatInner() {
     isSubmitting,
     enableSearch,
     setEnableSearch,
-    enableThink,
-    setEnableThink,
+    thinkingMode,
+    setThinkingMode,
     submit,
     handleSuggestion,
     handleReload,
@@ -175,8 +175,8 @@ function ChatInner() {
       status,
       setEnableSearch,
       enableSearch,
-      setEnableThink,
-      enableThink,
+      setThinkingMode,
+      thinkingMode,
     }),
     [
       input,
@@ -197,8 +197,8 @@ function ChatInner() {
       status,
       setEnableSearch,
       enableSearch,
-      setEnableThink,
-      enableThink,
+      setThinkingMode,
+      thinkingMode,
     ]
   )
 

@@ -20,6 +20,7 @@ type ModelConfig = {
   tools?: boolean
   audio?: boolean
   reasoning?: boolean
+  sequentialThinking?: boolean
   webSearch?: boolean
   openSource?: boolean
 

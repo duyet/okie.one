@@ -18,12 +18,14 @@ type ButtonThinkProps = {
   thinkingMode?: ThinkingMode
   onModeChange?: (mode: ThinkingMode) => void
   isAuthenticated: boolean
+  hasNativeReasoning?: boolean
 }
 
 export function ButtonThink({
   thinkingMode = "none",
   onModeChange,
   isAuthenticated,
+  hasNativeReasoning = false,
 }: ButtonThinkProps) {
   const isSelected = thinkingMode !== "none"
 
@@ -37,7 +39,7 @@ export function ButtonThink({
             data-testid="think-button"
           >
             <BrainIcon className="size-5" />
-            Think
+            {hasNativeReasoning ? "Thinking" : "Sequential Thinking MCP"}
           </Button>
         </PopoverTrigger>
         <PopoverContentAuth />
@@ -45,6 +47,26 @@ export function ButtonThink({
     )
   }
 
+  // For non-reasoning models, only show Sequential Thinking MCP button (toggle)
+  if (!hasNativeReasoning) {
+    return (
+      <Button
+        variant="secondary"
+        className={cn(
+          "rounded-full border border-border bg-transparent transition-all duration-150 has-[>svg]:px-1.75 md:has-[>svg]:px-3 dark:bg-secondary",
+          isSelected &&
+            "border-[#0091FF]/20 bg-[#E5F3FE] text-[#0091FF] hover:bg-[#E5F3FE] hover:text-[#0091FF]"
+        )}
+        onClick={() => onModeChange?.(thinkingMode === "sequential" ? "none" : "sequential")}
+        data-testid="think-button"
+      >
+        <BrainIcon className="size-5" />
+        <span className="hidden md:block">Sequential Thinking MCP</span>
+      </Button>
+    )
+  }
+
+  // For reasoning models, show dropdown with both options
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -59,12 +81,12 @@ export function ButtonThink({
         >
           <BrainIcon className="size-5" />
           <span className="hidden md:block">
-            {thinkingMode === "sequential" ? "Sequential" : "Think"}
+            {thinkingMode === "sequential" ? "Sequential Thinking MCP" : "Thinking"}
           </span>
-          <CaretDownIcon className="size-4 ml-1" />
+          <CaretDownIcon className="ml-1 size-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+      <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem
           onClick={() => onModeChange?.("none")}
           className="flex items-center justify-between"
@@ -76,14 +98,14 @@ export function ButtonThink({
           onClick={() => onModeChange?.("regular")}
           className="flex items-center justify-between"
         >
-          Think Mode
+          Thinking (Native)
           {thinkingMode === "regular" && <CheckIcon className="size-4" />}
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => onModeChange?.("sequential")}
           className="flex items-center justify-between"
         >
-          Sequential Thinking
+          Sequential Thinking MCP
           {thinkingMode === "sequential" && <CheckIcon className="size-4" />}
         </DropdownMenuItem>
       </DropdownMenuContent>

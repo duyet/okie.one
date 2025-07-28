@@ -4,6 +4,7 @@ import "./globals.css"
 import Script from "next/script"
 import { ThemeProvider } from "next-themes"
 
+import { GuestUserInitializer } from "@/app/components/providers/guest-user-initializer"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -15,7 +16,6 @@ import { TanstackQueryProvider } from "@/lib/tanstack-query/tanstack-query-provi
 import { getUserProfile } from "@/lib/user/api"
 import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
 import { UserProvider } from "@/lib/user-store/provider"
-import { GuestUserInitializer } from "@/app/components/providers/guest-user-initializer"
 
 import { LayoutClient } from "./layout-client"
 

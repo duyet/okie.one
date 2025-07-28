@@ -75,6 +75,8 @@ const openaiModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
+    reasoning: true,
+    sequentialThinking: true,
     openSource: false,
     speed: "Medium",
     website: "https://openai.com",

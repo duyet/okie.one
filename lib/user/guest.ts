@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/client"
 import { getOrCreateGuestUserId } from "@/lib/api"
+import { createClient } from "@/lib/supabase/client"
+
 import type { UserProfile } from "./types"
 
 /**

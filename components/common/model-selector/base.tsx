@@ -1,17 +1,17 @@
 "use client"
 
 import {
+  Brain,
   CaretDownIcon,
+  Eye,
+  GearIcon,
+  GlobeHemisphereWest,
   MagnifyingGlassIcon,
   StarIcon,
-  Eye,
   Wrench,
-  Brain,
-  GlobeHemisphereWest,
-  GearIcon,
 } from "@phosphor-icons/react"
-import { useRef, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
+import { useMemo, useRef, useState } from "react"
 
 import { PopoverContentAuth } from "@/app/components/chat-input/popover-content-auth"
 import { useBreakpoint } from "@/app/hooks/use-breakpoint"

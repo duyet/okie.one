@@ -1,6 +1,8 @@
 "use client"
 
 import { SignIn, Sparkle } from "@phosphor-icons/react"
+import Link from "next/link"
+
 import {
   AlertDialog,
   AlertDialogContent,
@@ -10,7 +12,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
 import { NON_AUTH_DAILY_MESSAGE_LIMIT } from "@/lib/config"
 
 interface GuestRateLimitDialogProps {

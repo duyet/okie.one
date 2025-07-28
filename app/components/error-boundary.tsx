@@ -1,6 +1,6 @@
 "use client"
 
-import React, { ErrorInfo, ReactNode } from "react"
+import React, { type ErrorInfo, type ReactNode } from "react"
 
 import { Button } from "@/components/ui/button"
 

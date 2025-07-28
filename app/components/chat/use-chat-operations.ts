@@ -1,6 +1,6 @@
 import type { Message } from "@ai-sdk/react"
-import { useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useCallback } from "react"
 
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits } from "@/lib/api"
@@ -88,15 +88,12 @@ export function useChatOperations({
       if (storedGuestChatId && messages.length > 0) {
         // Validate the chat still exists before reusing it
         try {
-          // For guest users, we just verify the chat exists in our local state
-          // since they don't have database access
-          const chatExists = messages.some(
-            (msg) => msg.chatId === storedGuestChatId
-          )
-          if (chatExists) {
+          // For guest users, if we have messages, we can assume the chat exists
+          // Messages don't have chatId property, so we check if we have any messages
+          if (messages.length > 0) {
             return storedGuestChatId
           } else {
-            // Chat doesn't exist anymore, remove from localStorage
+            // No messages, so chat might not exist anymore
             localStorage.removeItem("guestChatId")
           }
         } catch (error) {

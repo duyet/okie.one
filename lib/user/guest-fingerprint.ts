@@ -51,7 +51,7 @@ export async function generateDeviceFingerprint(): Promise<string> {
   return [
     hashHex.substring(0, 8),
     hashHex.substring(8, 12),
-    "4" + hashHex.substring(13, 16), // Version 4 UUID format
+    `4${hashHex.substring(13, 16)}`, // Version 4 UUID format
     ((parseInt(hashHex.substring(16, 18), 16) & 0x3f) | 0x80).toString(16) +
       hashHex.substring(18, 20),
     hashHex.substring(20, 32),
@@ -71,7 +71,7 @@ export async function getOrCreatePersistentGuestId(): Promise<string> {
     const id = localStorage.getItem(key)
 
     // Handle old format guest IDs by migrating them
-    if (id && id.startsWith("guest-user-")) {
+    if (id?.startsWith("guest-user-")) {
       console.log("Migrating old format guest ID to UUID:", id)
       const newId = crypto.randomUUID()
       // Update all primary keys to maintain consistency

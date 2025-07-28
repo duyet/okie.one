@@ -1,10 +1,11 @@
 "use client"
 
+import { SignIn, User, X } from "@phosphor-icons/react"
+import Link from "next/link"
 import { useState } from "react"
-import { X, SignIn, User } from "@phosphor-icons/react"
+
 import { Button } from "@/components/ui/button"
 import { useUser } from "@/lib/user-store/provider"
-import Link from "next/link"
 
 export function GuestUserBanner() {
   const { user } = useUser()

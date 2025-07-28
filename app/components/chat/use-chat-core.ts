@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useChatDraft } from "@/app/hooks/use-chat-draft"
+import type { ContentPart } from "@/app/types/api.types"
 import { toast } from "@/components/ui/toast"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import {
@@ -15,8 +16,8 @@ import type { Attachment } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
 import type { MessagePart } from "@/lib/type-guards/message-parts"
 import type { UserProfile } from "@/lib/user/types"
-import type { ContentPart } from "@/app/types/api.types"
 
+import type { ThinkingMode } from "../chat-input/button-think"
 import { useArtifact } from "./artifact-context"
 
 type UseChatCoreProps = {
@@ -63,7 +64,7 @@ export function useChatCore({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [enableSearch, setEnableSearch] = useState(false)
-  const [enableThink, setEnableThink] = useState(false)
+  const [thinkingMode, setThinkingMode] = useState<ThinkingMode>("none")
 
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
@@ -122,120 +123,111 @@ export function useChatCore({
   }, [artifactsToOpen, openArtifact])
 
   // Real-time artifact processing during streaming with improved caching
-  const processStreamingArtifacts = useCallback(
-    (message: Message) => {
-      if (message.role === "assistant" && typeof message.content === "string") {
-        // Use a stable cache key based on message ID and content hash
-        // This prevents race conditions and UI flicker during streaming
-        const contentHash = message.content
-          .split("")
-          .reduce((acc, char, idx) => {
-            return acc + char.charCodeAt(0) * (idx + 1)
-          }, 0)
-        const cacheKey = `${message.id}-${contentHash}`
+  const processStreamingArtifacts = useCallback((message: Message) => {
+    if (message.role === "assistant" && typeof message.content === "string") {
+      // Use a stable cache key based on message ID and content hash
+      // This prevents race conditions and UI flicker during streaming
+      const contentHash = message.content.split("").reduce((acc, char, idx) => {
+        return acc + char.charCodeAt(0) * (idx + 1)
+      }, 0)
+      const cacheKey = `${message.id}-${contentHash}`
 
-        // Skip processing very short content (lowered threshold to avoid skipping normal messages)
-        if (message.content.length < 10) {
-          return message
+      // Skip processing very short content (lowered threshold to avoid skipping normal messages)
+      if (message.content.length < 10) {
+        return message
+      }
+
+      // Return cached processed message if it exists
+      if (processedMessagesCache.current.has(cacheKey)) {
+        const cachedMessage = processedMessagesCache.current.get(cacheKey)
+        if (cachedMessage) {
+          return cachedMessage
         }
+      }
 
-        // Return cached processed message if it exists
-        if (processedMessagesCache.current.has(cacheKey)) {
-          const cachedMessage = processedMessagesCache.current.get(cacheKey)
-          if (cachedMessage) {
-            return cachedMessage
-          }
-        }
+      // Early detection for sidebar opening - detect potential artifacts sooner
+      const hasCodeBlockStart = message.content.includes("```")
+      const hasLargeCode = message.content.length > 300 // Threshold for early artifact detection
 
-        // Early detection for sidebar opening - detect potential artifacts sooner
-        const hasCodeBlockStart = message.content.includes("```")
-        const hasLargeCode = message.content.length > 300 // Threshold for early artifact detection
-
-        if (hasCodeBlockStart && hasLargeCode) {
-          // Try to open sidebar early if we detect substantial code content
-          const earlyArtifacts = parseArtifacts(message.content, true)
-          if (earlyArtifacts.length > 0) {
-            const firstArtifact = earlyArtifacts[0]?.artifact
-            if (firstArtifact) {
-              console.log(
-                "🚀 Early artifact detection - opening sidebar:",
-                firstArtifact.title
-              )
-              // Queue artifact to be opened outside of render
-              setArtifactsToOpen([firstArtifact])
-            }
-          }
-        }
-
-        // Parse artifacts from the current content during streaming with streaming flag
-        const artifactParts = parseArtifacts(message.content, true)
-
-        if (artifactParts.length > 0) {
-          console.log(
-            "🎨 Real-time artifact detected during streaming:",
-            artifactParts.map(
-              (p) =>
-                `${p.artifact?.title} (${p.artifact?.metadata.lines} lines)`
-            )
-          )
-
-          // Auto-open the first artifact in the sidebar during streaming
-          const firstArtifact = artifactParts[0]?.artifact
+      if (hasCodeBlockStart && hasLargeCode) {
+        // Try to open sidebar early if we detect substantial code content
+        const earlyArtifacts = parseArtifacts(message.content, true)
+        if (earlyArtifacts.length > 0) {
+          const firstArtifact = earlyArtifacts[0]?.artifact
           if (firstArtifact) {
             console.log(
-              "📌 Auto-opening artifact in sidebar:",
+              "🚀 Early artifact detection - opening sidebar:",
               firstArtifact.title
             )
             // Queue artifact to be opened outside of render
             setArtifactsToOpen([firstArtifact])
           }
-
-          // Replace inline code blocks with artifact placeholders in the content
-          const updatedContent = replaceCodeBlocksWithArtifacts(
-            message.content,
-            artifactParts
-          )
-
-          console.log("🔧 processStreamingArtifacts result:", {
-            messageId: message.id,
-            originalLength: message.content.length,
-            updatedLength: updatedContent.length,
-            hasMarkers: updatedContent.includes("[ARTIFACT_PREVIEW:"),
-            artifactCount: artifactParts.length,
-            cacheKey,
-          })
-
-          // Replace any existing artifact parts with new ones
-          const nonArtifactParts = (message.parts || []).filter(
-            (part) => (part as MessagePart).type !== "artifact"
-          )
-
-          const updatedMessage = {
-            ...message,
-            content: updatedContent,
-            parts: [...nonArtifactParts, ...artifactParts],
-          }
-
-          // Store the processed message in cache for consistency across renders
-          // Implement LRU eviction when cache exceeds max size
-          if (processedMessagesCache.current.size >= MAX_CACHE_SIZE) {
-            // Remove the oldest entry (first key in the Map)
-            const firstKey = processedMessagesCache.current.keys().next().value
-            if (firstKey) {
-              processedMessagesCache.current.delete(firstKey)
-            }
-          }
-          processedMessagesCache.current.set(
-            cacheKey,
-            updatedMessage as Message
-          )
-          return updatedMessage as Message
         }
       }
-      return message
-    },
-    [setArtifactsToOpen]
-  )
+
+      // Parse artifacts from the current content during streaming with streaming flag
+      const artifactParts = parseArtifacts(message.content, true)
+
+      if (artifactParts.length > 0) {
+        console.log(
+          "🎨 Real-time artifact detected during streaming:",
+          artifactParts.map(
+            (p) => `${p.artifact?.title} (${p.artifact?.metadata.lines} lines)`
+          )
+        )
+
+        // Auto-open the first artifact in the sidebar during streaming
+        const firstArtifact = artifactParts[0]?.artifact
+        if (firstArtifact) {
+          console.log(
+            "📌 Auto-opening artifact in sidebar:",
+            firstArtifact.title
+          )
+          // Queue artifact to be opened outside of render
+          setArtifactsToOpen([firstArtifact])
+        }
+
+        // Replace inline code blocks with artifact placeholders in the content
+        const updatedContent = replaceCodeBlocksWithArtifacts(
+          message.content,
+          artifactParts
+        )
+
+        console.log("🔧 processStreamingArtifacts result:", {
+          messageId: message.id,
+          originalLength: message.content.length,
+          updatedLength: updatedContent.length,
+          hasMarkers: updatedContent.includes("[ARTIFACT_PREVIEW:"),
+          artifactCount: artifactParts.length,
+          cacheKey,
+        })
+
+        // Replace any existing artifact parts with new ones
+        const nonArtifactParts = (message.parts || []).filter(
+          (part) => (part as MessagePart).type !== "artifact"
+        )
+
+        const updatedMessage = {
+          ...message,
+          content: updatedContent,
+          parts: [...nonArtifactParts, ...artifactParts],
+        }
+
+        // Store the processed message in cache for consistency across renders
+        // Implement LRU eviction when cache exceeds max size
+        if (processedMessagesCache.current.size >= MAX_CACHE_SIZE) {
+          // Remove the oldest entry (first key in the Map)
+          const firstKey = processedMessagesCache.current.keys().next().value
+          if (firstKey) {
+            processedMessagesCache.current.delete(firstKey)
+          }
+        }
+        processedMessagesCache.current.set(cacheKey, updatedMessage as Message)
+        return updatedMessage as Message
+      }
+    }
+    return message
+  }, [])
 
   // Initialize useChat
   const {
@@ -275,8 +267,10 @@ export function useChatCore({
 
   // Cleanup cache on unmount to prevent memory leaks
   useEffect(() => {
+    // Copy ref to a local variable to avoid stale closure warning
+    const cacheRef = processedMessagesCache.current
     return () => {
-      processedMessagesCache.current.clear()
+      cacheRef.clear()
     }
   }, [])
 
@@ -368,7 +362,8 @@ export function useChatCore({
           isAuthenticated,
           systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
           enableSearch,
-          enableThink,
+          enableThink: thinkingMode === "regular",
+          thinkingMode,
         },
         experimental_attachments: attachments || undefined,
       }
@@ -405,7 +400,7 @@ export function useChatCore({
     isAuthenticated,
     systemPrompt,
     enableSearch,
-    enableThink,
+    thinkingMode,
     handleSubmit,
     cacheAndAddMessage,
     clearDraft,
@@ -501,11 +496,21 @@ export function useChatCore({
         model: selectedModel,
         isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+        enableThink: thinkingMode === "regular",
+        thinkingMode,
       },
     }
 
     reload(options)
-  }, [user, chatId, selectedModel, isAuthenticated, systemPrompt, reload])
+  }, [
+    user,
+    chatId,
+    selectedModel,
+    isAuthenticated,
+    systemPrompt,
+    thinkingMode,
+    reload,
+  ])
 
   // Handle input change - now with access to the real setInput function!
   const { setDraftValue } = useChatDraft(chatId)
@@ -540,8 +545,8 @@ export function useChatCore({
     setHasDialogAuth,
     enableSearch,
     setEnableSearch,
-    enableThink,
-    setEnableThink,
+    thinkingMode,
+    setThinkingMode,
 
     // Actions
     submit,

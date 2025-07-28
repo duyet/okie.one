@@ -41,6 +41,7 @@ export type MessagePart =
   | ContentPart
   | ToolInvocationPart
   | ReasoningPart
+  | SequentialReasoningStepPart
   | SourcePart
   | { type: "text"; text?: string }
   | { type: "file"; [key: string]: unknown }
@@ -60,6 +61,12 @@ export function isToolInvocationPart(
 
 export function isReasoningPart(part: MessagePart): part is ReasoningPart {
   return part.type === "reasoning" && "reasoning" in part
+}
+
+export function isSequentialReasoningStepPart(
+  part: MessagePart
+): part is SequentialReasoningStepPart {
+  return part.type === "sequential-reasoning-step" && "step" in part
 }
 
 export function isSourcePart(part: MessagePart): part is SourcePart {

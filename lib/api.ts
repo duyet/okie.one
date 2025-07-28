@@ -263,7 +263,7 @@ export const getOrCreateGuestUserId = async (
   // Check and migrate all possible old format guest IDs
   for (const key of primaryKeys) {
     const storedId = localStorage.getItem(key)
-    if (storedId && storedId.startsWith("guest-user-")) {
+    if (storedId?.startsWith("guest-user-")) {
       console.log(`Migrating old format guest ID from ${key} to UUID`)
       const newGuestId = crypto.randomUUID()
 

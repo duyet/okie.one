@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useUser } from "@/lib/user-store/provider"
+
 import { initializeGuestUser } from "@/lib/user/guest"
+import { useUser } from "@/lib/user-store/provider"
 
 export function GuestUserInitializer() {
   const { user, updateUser } = useUser()
