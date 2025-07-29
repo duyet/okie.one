@@ -85,6 +85,7 @@ vi.mock("next/image", () => ({
 // Mock environment variables
 vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://localhost:54321")
 vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-key")
+vi.stubEnv("NEXT_PUBLIC_APP_NAME", "Okie")
 
 // Mock console methods to reduce noise in tests
 global.console = {

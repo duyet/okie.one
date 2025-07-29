@@ -234,6 +234,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      NODE_ENV: "test"
     strategy:
       matrix:
         node-version: [20, 22]
