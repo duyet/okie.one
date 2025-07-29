@@ -160,7 +160,8 @@ describe("MCP Preferences Integration", () => {
             mcp_settings: {
               "sequential-thinking": false,
               ...(typeof body === "object" && body !== null && "mcp_settings" in body
-                ? (body as any).mcp_settings
+                ? // biome-ignore lint/suspicious/noExplicitAny: Request body type is dynamic
+                  (body as any).mcp_settings
                 : {}),
             },
           })
@@ -207,7 +208,8 @@ describe("MCP Preferences Integration", () => {
               "sequential-thinking": true,
               "new-server": true,
               ...(typeof body === "object" && body !== null && "mcp_settings" in body
-                ? (body as any).mcp_settings
+                ? // biome-ignore lint/suspicious/noExplicitAny: Request body type is dynamic
+                  (body as any).mcp_settings
                 : {}),
             },
           })
@@ -303,6 +305,7 @@ describe("MCP Preferences Integration", () => {
 
     test("uses localStorage for anonymous users", async () => {
       // Mock localStorage to return stored preferences with explicit false for sequential-thinking
+      // biome-ignore lint/suspicious/noExplicitAny: Mock function requires any
       (localStorageMock.getItem as any).mockReturnValue(
         JSON.stringify({
           layout: "fullscreen",
@@ -344,6 +347,7 @@ describe("MCP Preferences Integration", () => {
       })
 
       // Should save to localStorage instead of API
+      // biome-ignore lint/suspicious/noExplicitAny: Mock function requires any
       expect(localStorageMock.setItem as any).toHaveBeenCalledWith(
         "user-preferences",
         expect.stringContaining('"mcpSettings"')
@@ -381,7 +385,8 @@ describe("MCP Preferences Integration", () => {
             mcp_settings: {
               "sequential-thinking": false,
               ...(typeof body === "object" && body !== null && "mcp_settings" in body
-                ? (body as any).mcp_settings
+                ? // biome-ignore lint/suspicious/noExplicitAny: Request body type is dynamic
+                  (body as any).mcp_settings
                 : {}),
             },
           })
