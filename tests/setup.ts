@@ -44,7 +44,14 @@ beforeAll(() => {
 })
 
 // Start server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }))
+beforeAll(() => {
+  try {
+    server.listen({ onUnhandledRequest: "error" })
+  } catch (error) {
+    console.error("Failed to start MSW server:", error)
+    throw error
+  }
+})
 
 // Reset handlers after each test
 afterEach(() => server.resetHandlers())
