@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test"
+import type { SupabaseClient } from "@supabase/supabase-js"
 
 import { getChatPlaceholder } from "./app-config"
 import {
@@ -17,7 +18,7 @@ import {
 
 // Global test database state
 let testDatabaseState: {
-  supabase: any | null
+  supabase: SupabaseClient | null
   testMode: boolean
 } | null = null
 

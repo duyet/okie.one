@@ -3,7 +3,7 @@
  * Handles test database initialization, cleanup, and mock data creation
  */
 
-import { createClient } from "@supabase/supabase-js"
+import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 
 export interface TestUser {
   id: string
@@ -23,13 +23,13 @@ export interface TestChat {
 // In-memory storage for test data when database is not available
 const testUsers: Map<string, TestUser> = new Map()
 const testChats: Map<string, TestChat> = new Map()
-const testMessages: Map<string, any[]> = new Map()
+const testMessages: Map<string, Record<string, unknown>[]> = new Map()
 
 /**
  * Initialize test database and create required test data
  */
 export async function initializeTestDatabase(): Promise<{
-  supabase: any | null
+  supabase: SupabaseClient | null
   testMode: boolean
 }> {
   console.log("🧪 Initializing test database...")
@@ -54,10 +54,7 @@ export async function initializeTestDatabase(): Promise<{
     const supabase = createClient(supabaseUrl, supabaseKey)
 
     // Test connection
-    const { data, error } = await supabase
-      .from("users")
-      .select("count")
-      .limit(1)
+    const { error } = await supabase.from("users").select("count").limit(1)
 
     if (error) {
       console.warn(
@@ -85,7 +82,7 @@ export async function initializeTestDatabase(): Promise<{
 /**
  * Clean up test data from database
  */
-async function cleanupTestData(supabase: any): Promise<void> {
+async function cleanupTestData(supabase: SupabaseClient): Promise<void> {
   console.log("🧹 Cleaning up test data...")
 
   try {
@@ -105,7 +102,7 @@ async function cleanupTestData(supabase: any): Promise<void> {
 /**
  * Create required test data
  */
-async function createTestData(supabase: any): Promise<void> {
+async function createTestData(supabase: SupabaseClient): Promise<void> {
   console.log("🏗️ Creating test data...")
 
   try {
@@ -135,7 +132,7 @@ async function createTestData(supabase: any): Promise<void> {
  * Create a test chat record
  */
 export async function createTestChat(
-  supabase: any | null,
+  supabase: SupabaseClient | null,
   userId: string,
   title = "Test Chat",
   model = "gpt-4.1-nano"
@@ -182,7 +179,7 @@ export async function createTestChat(
  * Create a test user (anonymous by default)
  */
 export async function createTestUser(
-  supabase: any | null,
+  supabase: SupabaseClient | null,
   isAnonymous = true,
   email?: string
 ): Promise<TestUser> {
@@ -227,7 +224,7 @@ export async function createTestUser(
  * Get test chat by ID (from database or mock)
  */
 export async function getTestChat(
-  supabase: any | null,
+  supabase: SupabaseClient | null,
   chatId: string
 ): Promise<TestChat | null> {
   if (supabase) {
@@ -252,7 +249,9 @@ export async function getTestChat(
 /**
  * Reset all test data (for cleanup between tests)
  */
-export async function resetTestData(supabase: any | null): Promise<void> {
+export async function resetTestData(
+  supabase: SupabaseClient | null
+): Promise<void> {
   console.log("🔄 Resetting test data...")
 
   // Clear in-memory storage
