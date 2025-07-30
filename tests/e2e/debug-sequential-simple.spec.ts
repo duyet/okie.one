@@ -82,8 +82,8 @@ test.describe("Debug Sequential Thinking MCP - Simple", () => {
     await inputField.fill(testMessage)
     console.log("📝 Entered message:", testMessage)
 
-    // Find and click send button
-    const sendButton = page.getByTestId("send-button")
+    // Find and click send button using aria-label
+    const sendButton = page.getByLabel("Send message")
     await expect(sendButton).toBeVisible()
     await sendButton.click()
     console.log("📤 Clicked send button")
