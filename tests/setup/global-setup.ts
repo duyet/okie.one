@@ -1,4 +1,5 @@
 import { chromium, type FullConfig } from "@playwright/test"
+import { initializeTestDatabase } from "./database-setup"
 
 /**
  * Global setup for Playwright tests
@@ -204,6 +205,13 @@ async function globalSetup(config: FullConfig) {
   }
 
   try {
+    // Initialize test database before other checks
+    console.log("🗄️ Initializing test database...")
+    const databaseState = await initializeTestDatabase()
+    console.log(
+      `✅ Database initialized (${databaseState.testMode ? "mock" : "database"} mode)`
+    )
+
     // Perform health checks
     await healthCheck()
     await mcpReadinessCheck()

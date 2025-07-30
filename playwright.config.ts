@@ -10,17 +10,17 @@ export default defineConfig({
   // Global setup for ensuring server readiness
   globalSetup: require.resolve("./tests/setup/global-setup.ts"),
 
-  /* Run tests in files in parallel - disabled for MCP tests to avoid conflicts */
-  fullyParallel: !process.env.CI, // Parallel locally, sequential in CI for stability
+  /* Run tests in files in parallel - enabled with mocked responses */
+  fullyParallel: true, // Parallel execution with reliable mock responses
 
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
 
-  /* Enhanced retry configuration */
-  retries: process.env.CI ? 3 : 1, // More retries for flaky AI tests
+  /* Reduced retry configuration with reliable mocks */
+  retries: process.env.CI ? 2 : 1, // Fewer retries needed with mocked responses
 
-  /* Optimized worker configuration */
-  workers: process.env.CI ? 1 : 2, // Sequential in CI, limited parallel locally
+  /* Optimized worker configuration for sharding */
+  workers: process.env.CI ? "75%" : 2, // Use 75% of available cores in CI
 
   /* Enhanced reporting */
   reporter: [
@@ -46,10 +46,10 @@ export default defineConfig({
     actionTimeout: process.env.CI ? 20 * 1000 : 10 * 1000, // 20s in CI, 10s locally
   },
 
-  /* Enhanced timeout configuration for AI and MCP tests */
-  timeout: process.env.CI ? 180 * 1000 : 90 * 1000, // 3 minutes in CI, 90 seconds locally
+  /* Reduced timeout configuration with mocked responses */
+  timeout: process.env.CI ? 60 * 1000 : 45 * 1000, // 60 seconds in CI, 45 seconds locally
   expect: {
-    timeout: process.env.CI ? 45 * 1000 : 20 * 1000, // 45 seconds in CI, 20 seconds locally
+    timeout: process.env.CI ? 20 * 1000 : 15 * 1000, // 20 seconds in CI, 15 seconds locally
   },
 
   /* Configure projects for major browsers */
