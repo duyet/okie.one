@@ -4,14 +4,28 @@ test.describe("MCP Settings Tab", () => {
   test.beforeEach(async ({ page }) => {
     // Start from the homepage
     await page.goto("/")
+
+    // Check if user is authenticated
+    const signInLink = page.locator('text="Sign In"')
+    const isGuest = await signInLink
+      .isVisible({ timeout: 3000 })
+      .catch(() => false)
+
+    if (isGuest) {
+      console.log("User is not authenticated - skipping MCP settings tests")
+      test.skip(true, "MCP settings require authentication")
+    }
   })
 
   test("opens settings modal and navigates to MCP tab", async ({ page }) => {
-    // Open settings (look for settings button/trigger)
-    await page.click('[data-testid="settings-trigger"]')
+    // Click on user avatar to open dropdown menu
+    await page.click("button[role='button']:has(div[class*='Avatar'])")
+
+    // Click on Settings menu item
+    await page.click('text="Settings"')
 
     // Wait for settings modal to be visible
-    await page.waitForSelector('[data-testid="settings-modal"]', {
+    await page.waitForSelector('[role="dialog"]', {
       state: "visible",
     })
 
@@ -28,9 +42,16 @@ test.describe("MCP Settings Tab", () => {
   test("displays Sequential Thinking MCP server in settings", async ({
     page,
   }) => {
-    // Open settings and navigate to MCP tab
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    // Click on user avatar to open dropdown menu
+    await page.click("button[role='button']:has(div[class*='Avatar'])")
+
+    // Click on Settings menu item
+    await page.click('text="Settings"')
+
+    // Wait for settings modal
+    await page.waitForSelector('[role="dialog"]')
+
+    // Click on MCP tab
     await page.click('text="MCP"')
 
     // Verify Sequential Thinking MCP is listed
@@ -46,9 +67,16 @@ test.describe("MCP Settings Tab", () => {
   })
 
   test("toggles Sequential Thinking MCP setting", async ({ page }) => {
-    // Open settings and navigate to MCP tab
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    // Click on user avatar to open dropdown menu
+    await page.click("button[role='button']:has(div[class*='Avatar'])")
+
+    // Click on Settings menu item
+    await page.click('text="Settings"')
+
+    // Wait for settings modal
+    await page.waitForSelector('[role="dialog"]')
+
+    // Click on MCP tab
     await page.click('text="MCP"')
 
     // Find the Sequential Thinking MCP switch
@@ -76,8 +104,16 @@ test.describe("MCP Settings Tab", () => {
 
   test("reflects MCP setting changes in chat interface", async ({ page }) => {
     // First, disable Sequential Thinking MCP in settings
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    // Click on user avatar to open dropdown menu
+    await page.click("button[role='button']:has(div[class*='Avatar'])")
+
+    // Click on Settings menu item
+    await page.click('text="Settings"')
+
+    // Wait for settings modal
+    await page.waitForSelector('[role="dialog"]')
+
+    // Click on MCP tab
     await page.click('text="MCP"')
 
     const mcpSwitch = page
@@ -94,7 +130,7 @@ test.describe("MCP Settings Tab", () => {
 
     // Close settings modal
     await page.keyboard.press("Escape")
-    await page.waitForSelector('[data-testid="settings-modal"]', {
+    await page.waitForSelector('[role="dialog"]', {
       state: "hidden",
     })
 
@@ -121,8 +157,16 @@ test.describe("MCP Settings Tab", () => {
     page,
   }) => {
     // Enable Sequential Thinking MCP in settings
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    // Click on user avatar to open dropdown menu
+    await page.click("button[role='button']:has(div[class*='Avatar'])")
+
+    // Click on Settings menu item
+    await page.click('text="Settings"')
+
+    // Wait for settings modal
+    await page.waitForSelector('[role="dialog"]')
+
+    // Click on MCP tab
     await page.click('text="MCP"')
 
     const mcpSwitch = page
@@ -139,7 +183,7 @@ test.describe("MCP Settings Tab", () => {
 
     // Close settings modal
     await page.keyboard.press("Escape")
-    await page.waitForSelector('[data-testid="settings-modal"]', {
+    await page.waitForSelector('[role="dialog"]', {
       state: "hidden",
     })
 

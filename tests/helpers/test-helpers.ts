@@ -461,15 +461,31 @@ export async function clearBrowserState(page: Page) {
   console.log("🧹 Clearing browser state...")
 
   try {
-    // Clear storage
-    await page.evaluate(() => {
-      localStorage.clear()
-      sessionStorage.clear()
-    })
-
-    // Clear cookies
+    // Clear cookies first (doesn't require page navigation)
     const context = page.context()
     await context.clearCookies()
+
+    // Only clear storage if we have a valid page context
+    // Skip if we're on about:blank or similar
+    const currentUrl = page.url()
+    if (
+      currentUrl &&
+      !currentUrl.includes("about:") &&
+      !currentUrl.includes("data:")
+    ) {
+      try {
+        await page.evaluate(() => {
+          localStorage.clear()
+          sessionStorage.clear()
+        })
+      } catch (storageError) {
+        // Log but don't throw - storage might not be accessible yet
+        console.log(
+          "⚠️ Could not clear storage (page might not be ready):",
+          storageError
+        )
+      }
+    }
 
     console.log("✅ Browser state cleared")
   } catch (error) {
