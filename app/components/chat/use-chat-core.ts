@@ -265,112 +265,146 @@ export function useChatCore({
     [streamingToolInvocations, currentStreamingMessageId]
   )
 
-  // Real-time artifact processing during streaming with improved caching
-  const processStreamingArtifacts = useCallback((message: Message) => {
-    if (message.role === "assistant" && typeof message.content === "string") {
-      // Use a stable cache key based on message ID and content hash
-      // This prevents race conditions and UI flicker during streaming
-      const contentHash = message.content.split("").reduce((acc, char, idx) => {
+  // Utility function to generate stable cache key for messages
+  const generateContentCacheKey = useCallback(
+    (messageId: string, content: string): string => {
+      const contentHash = content.split("").reduce((acc, char, idx) => {
         return acc + char.charCodeAt(0) * (idx + 1)
       }, 0)
-      const cacheKey = `${message.id}-${contentHash}`
+      return `${messageId}-${contentHash}`
+    },
+    []
+  )
 
-      // Skip processing very short content (lowered threshold to avoid skipping normal messages)
-      if (message.content.length < 10) {
-        return message
-      }
+  // Utility function to handle early artifact detection and sidebar opening
+  const handleEarlyArtifactDetection = useCallback((content: string) => {
+    const hasCodeBlockStart = content.includes("```")
+    const hasLargeCode = content.length > 300
 
-      // Return cached processed message if it exists
-      if (processedMessagesCache.current.has(cacheKey)) {
-        const cachedMessage = processedMessagesCache.current.get(cacheKey)
-        if (cachedMessage) {
-          return cachedMessage
-        }
-      }
-
-      // Early detection for sidebar opening - detect potential artifacts sooner
-      const hasCodeBlockStart = message.content.includes("```")
-      const hasLargeCode = message.content.length > 300 // Threshold for early artifact detection
-
-      if (hasCodeBlockStart && hasLargeCode) {
-        // Try to open sidebar early if we detect substantial code content
-        const earlyArtifacts = parseArtifacts(message.content, true)
-        if (earlyArtifacts.length > 0) {
-          const firstArtifact = earlyArtifacts[0]?.artifact
-          if (firstArtifact) {
-            console.log(
-              "🚀 Early artifact detection - opening sidebar:",
-              firstArtifact.title
-            )
-            // Queue artifact to be opened outside of render
-            setArtifactsToOpen([firstArtifact])
-          }
-        }
-      }
-
-      // Parse artifacts from the current content during streaming with streaming flag
-      const artifactParts = parseArtifacts(message.content, true)
-
-      if (artifactParts.length > 0) {
-        console.log(
-          "🎨 Real-time artifact detected during streaming:",
-          artifactParts.map(
-            (p) => `${p.artifact?.title} (${p.artifact?.metadata.lines} lines)`
-          )
-        )
-
-        // Auto-open the first artifact in the sidebar during streaming
-        const firstArtifact = artifactParts[0]?.artifact
+    if (hasCodeBlockStart && hasLargeCode) {
+      const earlyArtifacts = parseArtifacts(content, true)
+      if (earlyArtifacts.length > 0) {
+        const firstArtifact = earlyArtifacts[0]?.artifact
         if (firstArtifact) {
           console.log(
-            "📌 Auto-opening artifact in sidebar:",
+            "🚀 Early artifact detection - opening sidebar:",
             firstArtifact.title
           )
-          // Queue artifact to be opened outside of render
           setArtifactsToOpen([firstArtifact])
         }
-
-        // Replace inline code blocks with artifact placeholders in the content
-        const updatedContent = replaceCodeBlocksWithArtifacts(
-          message.content,
-          artifactParts
-        )
-
-        console.log("🔧 processStreamingArtifacts result:", {
-          messageId: message.id,
-          originalLength: message.content.length,
-          updatedLength: updatedContent.length,
-          hasMarkers: updatedContent.includes("[ARTIFACT_PREVIEW:"),
-          artifactCount: artifactParts.length,
-          cacheKey,
-        })
-
-        // Replace any existing artifact parts with new ones
-        const nonArtifactParts = (message.parts || []).filter(
-          (part) => (part as MessagePart).type !== "artifact"
-        )
-
-        const updatedMessage = {
-          ...message,
-          content: updatedContent,
-          parts: [...nonArtifactParts, ...artifactParts],
-        }
-
-        // Store the processed message in cache for consistency across renders
-        // Implement LRU eviction when cache exceeds max size
-        if (processedMessagesCache.current.size >= MAX_CACHE_SIZE) {
-          // Remove the oldest entry (first key in the Map)
-          const firstKey = processedMessagesCache.current.keys().next().value
-          if (firstKey) {
-            processedMessagesCache.current.delete(firstKey)
-          }
-        }
-        processedMessagesCache.current.set(cacheKey, updatedMessage as Message)
-        return updatedMessage as Message
       }
     }
-    return message
   }, [])
+
+  // Utility function to process artifacts and update message content
+  const processArtifactsAndUpdateContent = useCallback(
+    (message: Message, artifactParts: ContentPart[]): Message => {
+      console.log(
+        "🎨 Real-time artifact detected during streaming:",
+        artifactParts.map(
+          (p) => `${p.artifact?.title} (${p.artifact?.metadata.lines} lines)`
+        )
+      )
+
+      // Auto-open the first artifact in the sidebar during streaming
+      const firstArtifact = artifactParts[0]?.artifact
+      if (firstArtifact) {
+        console.log("📌 Auto-opening artifact in sidebar:", firstArtifact.title)
+        setArtifactsToOpen([firstArtifact])
+      }
+
+      // Replace inline code blocks with artifact placeholders in the content
+      const updatedContent = replaceCodeBlocksWithArtifacts(
+        message.content as string,
+        artifactParts
+      )
+
+      // Replace any existing artifact parts with new ones
+      const nonArtifactParts = (message.parts || []).filter(
+        (part) => (part as MessagePart).type !== "artifact"
+      )
+
+      return {
+        ...message,
+        content: updatedContent,
+        parts: [...nonArtifactParts, ...artifactParts],
+      } as Message
+    },
+    []
+  )
+
+  // Utility function to handle LRU cache eviction and storage
+  const updateMessageCache = useCallback(
+    (cacheKey: string, message: Message) => {
+      // Implement LRU eviction when cache exceeds max size
+      if (processedMessagesCache.current.size >= MAX_CACHE_SIZE) {
+        const firstKey = processedMessagesCache.current.keys().next().value
+        if (firstKey) {
+          processedMessagesCache.current.delete(firstKey)
+        }
+      }
+      processedMessagesCache.current.set(cacheKey, message)
+    },
+    []
+  )
+
+  // Real-time artifact processing during streaming with improved caching
+  const processStreamingArtifacts = useCallback(
+    (message: Message) => {
+      if (message.role === "assistant" && typeof message.content === "string") {
+        // Skip processing very short content
+        if (message.content.length < 10) {
+          return message
+        }
+
+        // Generate stable cache key
+        const cacheKey = generateContentCacheKey(message.id, message.content)
+
+        // Return cached processed message if it exists
+        if (processedMessagesCache.current.has(cacheKey)) {
+          const cachedMessage = processedMessagesCache.current.get(cacheKey)
+          if (cachedMessage) {
+            return cachedMessage
+          }
+        }
+
+        // Handle early artifact detection
+        handleEarlyArtifactDetection(message.content)
+
+        // Parse artifacts from the current content during streaming
+        const artifactParts = parseArtifacts(message.content, true)
+
+        if (artifactParts.length > 0) {
+          const updatedMessage = processArtifactsAndUpdateContent(
+            message,
+            artifactParts
+          )
+
+          console.log("🔧 processStreamingArtifacts result:", {
+            messageId: message.id,
+            originalLength: message.content.length,
+            updatedLength: (updatedMessage.content as string).length,
+            hasMarkers: (updatedMessage.content as string).includes(
+              "[ARTIFACT_PREVIEW:"
+            ),
+            artifactCount: artifactParts.length,
+            cacheKey,
+          })
+
+          // Store the processed message in cache
+          updateMessageCache(cacheKey, updatedMessage as Message)
+          return updatedMessage as Message
+        }
+      }
+      return message
+    },
+    [
+      generateContentCacheKey,
+      handleEarlyArtifactDetection,
+      processArtifactsAndUpdateContent,
+      updateMessageCache,
+    ]
+  )
 
   // For new chats (chatId is null), use empty messages to avoid conflicts
   // For existing chats (chatId exists), use initialMessages from the provider

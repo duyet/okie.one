@@ -8,7 +8,6 @@ import {
   resetTestData,
   getDefaultTestUserId,
   type TestChat,
-  type TestUser,
 } from "../setup/database-setup"
 
 /**

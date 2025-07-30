@@ -2,7 +2,7 @@
 
 import { CaretDownIcon } from "@phosphor-icons/react"
 import { AnimatePresence, motion, type Transition } from "motion/react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
@@ -25,10 +25,13 @@ export function ReasoningSteps({ steps, isStreaming }: ReasoningStepsProps) {
   const [wasStreaming, setWasStreaming] = useState(isStreaming ?? false)
   const [isExpanded, setIsExpanded] = useState(() => isStreaming ?? true)
 
-  if (wasStreaming && isStreaming === false) {
-    setWasStreaming(false)
-    setIsExpanded(false)
-  }
+  // Handle streaming state changes in useEffect to avoid render-time state updates
+  useEffect(() => {
+    if (wasStreaming && isStreaming === false) {
+      setWasStreaming(false)
+      setIsExpanded(false)
+    }
+  }, [wasStreaming, isStreaming])
 
   if (!steps || steps.length === 0) {
     return null

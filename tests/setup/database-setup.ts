@@ -21,9 +21,9 @@ export interface TestChat {
 }
 
 // In-memory storage for test data when database is not available
-let testUsers: Map<string, TestUser> = new Map()
-let testChats: Map<string, TestChat> = new Map()
-let testMessages: Map<string, any[]> = new Map()
+const testUsers: Map<string, TestUser> = new Map()
+const testChats: Map<string, TestChat> = new Map()
+const testMessages: Map<string, any[]> = new Map()
 
 /**
  * Initialize test database and create required test data
