@@ -19,7 +19,7 @@ test.describe("MCP Settings Tab", () => {
 
   test("opens settings modal and navigates to MCP tab", async ({ page }) => {
     // Click on user avatar to open dropdown menu
-    await page.click("button[role='button']:has(div[class*='Avatar'])")
+    await page.click("button:has(.h-10.w-10)")
 
     // Click on Settings menu item
     await page.click('text="Settings"')
@@ -43,7 +43,7 @@ test.describe("MCP Settings Tab", () => {
     page,
   }) => {
     // Click on user avatar to open dropdown menu
-    await page.click("button[role='button']:has(div[class*='Avatar'])")
+    await page.click("button:has(.h-10.w-10)")
 
     // Click on Settings menu item
     await page.click('text="Settings"')
@@ -68,7 +68,7 @@ test.describe("MCP Settings Tab", () => {
 
   test("toggles Sequential Thinking MCP setting", async ({ page }) => {
     // Click on user avatar to open dropdown menu
-    await page.click("button[role='button']:has(div[class*='Avatar'])")
+    await page.click("button:has(.h-10.w-10)")
 
     // Click on Settings menu item
     await page.click('text="Settings"')
@@ -105,7 +105,7 @@ test.describe("MCP Settings Tab", () => {
   test("reflects MCP setting changes in chat interface", async ({ page }) => {
     // First, disable Sequential Thinking MCP in settings
     // Click on user avatar to open dropdown menu
-    await page.click("button[role='button']:has(div[class*='Avatar'])")
+    await page.click("button:has(.h-10.w-10)")
 
     // Click on Settings menu item
     await page.click('text="Settings"')
@@ -158,7 +158,7 @@ test.describe("MCP Settings Tab", () => {
   }) => {
     // Enable Sequential Thinking MCP in settings
     // Click on user avatar to open dropdown menu
-    await page.click("button[role='button']:has(div[class*='Avatar'])")
+    await page.click("button:has(.h-10.w-10)")
 
     // Click on Settings menu item
     await page.click('text="Settings"')
@@ -208,8 +208,9 @@ test.describe("MCP Settings Tab", () => {
 
   test("persists MCP settings across page reloads", async ({ page }) => {
     // Set Sequential Thinking to disabled
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    await page.click("button:has(.h-10.w-10)")
+    await page.click('text="Settings"')
+    await page.waitForSelector('[role="dialog"]')
     await page.click('text="MCP"')
 
     const mcpSwitch = page
@@ -227,8 +228,9 @@ test.describe("MCP Settings Tab", () => {
     await page.reload()
 
     // Open settings again and check if state persisted
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    await page.click("button:has(.h-10.w-10)")
+    await page.click('text="Settings"')
+    await page.waitForSelector('[role="dialog"]')
     await page.click('text="MCP"')
 
     const mcpSwitchAfterReload = page
@@ -247,8 +249,9 @@ test.describe("MCP Settings Tab", () => {
     // This test would require authentication setup
     // For now, we'll just verify the settings interface works
 
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    await page.click("button:has(.h-10.w-10)")
+    await page.click('text="Settings"')
+    await page.waitForSelector('[role="dialog"]')
     await page.click('text="MCP"')
 
     // Verify settings are accessible
@@ -265,8 +268,9 @@ test.describe("MCP Settings Tab", () => {
   })
 
   test("displays proper accessibility attributes", async ({ page }) => {
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    await page.click("button:has(.h-10.w-10)")
+    await page.click('text="Settings"')
+    await page.waitForSelector('[role="dialog"]')
     await page.click('text="MCP"')
 
     // Check MCP tab has proper ARIA attributes
@@ -290,8 +294,9 @@ test.describe("MCP Settings Tab", () => {
   })
 
   test("handles keyboard navigation in MCP settings", async ({ page }) => {
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    await page.click("button:has(.h-10.w-10)")
+    await page.click('text="Settings"')
+    await page.waitForSelector('[role="dialog"]')
 
     // Navigate to MCP tab using keyboard
     await page.keyboard.press("Tab") // Navigate through modal elements
@@ -319,8 +324,9 @@ test.describe("MCP Settings Tab", () => {
     // Set mobile viewport
     await page.setViewportSize({ width: 375, height: 667 })
 
-    await page.click('[data-testid="settings-trigger"]')
-    await page.waitForSelector('[data-testid="settings-modal"]')
+    await page.click("button:has(.h-10.w-10)")
+    await page.click('text="Settings"')
+    await page.waitForSelector('[role="dialog"]')
 
     // On mobile, tabs might be displayed differently
     await page.click('text="MCP"')
