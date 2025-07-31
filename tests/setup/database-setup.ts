@@ -113,7 +113,7 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
     // For testing, we'll create a user record directly
     const { error: userError } = await supabase.from("users").upsert({
       id: testUserId,
-      email: null, // Anonymous user
+      email: "test-anonymous@example.com", // Placeholder email for anonymous test user
       created_at: new Date().toISOString(),
     })
 
@@ -198,7 +198,7 @@ export async function createTestUser(
     try {
       const { error } = await supabase.from("users").upsert({
         id: userId,
-        email: isAnonymous ? null : email,
+        email: isAnonymous ? `test-anonymous-${userId}@example.com` : email,
         created_at: new Date().toISOString(),
       })
 

@@ -137,7 +137,10 @@ export async function waitForChatInput(
             const allPlaceholders = await page
               .locator("textarea")
               .evaluateAll((elements) =>
-                elements.map((el) => el.placeholder || "no-placeholder")
+                elements.map(
+                  (el) =>
+                    (el as HTMLTextAreaElement).placeholder || "no-placeholder"
+                )
               )
             console.log("Textarea placeholders found:", allPlaceholders)
           } catch (debugError) {
