@@ -90,7 +90,10 @@ test.describe("Debug Sequential Thinking MCP - Simple", () => {
 
     // Wait for navigation to chat page
     try {
-      await page.waitForURL(/\/c\/[a-f0-9-]+/, { timeout: 10000 })
+      await page.waitForURL(/\/c\/[a-f0-9-]+/, {
+        timeout: 10000,
+        waitUntil: "commit", // SPA navigation doesn't trigger load events
+      })
       console.log("🌐 Successfully navigated to chat page:", page.url())
     } catch (_error: unknown) {
       console.log("⚠️ Navigation timeout or failed")

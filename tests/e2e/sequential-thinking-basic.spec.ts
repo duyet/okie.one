@@ -1,9 +1,12 @@
 import { expect, test } from "@playwright/test"
 
+// Define types for API request structure
 interface ChatRequestBody {
   thinkingMode?: string
-  tools?: Array<Record<string, unknown>>
-  [key: string]: unknown
+  tools?: Array<{
+    type: string
+    name: string
+  }>
 }
 
 test.describe("Sequential Thinking MCP - Basic Functionality", () => {
@@ -84,12 +87,13 @@ test.describe("Sequential Thinking MCP - Basic Functionality", () => {
     expect(requestBody).toBeTruthy()
 
     if (requestBody) {
-      expect((requestBody as any).thinkingMode).toBe("sequential")
+      const typedBody = requestBody as ChatRequestBody
+      expect(typedBody.thinkingMode).toBe("sequential")
 
       // Verify MCP tools are included
-      if ((requestBody as any).tools) {
-        const mcpTool = ((requestBody as any).tools as any[]).find(
-          (tool: any) =>
+      if (typedBody.tools) {
+        const mcpTool = typedBody.tools.find(
+          (tool) =>
             tool.type === "mcp" && tool.name === "server-sequential-thinking"
         )
         expect(mcpTool).toBeTruthy()

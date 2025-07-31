@@ -10,7 +10,8 @@
     "type-check": "tsc --noEmit",
     "fmt": "biome format --write",
     "check": "biome check --write",
-    "test": "vitest run --coverage",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test"
   },
   "engines": {

@@ -38,7 +38,10 @@ test.describe("Sequential Thinking MCP - UI Rendering Check", () => {
     await sendButton.click()
 
     // Wait for navigation to chat page
-    await page.waitForURL(/\/c\/[a-f0-9-]+/, { timeout: 10000 })
+    await page.waitForURL(/\/c\/[a-f0-9-]+/, {
+      timeout: 10000,
+      waitUntil: "commit", // SPA navigation doesn't trigger load events
+    })
 
     // Wait for messages to appear
     const messagesContainer = page.locator('[data-testid="message"]')

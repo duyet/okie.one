@@ -192,3 +192,42 @@ export class TokenTrackingError extends Error {
     this.name = "TokenTrackingError"
   }
 }
+
+// Supabase RPC function types
+export interface SupabaseClient {
+  rpc: {
+    get_daily_token_leaderboard: (params: {
+      target_date: string
+      limit_count: number
+    }) => Promise<{ data: LeaderboardEntry[] | null; error: unknown }>
+
+    get_daily_timing_analytics: (params: {
+      target_date: string
+      user_id_param?: string
+    }) => Promise<{ data: TimingAnalytics[] | null; error: unknown }>
+
+    get_daily_model_summary: (params: {
+      target_date: string
+    }) => Promise<{ data: DailyModelSummary[] | null; error: unknown }>
+
+    get_user_daily_analytics: (params: {
+      user_id_param: string
+      target_date: string
+    }) => Promise<{ data: UserAnalytics[] | null; error: unknown }>
+
+    get_user_token_analytics: (params: {
+      target_user_id: string
+      days_back: number
+    }) => Promise<{ data: UserAnalytics[] | null; error: unknown }>
+
+    get_timing_analytics: (params: {
+      target_user_id: string
+      days_back: number
+    }) => Promise<{ data: TimingAnalytics[] | null; error: unknown }>
+
+    get_daily_model_token_summary: (params: {
+      days_back: number
+      target_user_id?: string | null
+    }) => Promise<{ data: DailyModelSummary[] | null; error: unknown }>
+  }
+}

@@ -72,8 +72,8 @@ export function useChatCore({
     string | null
   >(null)
 
-  // Convert current state to unified tools format
-  const getToolsConfig = useCallback(() => {
+  // Convert current state to unified tools format - memoized for performance
+  const toolsConfig = useMemo(() => {
     const tools: Array<{ type: string; name?: string }> = []
 
     if (enableSearch) {
@@ -86,6 +86,8 @@ export function useChatCore({
 
     return tools
   }, [enableSearch, thinkingMode])
+
+  const getToolsConfig = useCallback(() => toolsConfig, [toolsConfig])
 
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
@@ -122,26 +124,32 @@ export function useChatCore({
     })
   }, [])
 
-  // Cache for storing processed messages to prevent infinite processing and ensure consistency
-  // Implement LRU cache with max size to prevent memory leaks
+  // Optimized LRU cache for storing processed messages
   const MAX_CACHE_SIZE = 100
   const processedMessagesCache = useRef<Map<string, Message>>(new Map())
+  const cacheAccessOrder = useRef<string[]>([]) // Track access order for true LRU
 
-  // Track artifacts that need to be opened
-  const [artifactsToOpen, setArtifactsToOpen] = useState<
-    ContentPart["artifact"][]
-  >([])
+  // Track artifacts that need to be opened - optimized to reduce re-renders
+  const artifactsToOpenRef = useRef<ContentPart["artifact"][]>([])
 
-  // Open artifacts outside of render
-  useEffect(() => {
-    if (artifactsToOpen.length > 0) {
-      const firstArtifact = artifactsToOpen[0]
-      if (firstArtifact) {
-        openArtifact(firstArtifact)
-        setArtifactsToOpen([])
-      }
-    }
-  }, [artifactsToOpen, openArtifact])
+  // Optimized artifact opening with ref to avoid re-render cycles
+  const queueArtifactToOpen = useCallback(
+    (artifact: ContentPart["artifact"]) => {
+      artifactsToOpenRef.current = [artifact]
+      // Use setTimeout to batch artifact opening and prevent render blocking
+      setTimeout(() => {
+        const artifacts = artifactsToOpenRef.current
+        if (artifacts.length > 0) {
+          const firstArtifact = artifacts[0]
+          if (firstArtifact) {
+            openArtifact(firstArtifact)
+            artifactsToOpenRef.current = []
+          }
+        }
+      }, 0)
+    },
+    [openArtifact]
+  )
 
   // Real-time tool invocation processing during streaming
   const processStreamingToolInvocations = useCallback(
@@ -277,24 +285,27 @@ export function useChatCore({
   )
 
   // Utility function to handle early artifact detection and sidebar opening
-  const handleEarlyArtifactDetection = useCallback((content: string) => {
-    const hasCodeBlockStart = content.includes("```")
-    const hasLargeCode = content.length > 300
+  const handleEarlyArtifactDetection = useCallback(
+    (content: string) => {
+      const hasCodeBlockStart = content.includes("```")
+      const hasLargeCode = content.length > 300
 
-    if (hasCodeBlockStart && hasLargeCode) {
-      const earlyArtifacts = parseArtifacts(content, true)
-      if (earlyArtifacts.length > 0) {
-        const firstArtifact = earlyArtifacts[0]?.artifact
-        if (firstArtifact) {
-          console.log(
-            "🚀 Early artifact detection - opening sidebar:",
-            firstArtifact.title
-          )
-          setArtifactsToOpen([firstArtifact])
+      if (hasCodeBlockStart && hasLargeCode) {
+        const earlyArtifacts = parseArtifacts(content, true)
+        if (earlyArtifacts.length > 0) {
+          const firstArtifact = earlyArtifacts[0]?.artifact
+          if (firstArtifact) {
+            console.log(
+              "🚀 Early artifact detection - opening sidebar:",
+              firstArtifact.title
+            )
+            queueArtifactToOpen(firstArtifact)
+          }
         }
       }
-    }
-  }, [])
+    },
+    [queueArtifactToOpen]
+  )
 
   // Utility function to process artifacts and update message content
   const processArtifactsAndUpdateContent = useCallback(
@@ -310,7 +321,7 @@ export function useChatCore({
       const firstArtifact = artifactParts[0]?.artifact
       if (firstArtifact) {
         console.log("📌 Auto-opening artifact in sidebar:", firstArtifact.title)
-        setArtifactsToOpen([firstArtifact])
+        queueArtifactToOpen(firstArtifact)
       }
 
       // Replace inline code blocks with artifact placeholders in the content
@@ -330,23 +341,55 @@ export function useChatCore({
         parts: [...nonArtifactParts, ...artifactParts],
       } as Message
     },
-    []
+    [queueArtifactToOpen]
   )
 
   // Utility function to handle LRU cache eviction and storage
+  // Optimized LRU cache management
   const updateMessageCache = useCallback(
     (cacheKey: string, message: Message) => {
-      // Implement LRU eviction when cache exceeds max size
-      if (processedMessagesCache.current.size >= MAX_CACHE_SIZE) {
-        const firstKey = processedMessagesCache.current.keys().next().value
-        if (firstKey) {
-          processedMessagesCache.current.delete(firstKey)
+      const cache = processedMessagesCache.current
+      const accessOrder = cacheAccessOrder.current
+
+      // Remove key from access order if it exists
+      const existingIndex = accessOrder.indexOf(cacheKey)
+      if (existingIndex > -1) {
+        accessOrder.splice(existingIndex, 1)
+      }
+
+      // Add to end (most recently used)
+      accessOrder.push(cacheKey)
+
+      // Evict least recently used items if cache is full
+      while (cache.size >= MAX_CACHE_SIZE && accessOrder.length > 0) {
+        const lruKey = accessOrder.shift()
+        if (lruKey) {
+          cache.delete(lruKey)
         }
       }
-      processedMessagesCache.current.set(cacheKey, message)
+
+      cache.set(cacheKey, message)
     },
     []
   )
+
+  const getCachedMessage = useCallback((cacheKey: string): Message | null => {
+    const cache = processedMessagesCache.current
+    const accessOrder = cacheAccessOrder.current
+
+    if (!cache.has(cacheKey)) {
+      return null
+    }
+
+    // Update access order - move to end (most recently used)
+    const existingIndex = accessOrder.indexOf(cacheKey)
+    if (existingIndex > -1) {
+      accessOrder.splice(existingIndex, 1)
+    }
+    accessOrder.push(cacheKey)
+
+    return cache.get(cacheKey) || null
+  }, [])
 
   // Real-time artifact processing during streaming with improved caching
   const processStreamingArtifacts = useCallback(
@@ -361,11 +404,9 @@ export function useChatCore({
         const cacheKey = generateContentCacheKey(message.id, message.content)
 
         // Return cached processed message if it exists
-        if (processedMessagesCache.current.has(cacheKey)) {
-          const cachedMessage = processedMessagesCache.current.get(cacheKey)
-          if (cachedMessage) {
-            return cachedMessage
-          }
+        const cachedMessage = getCachedMessage(cacheKey)
+        if (cachedMessage) {
+          return cachedMessage
         }
 
         // Handle early artifact detection
@@ -403,6 +444,7 @@ export function useChatCore({
       handleEarlyArtifactDetection,
       processArtifactsAndUpdateContent,
       updateMessageCache,
+      getCachedMessage,
     ]
   )
 
@@ -599,6 +641,12 @@ export function useChatCore({
       status,
     })
 
+    // Prevent double submission
+    if (isSubmitting) {
+      console.warn("🚨 Submit already in progress, ignoring duplicate call")
+      return
+    }
+
     setIsSubmitting(true)
 
     // Clear streaming tool invocations for new submission
@@ -632,13 +680,32 @@ export function useChatCore({
     setFiles([])
 
     try {
-      const allowed = await checkLimitsAndNotify(uid)
+      // Add timeout for critical async operations
+      const ASYNC_TIMEOUT = 15000 // 15 second timeout for individual operations
+
+      const allowed = await Promise.race([
+        checkLimitsAndNotify(uid),
+        new Promise<boolean>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Rate limit check timeout")),
+            ASYNC_TIMEOUT
+          )
+        ),
+      ])
       if (!allowed) {
         setIsSubmitting(false)
         return
       }
 
-      const currentChatId = await ensureChatExists(uid, input)
+      const currentChatId = await Promise.race([
+        ensureChatExists(uid, input),
+        new Promise<string | null>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Chat creation timeout")),
+            ASYNC_TIMEOUT
+          )
+        ),
+      ])
       if (!currentChatId) {
         setIsSubmitting(false)
         return
@@ -655,7 +722,16 @@ export function useChatCore({
 
       let attachments: Attachment[] | null = []
       if (submittedFiles.length > 0) {
-        attachments = await handleFileUploads(uid, currentChatId)
+        attachments = await Promise.race([
+          handleFileUploads(uid, currentChatId),
+          new Promise<null>(
+            (_, reject) =>
+              setTimeout(
+                () => reject(new Error("File upload timeout")),
+                ASYNC_TIMEOUT * 2
+              ) // Longer timeout for file uploads
+          ),
+        ])
         if (attachments === null) {
           setIsSubmitting(false)
           return
@@ -696,8 +772,25 @@ export function useChatCore({
       if (messages.length > 0) {
         bumpChat(currentChatId)
       }
-    } catch {
-      toast({ title: "Failed to send message", status: "error" })
+    } catch (error) {
+      console.error("🚨 Submit failed:", error)
+
+      // Provide specific error messages based on error type
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to send message"
+      let toastTitle = "Failed to send message"
+
+      if (errorMessage.includes("timeout")) {
+        toastTitle = "Request timed out - please try again"
+      } else if (errorMessage.includes("Rate limit")) {
+        toastTitle = "Rate limit exceeded"
+      } else if (errorMessage.includes("Chat creation")) {
+        toastTitle = "Failed to create chat"
+      } else if (errorMessage.includes("File upload")) {
+        toastTitle = "File upload failed"
+      }
+
+      toast({ title: toastTitle, status: "error" })
     } finally {
       setIsSubmitting(false)
     }

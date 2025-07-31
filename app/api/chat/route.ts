@@ -7,6 +7,7 @@ import {
   getModelFileCapabilities,
   validateModelSupportsFiles,
 } from "@/lib/file-handling"
+import { apiLogger } from "@/lib/logger"
 import { getMCPServer, hasMCPServer } from "@/lib/mcp/servers"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
@@ -86,13 +87,10 @@ export async function POST(req: Request) {
       }
     }
 
-    console.log("📨 Chat API request:", {
-      model,
+    apiLogger.chatRequest(model, messages?.length || 0, {
       tools: effectiveTools,
       enableThink: effectiveEnableThink,
-      // Legacy
       thinkingMode,
-      messagesCount: messages?.length,
     })
 
     if (!messages || !chatId || !userId) {
@@ -189,14 +187,14 @@ export async function POST(req: Request) {
       getMaxSteps: () => number
     } | null = null
 
-    console.log("🔧 Configuring tools:", effectiveTools)
+    apiLogger.info("Configuring tools", { tools: effectiveTools })
 
     // Process each tool configuration
     for (const tool of effectiveTools) {
       switch (tool.type) {
         case "web_search":
           enabledCapabilities.webSearch = true
-          console.log("🌐 Web search enabled")
+          apiLogger.info("Web search enabled")
           break
 
         case "mcp": {
@@ -207,8 +205,8 @@ export async function POST(req: Request) {
               if (serverName === "server-sequential-thinking") {
                 enabledCapabilities.mcpSequentialThinking = true
                 sequentialThinkingServer = mcpServer
-                console.log(
-                  "🔧 MCP Sequential thinking enabled, adding tools from server"
+                apiLogger.info(
+                  "MCP Sequential thinking enabled, adding tools from server"
                 )
 
                 // Add tools from the MCP server
@@ -222,17 +220,24 @@ ${mcpServer.getSystemPromptEnhancement()}`
               }
             }
           } else {
-            console.log(
-              `🔧 MCP server ${tool.name} requested but not implemented`
-            )
+            apiLogger.warn("MCP server requested but not implemented", {
+              serverName: tool.name,
+            })
           }
           break
         }
 
         default:
-          console.log(
-            `❓ Unknown tool type: ${typeof tool === "object" && tool !== null && "type" in tool && typeof (tool as { type: unknown }).type === "string" ? (tool as { type: string }).type : "unknown"}`
-          )
+          apiLogger.warn("Unknown tool type encountered", {
+            toolType:
+              typeof tool === "object" &&
+              tool !== null &&
+              "type" in tool &&
+              typeof (tool as { type: unknown }).type === "string"
+                ? (tool as { type: string }).type
+                : "unknown",
+            tool,
+          })
       }
     }
 
@@ -249,25 +254,26 @@ ${mcpServer.getSystemPromptEnhancement()}`
         ? sequentialThinkingServer.getMaxSteps()
         : 10,
       onError: (err: unknown) => {
-        console.error("🚨 Streaming error occurred:", err)
+        apiLogger.error("Streaming error occurred", { error: err })
 
         if (err instanceof Error) {
-          console.error("Error message:", err.message)
-          console.error("Error stack:", err.stack)
+          apiLogger.error("Error details", {
+            message: err.message,
+            stack: err.stack,
+          })
 
           // Log additional context for tool-related errors
           if (
             err.message.includes("tool_calls") ||
             err.message.includes("function.arguments")
           ) {
-            console.error("🔧 Tool call error detected - debugging context:")
-            console.error("- Tools enabled:", Object.keys(apiTools))
-            console.error(
-              "- MCP Sequential Thinking enabled:",
-              enabledCapabilities.mcpSequentialThinking
-            )
-            console.error("- Messages count:", messages?.length)
-            console.error("- Last few messages:", messages?.slice(-3))
+            apiLogger.error("Tool call error detected", {
+              toolsEnabled: Object.keys(apiTools),
+              mcpSequentialThinkingEnabled:
+                enabledCapabilities.mcpSequentialThinking,
+              messagesCount: messages?.length,
+              lastFewMessages: messages?.slice(-3),
+            })
           }
         }
 
@@ -283,7 +289,7 @@ ${mcpServer.getSystemPromptEnhancement()}`
 
       onFinish: async ({ response, usage, finishReason }) => {
         // Log token usage data for debugging
-        console.log("AI SDK Response data:", {
+        apiLogger.info("AI SDK Response data", {
           usage,
           finishReason,
           responseKeys: Object.keys(response),
@@ -305,12 +311,10 @@ ${mcpServer.getSystemPromptEnhancement()}`
           .join("\n")
 
         const artifactParts = parseArtifacts(responseText, false)
-        console.log(
-          "Parsed artifacts:",
-          artifactParts.length,
-          "from response length:",
-          responseText.length
-        )
+        apiLogger.info("Parsed artifacts", {
+          artifactCount: artifactParts.length,
+          responseLength: responseText.length,
+        })
 
         // Store in database only if Supabase is available
         if (supabase) {
@@ -354,18 +358,23 @@ ${mcpServer.getSystemPromptEnhancement()}`
                 }
               )
 
-              console.log("Token usage recorded successfully:", {
+              apiLogger.tokenUsage(
                 model,
                 provider,
-                inputTokens: usage.promptTokens,
-                outputTokens: usage.completionTokens,
-                cachedTokens: (usage as { cachedTokens?: number }).cachedTokens,
-                duration: requestDuration,
-                timeToFirstChunk,
-                streamingDuration,
-              })
+                usage.promptTokens,
+                usage.completionTokens,
+                {
+                  cachedTokens: (usage as { cachedTokens?: number })
+                    .cachedTokens,
+                  duration: requestDuration,
+                  timeToFirstChunk,
+                  streamingDuration,
+                }
+              )
             } catch (tokenError) {
-              console.error("Failed to record token usage:", tokenError)
+              apiLogger.error("Failed to record token usage", {
+                error: tokenError,
+              })
               // Don't fail the request if token tracking fails
             }
           }
@@ -377,12 +386,12 @@ ${mcpServer.getSystemPromptEnhancement()}`
       sendReasoning: true,
       sendSources: true,
       getErrorMessage: (error: unknown) => {
-        console.error("Error forwarded to client:", error)
+        apiLogger.error("Error forwarded to client", { error })
         return extractErrorMessage(error)
       },
     })
   } catch (err: unknown) {
-    console.error("Error in /api/chat:", err)
+    apiLogger.error("Error in /api/chat", { error: err })
     const error = err as {
       code?: string
       message?: string
