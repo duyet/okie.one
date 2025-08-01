@@ -45,13 +45,26 @@ export async function initializeTestDatabase(): Promise<{
   try {
     // Try to connect to Supabase (local or test instance)
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseServiceKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error("Missing Supabase credentials")
+    if (!supabaseUrl) {
+      throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL")
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    // Use service role key for admin operations if available, otherwise use anon key
+    const serviceKey = supabaseServiceKey || supabaseAnonKey
+    if (!serviceKey) {
+      throw new Error("Missing Supabase service role key or anon key")
+    }
+
+    const supabase = createClient(supabaseUrl, serviceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    })
 
     // Test connection
     const { error } = await supabase.from("users").select("count").limit(1)
@@ -106,20 +119,50 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
   console.log("🏗️ Creating test data...")
 
   try {
-    // Create test anonymous user if it doesn't exist
+    // Create test anonymous user with auth.users first
     const testUserId = getDefaultTestUserId() // Use proper UUID format
 
-    // Note: In a real setup, you'd create this through Supabase auth
-    // For testing, we'll create a user record directly
+    // First, check if user exists in auth.users
+    const { data: authUser, error: authCheckError } =
+      await supabase.auth.admin.getUserById(testUserId)
+
+    if (authCheckError && authCheckError.status !== 404) {
+      console.warn("⚠️ Error checking auth user:", authCheckError)
+    }
+
+    if (!authUser?.user) {
+      // Create auth user first (this creates the foreign key reference)
+      const { data: newAuthUser, error: createAuthError } =
+        await supabase.auth.admin.createUser({
+          user_id: testUserId,
+          email: "test-anonymous@example.com",
+          email_confirm: true,
+          user_metadata: {
+            test_user: true,
+            is_anonymous: true,
+          },
+        })
+
+      if (createAuthError) {
+        console.warn("⚠️ Failed to create auth user:", createAuthError)
+        // Continue with database user creation anyway
+      } else {
+        console.log("✅ Created auth user:", newAuthUser.user?.id)
+      }
+    }
+
+    // Now create/update the user record in public.users
     const { error: userError } = await supabase.from("users").upsert({
       id: testUserId,
-      email: "test-anonymous@example.com", // Placeholder email for anonymous test user
+      email: "test-anonymous@example.com",
       created_at: new Date().toISOString(),
     })
 
     if (userError && userError.code !== "23505") {
       // Ignore duplicate key errors
       console.warn("⚠️ Failed to create test user:", userError)
+    } else {
+      console.log("✅ Created/updated test user in public.users")
     }
 
     console.log("✅ Test data creation completed")
@@ -196,6 +239,42 @@ export async function createTestUser(
 
   if (supabase) {
     try {
+      // First check if auth user exists
+      const { data: authUser, error: authCheckError } =
+        await supabase.auth.admin.getUserById(userId)
+
+      if (authCheckError && authCheckError.status !== 404) {
+        console.warn(`⚠️ Error checking auth user ${userId}:`, authCheckError)
+      }
+
+      if (!authUser?.user) {
+        // Create auth user first if it doesn't exist
+        const testEmail = isAnonymous
+          ? `test-anonymous-${userId}@example.com`
+          : email || `test-${userId}@example.com`
+
+        const { data: newAuthUser, error: createAuthError } =
+          await supabase.auth.admin.createUser({
+            user_id: userId,
+            email: testEmail,
+            email_confirm: true,
+            user_metadata: {
+              test_user: true,
+              is_anonymous: isAnonymous,
+            },
+          })
+
+        if (createAuthError) {
+          console.warn(
+            `⚠️ Failed to create auth user ${userId}:`,
+            createAuthError
+          )
+        } else {
+          console.log(`✅ Created auth user: ${newAuthUser.user?.id}`)
+        }
+      }
+
+      // Now create/update the user in public.users
       const { error } = await supabase.from("users").upsert({
         id: userId,
         email: isAnonymous ? `test-anonymous-${userId}@example.com` : email,

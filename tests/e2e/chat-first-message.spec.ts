@@ -208,115 +208,88 @@ test.describe("First Message from Home Page", () => {
       const initialUrl = page.url()
       console.log("🔗 Initial URL:", initialUrl)
 
-      // Click send button and handle navigation more flexibly
+      // Click send button and wait for either navigation or message appearance
       console.log("📤 Clicking send button...")
       await sendButton.click()
 
-      // Flexible navigation handling with multiple strategies
+      // Simplified approach: Wait for either URL change OR message visibility
       let navigationSuccessful = false
-      let finalUrl = initialUrl
+      let messageVisible = false
 
+      // Use Promise.race to wait for whichever happens first
       try {
-        // Strategy 1: Wait for URL change with shorter timeout
-        console.log("🔄 Strategy 1: Waiting for URL navigation...")
-        await page.waitForURL(/\/c\/[a-zA-Z0-9-]+/, {
-          timeout: 15000,
-          waitUntil: "commit", // SPA navigation doesn't trigger load events
-        })
-        navigationSuccessful = true
-        finalUrl = page.url()
-        console.log("✅ Navigation successful via URL change")
-      } catch (navigationError) {
+        await Promise.race([
+          // Option 1: Wait for URL navigation
+          page
+            .waitForURL(/\/c\/[a-zA-Z0-9-]+/, {
+              timeout: 20000,
+              waitUntil: "commit",
+            })
+            .then(() => {
+              navigationSuccessful = true
+              console.log("✅ Navigation to chat page successful")
+            }),
+
+          // Option 2: Wait for message to appear (in-place chat)
+          page
+            .getByText(testMessage)
+            .waitFor({
+              timeout: 20000,
+              state: "visible",
+            })
+            .then(() => {
+              messageVisible = true
+              console.log("✅ Message appeared (in-place chat)")
+            }),
+        ])
+      } catch (raceError) {
         console.log(
-          "⚠️ URL navigation timeout, trying alternative strategies..."
+          "⚠️ Neither navigation nor message appearance detected within timeout"
         )
-
-        // Strategy 2: Check if URL changed without regex matching
-        try {
-          await page.waitForFunction(
-            (initial) => window.location.href !== initial,
-            initialUrl,
-            { timeout: 10000 }
-          )
-          finalUrl = page.url()
-          if (finalUrl.includes("/c/")) {
-            navigationSuccessful = true
-            console.log("✅ Navigation successful via URL change detection")
-          }
-        } catch (urlChangeError) {
-          console.log(
-            "⚠️ No URL change detected, checking for in-place updates..."
-          )
-        }
-
-        // Strategy 3: Look for chat page indicators without navigation
-        try {
-          // Check if we're still on home but message appeared (SPA behavior)
-          const messageElement = page.getByText(testMessage)
-          await expect(messageElement).toBeVisible({ timeout: 10000 })
-          console.log("✅ Message appeared without navigation (SPA behavior)")
-          navigationSuccessful = true
-        } catch (messageError) {
-          console.log("⚠️ Message not visible immediately, waiting longer...")
-        }
+        // Continue anyway - we'll check both conditions below
       }
 
-      // Final URL logging
-      finalUrl = page.url()
+      const finalUrl = page.url()
       console.log("📍 Final URL after interaction:", finalUrl)
 
-      // Verify message visibility with extended timeout and flexible approach
-      console.log("👀 Verifying message visibility...")
-      try {
-        await expect(page.getByText(testMessage)).toBeVisible({
-          timeout: 20000,
-        })
-        console.log("✅ Message is visible")
-      } catch (messageError) {
-        // Try alternative message detection strategies
-        console.log("🔍 Trying alternative message detection...")
-
-        // Look for any text containing our message
-        const messageVariants = [
-          page.locator(`text="${testMessage}"`),
-          page.locator(`text*="${testMessage}"`),
-          page
-            .locator('[data-testid*="message"]')
-            .filter({ hasText: testMessage }),
-          page.locator(".message").filter({ hasText: testMessage }),
-        ]
-
-        let messageFound = false
-        for (const variant of messageVariants) {
-          try {
-            await expect(variant).toBeVisible({ timeout: 5000 })
-            messageFound = true
-            console.log("✅ Message found using alternative detection")
-            break
-          } catch (variantError) {
-            // Continue to next variant
-          }
-        }
-
-        if (!messageFound) {
-          console.log("⚠️ Message not found with any detection method")
-          // Don't throw here - let's continue to see what we can verify
+      // Final verification: Message should be visible by now
+      console.log("👀 Final message verification...")
+      if (!messageVisible) {
+        // If message wasn't visible from Promise.race, try one more time
+        try {
+          await expect(page.getByText(testMessage)).toBeVisible({
+            timeout: 10000,
+          })
+          messageVisible = true
+          console.log("✅ Message is visible")
+        } catch (messageError) {
+          console.log("⚠️ Message still not visible after final check")
         }
       }
 
-      // Additional verification: Check for AI response if navigation occurred
-      if (navigationSuccessful && finalUrl.includes("/c/")) {
-        console.log("🤖 Checking for AI response...")
+      // Ensure at least one success condition is met
+      const testSuccessful =
+        navigationSuccessful || messageVisible || finalUrl !== initialUrl
+
+      if (!testSuccessful) {
+        throw new Error(
+          "Test failed: No evidence of message submission (no navigation or message visibility)"
+        )
+      }
+
+      // Check for AI response if we're on a chat page (with mocked response)
+      if (finalUrl.includes("/c/")) {
+        console.log("🤖 Checking for mocked AI response...")
         try {
           await expect(
             page.getByText(/received.*rapid.*test.*message/i)
           ).toBeVisible({
-            timeout: 15000,
+            timeout: 10000,
           })
           console.log("✅ AI response visible")
         } catch (aiResponseError) {
           console.log(
-            "⚠️ AI response not visible (may be normal for rapid test)"
+            "ℹ️ AI response not visible (may be expected with mocking)"
           )
         }
       }
