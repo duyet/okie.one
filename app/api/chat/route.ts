@@ -7,6 +7,8 @@ import {
   getModelFileCapabilities,
   validateModelSupportsFiles,
 } from "@/lib/file-handling"
+import { apiLogger } from "@/lib/logger"
+import { getMCPServer, hasMCPServer } from "@/lib/mcp/servers"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
@@ -22,6 +24,8 @@ import { createErrorResponse, extractErrorMessage } from "./utils"
 
 export const maxDuration = 60
 
+type ToolConfig = { type: "mcp"; name: string } | { type: "web_search" }
+
 type ChatRequest = {
   messages: MessageAISDK[]
   chatId: string
@@ -29,8 +33,11 @@ type ChatRequest = {
   model: string
   isAuthenticated: boolean
   systemPrompt: string
-  enableSearch: boolean
-  enableThink: boolean
+  tools?: ToolConfig[]
+  enableThink?: boolean // Native thinking capability - separate from tools
+  // Legacy support - will be deprecated
+  enableSearch?: boolean
+  thinkingMode?: "none" | "regular" | "sequential"
   message_group_id?: string
 }
 
@@ -58,10 +65,33 @@ export async function POST(req: Request) {
       model,
       isAuthenticated,
       systemPrompt,
+      tools,
+      // Legacy support
       enableSearch,
       enableThink,
+      thinkingMode = "none",
       message_group_id,
     } = requestBody
+
+    // Convert legacy flags to new tools format for backward compatibility
+    const effectiveTools: ToolConfig[] = tools || []
+    const effectiveEnableThink = enableThink || thinkingMode === "regular"
+
+    if (!tools) {
+      // Legacy mode - convert old flags to new tools format
+      if (enableSearch) {
+        effectiveTools.push({ type: "web_search" })
+      }
+      if (thinkingMode === "sequential") {
+        effectiveTools.push({ type: "mcp", name: "server-sequential-thinking" })
+      }
+    }
+
+    apiLogger.chatRequest(model, messages?.length || 0, {
+      tools: effectiveTools,
+      enableThink: effectiveEnableThink,
+      thinkingMode,
+    })
 
     if (!messages || !chatId || !userId) {
       return new Response(
@@ -145,14 +175,108 @@ export async function POST(req: Request) {
         undefined
     }
 
+    // Configure tools based on unified tools configuration
+    const apiTools: ToolSet = {}
+    let enhancedSystemPrompt = effectiveSystemPrompt
+    const enabledCapabilities = {
+      webSearch: false,
+      mcpSequentialThinking: false,
+    }
+    let sequentialThinkingServer: {
+      getTools: () => ToolSet
+      getMaxSteps: () => number
+    } | null = null
+
+    apiLogger.info("Configuring tools", { tools: effectiveTools })
+
+    // Process each tool configuration
+    for (const tool of effectiveTools) {
+      switch (tool.type) {
+        case "web_search":
+          enabledCapabilities.webSearch = true
+          apiLogger.info("Web search enabled")
+          break
+
+        case "mcp": {
+          const serverName = tool.name as string
+          if (hasMCPServer(serverName)) {
+            const mcpServer = getMCPServer(serverName)
+            if (mcpServer) {
+              if (serverName === "server-sequential-thinking") {
+                enabledCapabilities.mcpSequentialThinking = true
+                sequentialThinkingServer = mcpServer
+                apiLogger.info(
+                  "MCP Sequential thinking enabled, adding tools from server"
+                )
+
+                // Add tools from the MCP server
+                const serverTools = mcpServer.getTools()
+                Object.assign(apiTools, serverTools)
+
+                // Enhance system prompt with server's enhancement
+                enhancedSystemPrompt = `${effectiveSystemPrompt}
+
+${mcpServer.getSystemPromptEnhancement()}`
+              }
+            }
+          } else {
+            apiLogger.warn("MCP server requested but not implemented", {
+              serverName: tool.name,
+            })
+          }
+          break
+        }
+
+        default:
+          apiLogger.warn("Unknown tool type encountered", {
+            toolType:
+              typeof tool === "object" &&
+              tool !== null &&
+              "type" in tool &&
+              typeof (tool as { type: unknown }).type === "string"
+                ? (tool as { type: string }).type
+                : "unknown",
+            tool,
+          })
+      }
+    }
+
     const result = streamText({
-      model: modelConfig.apiSdk(apiKey, { enableSearch, enableThink }),
-      system: effectiveSystemPrompt,
+      model: modelConfig.apiSdk(apiKey, {
+        enableSearch: enabledCapabilities.webSearch,
+        enableThink:
+          effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
+      }),
+      system: enhancedSystemPrompt,
       messages: messages,
-      tools: {} as ToolSet,
-      maxSteps: 10,
+      tools: apiTools,
+      maxSteps: sequentialThinkingServer
+        ? sequentialThinkingServer.getMaxSteps()
+        : 10,
       onError: (err: unknown) => {
-        console.error("Streaming error occurred:", err)
+        apiLogger.error("Streaming error occurred", { error: err })
+
+        if (err instanceof Error) {
+          apiLogger.error("Error details", {
+            message: err.message,
+            stack: err.stack,
+          })
+
+          // Log additional context for tool-related errors
+          if (
+            err.message.includes("tool_calls") ||
+            err.message.includes("function.arguments")
+          ) {
+            apiLogger.error("Tool call error detected", {
+              toolsEnabled: Object.keys(apiTools),
+              mcpSequentialThinkingEnabled:
+                enabledCapabilities.mcpSequentialThinking,
+              messagesCount: messages?.length,
+              lastFewMessages: messages?.slice(-3),
+            })
+          }
+        }
+
         // Don't set streamError anymore - let the AI SDK handle it through the stream
       },
       onChunk: () => {
@@ -165,7 +289,7 @@ export async function POST(req: Request) {
 
       onFinish: async ({ response, usage, finishReason }) => {
         // Log token usage data for debugging
-        console.log("AI SDK Response data:", {
+        apiLogger.info("AI SDK Response data", {
           usage,
           finishReason,
           responseKeys: Object.keys(response),
@@ -187,12 +311,10 @@ export async function POST(req: Request) {
           .join("\n")
 
         const artifactParts = parseArtifacts(responseText, false)
-        console.log(
-          "Parsed artifacts:",
-          artifactParts.length,
-          "from response length:",
-          responseText.length
-        )
+        apiLogger.info("Parsed artifacts", {
+          artifactCount: artifactParts.length,
+          responseLength: responseText.length,
+        })
 
         // Store in database only if Supabase is available
         if (supabase) {
@@ -236,18 +358,23 @@ export async function POST(req: Request) {
                 }
               )
 
-              console.log("Token usage recorded successfully:", {
+              apiLogger.tokenUsage(
                 model,
                 provider,
-                inputTokens: usage.promptTokens,
-                outputTokens: usage.completionTokens,
-                cachedTokens: (usage as { cachedTokens?: number }).cachedTokens,
-                duration: requestDuration,
-                timeToFirstChunk,
-                streamingDuration,
-              })
+                usage.promptTokens,
+                usage.completionTokens,
+                {
+                  cachedTokens: (usage as { cachedTokens?: number })
+                    .cachedTokens,
+                  duration: requestDuration,
+                  timeToFirstChunk,
+                  streamingDuration,
+                }
+              )
             } catch (tokenError) {
-              console.error("Failed to record token usage:", tokenError)
+              apiLogger.error("Failed to record token usage", {
+                error: tokenError,
+              })
               // Don't fail the request if token tracking fails
             }
           }
@@ -259,12 +386,12 @@ export async function POST(req: Request) {
       sendReasoning: true,
       sendSources: true,
       getErrorMessage: (error: unknown) => {
-        console.error("Error forwarded to client:", error)
+        apiLogger.error("Error forwarded to client", { error })
         return extractErrorMessage(error)
       },
     })
   } catch (err: unknown) {
-    console.error("Error in /api/chat:", err)
+    apiLogger.error("Error in /api/chat", { error: err })
     const error = err as {
       code?: string
       message?: string

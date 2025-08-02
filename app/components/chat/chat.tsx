@@ -17,6 +17,7 @@ import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 import { cn } from "@/lib/utils"
 
+import { ErrorBoundary } from "../error-boundary"
 import { ArtifactProvider, useArtifact } from "./artifact-context"
 import { ArtifactPanel } from "./artifact-panel"
 import { useChatCore } from "./use-chat-core"
@@ -57,7 +58,11 @@ function ChatInner() {
     [chatId, getChatById]
   )
 
-  const { messages: initialMessages, cacheAndAddMessage } = useMessages()
+  const {
+    messages: initialMessages,
+    cacheAndAddMessage,
+    setHasActiveChatSession,
+  } = useMessages()
   const { user } = useUser()
   const { preferences } = useUserPreferences()
   const { draftValue, clearDraft } = useChatDraft(chatId)
@@ -75,8 +80,6 @@ function ChatInner() {
     files,
     setFiles,
     handleFileUploads,
-    createOptimisticAttachments,
-    cleanupOptimisticAttachments,
     handleFileUpload,
     handleFileRemove,
   } = useFileUpload(selectedModel)
@@ -94,19 +97,24 @@ function ChatInner() {
   )
 
   // Chat operations (utils + handlers) - created first
-  const { checkLimitsAndNotify, ensureChatExists, handleDelete, handleEdit } =
-    useChatOperations({
-      isAuthenticated,
-      chatId,
-      messages: initialMessages,
-      selectedModel,
-      systemPrompt,
-      createNewChat,
-      setHasDialogAuth,
-      setHasRateLimitDialog,
-      setMessages: () => {},
-      setInput: () => {},
-    })
+  const {
+    checkLimitsAndNotify,
+    ensureChatExists,
+    updateUrlForChat,
+    handleDelete,
+    handleEdit,
+  } = useChatOperations({
+    isAuthenticated,
+    chatId,
+    messages: initialMessages,
+    selectedModel,
+    systemPrompt,
+    createNewChat,
+    setHasDialogAuth,
+    setHasRateLimitDialog,
+    setMessages: () => {},
+    setInput: () => {},
+  })
 
   // Core chat functionality (initialization + state + actions)
   const {
@@ -118,8 +126,8 @@ function ChatInner() {
     isSubmitting,
     enableSearch,
     setEnableSearch,
-    enableThink,
-    setEnableThink,
+    thinkingMode,
+    setThinkingMode,
     submit,
     handleSuggestion,
     handleReload,
@@ -131,15 +139,15 @@ function ChatInner() {
     chatId,
     user,
     files,
-    createOptimisticAttachments,
     setFiles,
     checkLimitsAndNotify,
-    cleanupOptimisticAttachments,
     ensureChatExists,
+    updateUrlForChat,
     handleFileUploads,
     selectedModel,
     clearDraft,
     bumpChat,
+    setHasActiveChatSession,
   })
 
   // Memoize the conversation props to prevent unnecessary rerenders
@@ -174,8 +182,8 @@ function ChatInner() {
       status,
       setEnableSearch,
       enableSearch,
-      setEnableThink,
-      enableThink,
+      setThinkingMode,
+      thinkingMode,
     }),
     [
       input,
@@ -196,8 +204,8 @@ function ChatInner() {
       status,
       setEnableSearch,
       enableSearch,
-      setEnableThink,
-      enableThink,
+      setThinkingMode,
+      thinkingMode,
     ]
   )
 
@@ -216,6 +224,8 @@ function ChatInner() {
   }
 
   const showOnboarding = !chatId && messages.length === 0
+
+  console.log("-> messages", messages)
 
   return (
     <>
@@ -286,8 +296,10 @@ function ChatInner() {
 
 export function Chat() {
   return (
-    <ArtifactProvider>
-      <ChatInner />
-    </ArtifactProvider>
+    <ErrorBoundary>
+      <ArtifactProvider>
+        <ChatInner />
+      </ArtifactProvider>
+    </ErrorBoundary>
   )
 }

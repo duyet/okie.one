@@ -4,6 +4,9 @@ import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 import type React from "react"
 import { useCallback, useMemo } from "react"
 
+import { ReasoningDisplay as Reasoning } from "@/app/components/mcp/reasoning/reasoning-display"
+import { ReasoningSteps } from "@/app/components/mcp/reasoning/sequential-steps"
+import { ToolInvocation } from "@/app/components/mcp/tools/tool-invocation"
 import type { ContentPart } from "@/app/types/api.types"
 import {
   Message,
@@ -15,6 +18,7 @@ import { useChatSession } from "@/lib/chat-store/session/provider"
 import {
   isArtifactPart,
   isReasoningPart,
+  isSequentialReasoningStepPart,
   isToolInvocationPart,
   type MessagePart,
 } from "@/lib/type-guards/message-parts"
@@ -25,10 +29,8 @@ import { cn } from "@/lib/utils"
 import { useArtifact } from "./artifact-context"
 import { ArtifactPreview } from "./artifact-preview"
 import { getSources } from "./get-sources"
-import { Reasoning } from "./reasoning"
 import { SearchImages } from "./search-images"
 import { SourcesList } from "./sources-list"
-import { ToolInvocation } from "./tool-invocation"
 import { UsageMetrics } from "./usage-metrics"
 
 type MessageAssistantProps = {
@@ -42,6 +44,8 @@ type MessageAssistantProps = {
   parts?: MessagePart[]
   status?: "streaming" | "ready" | "submitted" | "error"
   className?: string
+  // Add toolInvocations from AI SDK
+  toolInvocations?: Array<{ toolCall?: unknown; [key: string]: unknown }>
 }
 
 // Define a type for tool invocation to avoid any usage
@@ -53,7 +57,23 @@ type ToolInvocationData = {
       type: string
       results?: unknown[]
     }>
+  } & {
+    title?: string
+    content?: string
+    nextStep?: "continue" | "finalAnswer"
   }
+}
+
+// Type guard to check if an object has the ToolInvocationData structure
+function isToolInvocationData(obj: unknown): obj is ToolInvocationData {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "state" in obj &&
+    "toolName" in obj &&
+    typeof obj.state === "string" &&
+    typeof obj.toolName === "string"
+  )
 }
 
 export function MessageAssistant({
@@ -67,11 +87,24 @@ export function MessageAssistant({
   parts,
   status,
   className,
+  toolInvocations,
 }: MessageAssistantProps) {
   const { preferences } = useUserPreferences()
   const { openArtifact } = useArtifact()
   const { chatId } = useChatSession()
   const { user } = useUser()
+
+  console.log("🔍 MessageAssistant received:", {
+    children: `"${children}"`,
+    childrenType: typeof children,
+    partsCount: parts?.length || 0,
+    partsTypes: parts?.map((p) => p.type) || [],
+    parts: parts,
+    toolInvocationsCount: toolInvocations?.length || 0,
+    toolInvocations: toolInvocations,
+    status: status,
+    isLast: isLast,
+  })
 
   // Memoize the openArtifact handler to prevent unnecessary renders
   const handleOpenArtifact = useCallback(
@@ -84,6 +117,127 @@ export function MessageAssistant({
   const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
   const reasoningParts = parts?.find(isReasoningPart)
+
+  // Extract sequential reasoning steps from parts (added during streaming)
+  const sequentialReasoningStepParts =
+    parts?.filter(isSequentialReasoningStepPart) || []
+  console.log("🔍 Found sequential reasoning step parts:", {
+    count: sequentialReasoningStepParts.length,
+    steps: sequentialReasoningStepParts.map((p) => p.step),
+  })
+
+  // Extract sequential reasoning steps from both sources: parts array and direct toolInvocations
+  console.log(
+    "🔍 Raw toolInvocationParts:",
+    toolInvocationParts.map((part) => ({
+      type: part.type,
+      toolInvocation: part.toolInvocation,
+      toolInvocationKeys: part.toolInvocation
+        ? Object.keys(part.toolInvocation)
+        : [],
+    }))
+  )
+
+  // First, try to extract from parts array (existing logic)
+  const sequentialReasoningStepsFromToolInvocationParts = toolInvocationParts
+    .filter((part) => {
+      const ti = part.toolInvocation as ToolInvocationData
+      console.log("🔍 Checking tool invocation from parts:", {
+        state: ti?.state,
+        toolName: ti?.toolName,
+        hasResult: !!ti?.result,
+        resultKeys: ti?.result ? Object.keys(ti.result) : [],
+        fullStructure: ti,
+      })
+
+      const isReasoningStep =
+        ti?.state === "result" &&
+        ti?.toolName === "addReasoningStep" &&
+        ti?.result &&
+        typeof ti.result === "object" &&
+        "title" in ti.result &&
+        "content" in ti.result
+
+      if (isReasoningStep) {
+        console.log("🧠 Found reasoning step from parts:", ti.result)
+      }
+
+      return isReasoningStep
+    })
+    .map((part) => {
+      const ti = part.toolInvocation as ToolInvocationData
+      return {
+        title: ti.result?.title || "",
+        content: ti.result?.content || "",
+        nextStep: ti.result?.nextStep,
+      }
+    })
+
+  // Second, try to extract from direct toolInvocations property (AI SDK structure)
+  const sequentialReasoningStepsFromToolInvocations = (toolInvocations || [])
+    .filter((toolInvocation): toolInvocation is ToolInvocationData => {
+      if (!isToolInvocationData(toolInvocation)) return false
+      const ti = toolInvocation
+      console.log("🔍 Checking tool invocation from toolInvocations:", {
+        state: ti?.state,
+        toolName: ti?.toolName,
+        hasResult: !!ti?.result,
+        resultKeys: ti?.result ? Object.keys(ti.result) : [],
+        fullStructure: ti,
+      })
+
+      const isReasoningStep =
+        ti?.state === "result" &&
+        ti?.toolName === "addReasoningStep" &&
+        ti?.result &&
+        typeof ti.result === "object" &&
+        "title" in ti.result &&
+        "content" in ti.result
+
+      if (isReasoningStep) {
+        console.log("🧠 Found reasoning step from toolInvocations:", ti.result)
+      }
+
+      return Boolean(isReasoningStep)
+    })
+    .map((toolInvocation) => ({
+      title: toolInvocation.result?.title || "",
+      content: toolInvocation.result?.content || "",
+      nextStep: toolInvocation.result?.nextStep,
+    }))
+
+  // Extract steps from sequential reasoning step parts (added during streaming)
+  const stepsFromSequentialParts = sequentialReasoningStepParts.map(
+    (part) => part.step
+  )
+
+  // Combine all sources, preferring: sequential parts > toolInvocations > tool invocation parts
+  const sequentialReasoningSteps =
+    stepsFromSequentialParts.length > 0
+      ? stepsFromSequentialParts
+      : sequentialReasoningStepsFromToolInvocations.length > 0
+        ? sequentialReasoningStepsFromToolInvocations
+        : sequentialReasoningStepsFromToolInvocationParts
+
+  console.log("🔍 Message debug:", {
+    toolInvocationPartsCount: toolInvocationParts.length,
+    directToolInvocationsCount: toolInvocations?.length || 0,
+    sequentialReasoningStepPartsCount: sequentialReasoningStepParts.length,
+    sequentialReasoningStepsFromToolInvocationPartsCount:
+      sequentialReasoningStepsFromToolInvocationParts.length,
+    sequentialReasoningStepsFromToolInvocationsCount:
+      sequentialReasoningStepsFromToolInvocations.length,
+    stepsFromSequentialPartsCount: stepsFromSequentialParts.length,
+    finalSequentialReasoningStepsCount: sequentialReasoningSteps.length,
+    toolNames: toolInvocationParts.map(
+      (p) => (p.toolInvocation as ToolInvocationData)?.toolName
+    ),
+    directToolNames:
+      toolInvocations
+        ?.map((ti) => (isToolInvocationData(ti) ? ti.toolName : undefined))
+        .filter(Boolean) || [],
+    reasoningSteps: sequentialReasoningSteps,
+  })
 
   // Memoize artifactParts to prevent unnecessary re-renders
   const artifactParts = useMemo(
@@ -101,18 +255,37 @@ export function MessageAssistant({
     })
   }
 
+  const contentNullOrEmpty = children === null || children === ""
+  const isLastStreaming = status === "streaming" && isLast
+
   // Memoize the content rendering to prevent unnecessary re-renders
   const renderedContent = useMemo(() => {
-    if (children === null || children === "") return null
+    // Always render content during streaming, even if empty - it may get populated
+    if (children === null || (children === "" && !isLastStreaming)) return null
     return renderContentWithArtifacts(
       children,
       artifactParts,
       handleOpenArtifact
     )
-  }, [children, artifactParts, handleOpenArtifact])
+  }, [children, artifactParts, handleOpenArtifact, isLastStreaming])
 
-  const contentNullOrEmpty = children === null || children === ""
-  const isLastStreaming = status === "streaming" && isLast
+  // Show content container if we have content OR if we're streaming and have reasoning/tool parts
+  const shouldShowContent =
+    !contentNullOrEmpty ||
+    (isLastStreaming &&
+      (reasoningParts ||
+        sequentialReasoningSteps.length > 0 ||
+        toolInvocationParts.length > 0))
+
+  console.log("🔍 MessageAssistant render decision:", {
+    children: `"${children}"`,
+    contentNullOrEmpty,
+    isLastStreaming,
+    reasoningPartsExists: !!reasoningParts,
+    sequentialReasoningStepsCount: sequentialReasoningSteps.length,
+    toolInvocationPartsCount: toolInvocationParts.length,
+    shouldShowContent,
+  })
   const searchImageResults =
     parts
       ?.filter((part) => {
@@ -151,11 +324,30 @@ export function MessageAssistant({
           />
         )}
 
+        {sequentialReasoningSteps.length > 0 && (
+          <ReasoningSteps
+            steps={sequentialReasoningSteps}
+            isStreaming={status === "streaming"}
+          />
+        )}
+
         {toolInvocationParts &&
           toolInvocationParts.length > 0 &&
-          preferences.showToolInvocations && (
+          preferences.showToolInvocations &&
+          // Don't show tool invocations for addReasoningStep since we're displaying them as reasoning steps
+          toolInvocationParts.filter(
+            (part) =>
+              (part.toolInvocation as ToolInvocationData)?.toolName !==
+              "addReasoningStep"
+          ).length > 0 && (
             <ToolInvocation
-              toolInvocations={toolInvocationParts as ToolInvocationUIPart[]}
+              toolInvocations={
+                toolInvocationParts.filter(
+                  (part) =>
+                    (part.toolInvocation as ToolInvocationData)?.toolName !==
+                    "addReasoningStep"
+                ) as ToolInvocationUIPart[]
+              }
             />
           )}
 
@@ -171,7 +363,7 @@ export function MessageAssistant({
           />
         )}
 
-        {contentNullOrEmpty ? null : (
+        {shouldShowContent && (
           <div className="message-content-with-artifacts">
             {renderedContent}
           </div>

@@ -36,7 +36,24 @@ type ProjectViewProps = {
 export function ProjectView({ projectId }: ProjectViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [enableSearch, setEnableSearch] = useState(false)
-  const [enableThink, setEnableThink] = useState(false)
+  const [thinkingMode, setThinkingMode] = useState<
+    "none" | "regular" | "sequential"
+  >("none")
+
+  // Convert current state to unified tools format
+  const getToolsConfig = useCallback(() => {
+    const tools: Array<{ type: string; name?: string }> = []
+
+    if (enableSearch) {
+      tools.push({ type: "web_search" })
+    }
+
+    if (thinkingMode === "sequential") {
+      tools.push({ type: "mcp", name: "server-sequential-thinking" })
+    }
+
+    return tools
+  }, [enableSearch, thinkingMode])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const { user } = useUser()
   const { createNewChat, bumpChat } = useChats()
@@ -253,8 +270,11 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           model: selectedModel,
           isAuthenticated: true,
           systemPrompt: SYSTEM_PROMPT_DEFAULT,
+          tools: getToolsConfig(),
+          // Legacy support for backward compatibility
           enableSearch,
-          enableThink,
+          enableThink: thinkingMode === "regular",
+          thinkingMode,
         },
         experimental_attachments: attachments || undefined,
       }
@@ -291,8 +311,9 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     cacheAndAddMessage,
     messages.length,
     bumpChat,
+    getToolsConfig,
     enableSearch,
-    enableThink,
+    thinkingMode,
   ])
 
   const handleReload = useCallback(async () => {
@@ -352,8 +373,8 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       status,
       setEnableSearch,
       enableSearch,
-      setEnableThink,
-      enableThink,
+      setThinkingMode,
+      thinkingMode,
     }),
     [
       input,
@@ -369,7 +390,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       stop,
       status,
       enableSearch,
-      enableThink,
+      thinkingMode,
     ]
   )
 

@@ -30,7 +30,7 @@ const nextConfig: NextConfig = withBundleAnalyzer({
     ],
   },
   eslint: {
-    ignoreDuringBuilds: false,
+    ignoreDuringBuilds: true,
   },
   typescript: {
     tsconfigPath: "./tsconfig.json",

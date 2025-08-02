@@ -1,7 +1,8 @@
 "use client"
 
-import React from "react"
 import { FileArrowUp, Paperclip } from "@phosphor-icons/react"
+import React from "react"
+
 import {
   FileUpload,
   FileUploadContent,

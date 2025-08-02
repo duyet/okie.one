@@ -61,7 +61,11 @@ export async function GET(req: NextRequest) {
       headers: { "Content-Type": "application/json" },
     })
   } catch (error) {
-    console.error("Error in /api/analytics/token-usage:", error)
+    const { analyticsLogger } = await import("@/lib/logger")
+    analyticsLogger.error("Token usage analytics API error", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
     return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

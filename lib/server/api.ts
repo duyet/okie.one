@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
+import { authLogger } from "../logger"
 
 import { isSupabaseEnabled } from "../supabase/config"
 
@@ -23,13 +24,11 @@ export async function validateUserIdentity(
       )
 
     if (isOldFormatGuest || isValidUUID) {
-      console.log("Processing fallback guest user:", userId)
+      authLogger.debug("Processing fallback guest user", { userId })
 
       // For old format guest IDs, reject with clear error message
       if (isOldFormatGuest) {
-        console.log(
-          "Old format guest ID detected, client should migrate to UUID format"
-        )
+        authLogger.warn("Old format guest ID detected", { userId })
         throw new Error(
           "Invalid guest user ID format. Please refresh the page to get a new guest ID."
         )
@@ -48,16 +47,19 @@ export async function validateUserIdentity(
             .maybeSingle()
 
           if (existingUser) {
-            console.log("Found existing guest user in database:", userId)
+            authLogger.debug("Found existing guest user in database", {
+              userId,
+            })
             return supabase
           }
 
           // Guest user exists in auth.users but not in public.users
           // This shouldn't happen with proper anonymous auth, but handle gracefully
-          console.log(
-            "Guest user not found in database. Anonymous authentication may not be properly configured.",
-            "Please enable anonymous authentication in Supabase Dashboard."
-          )
+          authLogger.warn("Guest user not found in database", {
+            userId,
+            suggestion:
+              "Anonymous authentication may not be properly configured",
+          })
 
           // Return the supabase client for read operations
           return supabase
@@ -109,7 +111,10 @@ export async function validateUserIdentity(
       .maybeSingle()
 
     if (userError) {
-      console.error("Error checking guest user:", userError)
+      authLogger.error("Error checking guest user", {
+        userId,
+        error: userError.message,
+      })
       throw new Error("Database error when validating guest user")
     }
 

@@ -50,6 +50,32 @@ export function Conversation({
             const hasScrollAnchor =
               isLast && messages.length > initialMessageCount.current
 
+            console.log("Rendering message:", message.id, "Role:", message.role)
+
+            // Debug log for assistant messages with tool invocations
+            if (message.role === "assistant") {
+              console.log("🔍 Conversation - full message object:", {
+                id: message.id,
+                role: message.role,
+                content:
+                  typeof message.content === "string"
+                    ? `${message.content.substring(0, 200)}...`
+                    : message.content,
+                parts: message.parts,
+                toolInvocations: (
+                  message as MessageType & {
+                    toolInvocations?: Array<{
+                      toolCall?: unknown
+                      [key: string]: unknown
+                    }>
+                  }
+                ).toolInvocations,
+                // Log all keys on the message object to see what's available
+                messageKeys: Object.keys(message),
+                fullMessage: message,
+              })
+            }
+
             return (
               <Message
                 key={message.id}
@@ -63,6 +89,16 @@ export function Conversation({
                 hasScrollAnchor={hasScrollAnchor}
                 parts={message.parts}
                 status={status}
+                toolInvocations={
+                  (
+                    message as MessageType & {
+                      toolInvocations?: Array<{
+                        toolCall?: unknown
+                        [key: string]: unknown
+                      }>
+                    }
+                  ).toolInvocations
+                }
               >
                 {message.content}
               </Message>

@@ -2,8 +2,8 @@
 
 import { Header } from "@/app/components/layout/header"
 import { AppSidebar } from "@/app/components/layout/sidebar/app-sidebar"
-import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { useGuestDataMerge } from "@/app/hooks/use-guest-data-merge"
+import { useUserPreferences } from "@/lib/user-preference-store/provider"
 
 export function LayoutApp({ children }: { children: React.ReactNode }) {
   const { preferences } = useUserPreferences()

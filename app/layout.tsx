@@ -4,6 +4,8 @@ import "./globals.css"
 import Script from "next/script"
 import { ThemeProvider } from "next-themes"
 
+import { SettingsModal } from "@/app/components/layout/settings/settings-modal"
+import { GuestUserInitializer } from "@/app/components/providers/guest-user-initializer"
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
@@ -11,11 +13,11 @@ import { ChatsProvider } from "@/lib/chat-store/chats/provider"
 import { ChatSessionProvider } from "@/lib/chat-store/session/provider"
 import { APP_NAME } from "@/lib/config"
 import { ModelProvider } from "@/lib/model-store/provider"
+import { SettingsProvider } from "@/lib/settings-store/provider"
 import { TanstackQueryProvider } from "@/lib/tanstack-query/tanstack-query-provider"
 import { getUserProfile } from "@/lib/user/api"
 import { UserPreferencesProvider } from "@/lib/user-preference-store/provider"
 import { UserProvider } from "@/lib/user-store/provider"
-import { GuestUserInitializer } from "@/app/components/providers/guest-user-initializer"
 
 import { LayoutClient } from "./layout-client"
 
@@ -62,22 +64,25 @@ export default async function RootLayout({
               <ChatsProvider>
                 <ChatSessionProvider>
                   <UserPreferencesProvider>
-                    <TooltipProvider
-                      delayDuration={200}
-                      skipDelayDuration={500}
-                    >
-                      <ThemeProvider
-                        attribute="class"
-                        defaultTheme="light"
-                        enableSystem
-                        disableTransitionOnChange
+                    <SettingsProvider>
+                      <TooltipProvider
+                        delayDuration={200}
+                        skipDelayDuration={500}
                       >
-                        <SidebarProvider defaultOpen>
-                          <Toaster position="top-center" />
-                          {children}
-                        </SidebarProvider>
-                      </ThemeProvider>
-                    </TooltipProvider>
+                        <ThemeProvider
+                          attribute="class"
+                          defaultTheme="light"
+                          enableSystem
+                          disableTransitionOnChange
+                        >
+                          <SidebarProvider defaultOpen>
+                            <Toaster position="top-center" />
+                            <SettingsModal />
+                            {children}
+                          </SidebarProvider>
+                        </ThemeProvider>
+                      </TooltipProvider>
+                    </SettingsProvider>
                   </UserPreferencesProvider>
                 </ChatSessionProvider>
               </ChatsProvider>

@@ -93,6 +93,29 @@ export interface TokenTrackingConfig {
   costPerOutputToken: Record<string, number> // provider-model -> cost per 1k output tokens
 }
 
+// RPC function return types
+export interface TimingAnalytics {
+  user_id: string
+  avg_duration_ms: number
+  avg_time_to_first_token_ms: number
+  avg_time_to_first_chunk_ms: number
+  avg_streaming_duration_ms: number
+  total_messages: number
+  usage_date: string
+}
+
+export interface DailyModelSummary {
+  usage_date: string
+  provider_id: string
+  model_id: string
+  total_tokens: number
+  total_input_tokens: number
+  total_output_tokens: number
+  total_messages: number
+  total_cost_usd: number
+  avg_duration_ms: number
+}
+
 // Cost estimation models (prices per 1K tokens in USD)
 // IMPORTANT: All values below are per 1,000 tokens, not per token
 export const TOKEN_COSTS: Record<string, { input: number; output: number }> = {
@@ -167,5 +190,44 @@ export class TokenTrackingError extends Error {
   ) {
     super(message)
     this.name = "TokenTrackingError"
+  }
+}
+
+// Supabase RPC function types
+export interface SupabaseClient {
+  rpc: {
+    get_daily_token_leaderboard: (params: {
+      target_date: string
+      limit_count: number
+    }) => Promise<{ data: LeaderboardEntry[] | null; error: unknown }>
+
+    get_daily_timing_analytics: (params: {
+      target_date: string
+      user_id_param?: string
+    }) => Promise<{ data: TimingAnalytics[] | null; error: unknown }>
+
+    get_daily_model_summary: (params: {
+      target_date: string
+    }) => Promise<{ data: DailyModelSummary[] | null; error: unknown }>
+
+    get_user_daily_analytics: (params: {
+      user_id_param: string
+      target_date: string
+    }) => Promise<{ data: UserAnalytics[] | null; error: unknown }>
+
+    get_user_token_analytics: (params: {
+      target_user_id: string
+      days_back: number
+    }) => Promise<{ data: UserAnalytics[] | null; error: unknown }>
+
+    get_timing_analytics: (params: {
+      target_user_id: string
+      days_back: number
+    }) => Promise<{ data: TimingAnalytics[] | null; error: unknown }>
+
+    get_daily_model_token_summary: (params: {
+      days_back: number
+      target_user_id?: string | null
+    }) => Promise<{ data: DailyModelSummary[] | null; error: unknown }>
   }
 }

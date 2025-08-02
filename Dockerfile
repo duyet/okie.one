@@ -46,6 +46,9 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Install wget for health check
+RUN apk add --no-cache wget
+
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
@@ -71,7 +74,7 @@ ENV HOSTNAME=0.0.0.0
 
 # Health check to verify container is running properly
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
-# Start the application
-CMD ["pnpm", "start"]
+# Start the application using Node directly
+CMD ["node", "server.js"]

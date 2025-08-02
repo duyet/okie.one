@@ -112,21 +112,14 @@ export function MultiModelSelector({
     const provider = PROVIDERS.find((provider) => provider.id === model.icon)
 
     return (
-      <div
+      <button
         key={model.id}
+        type="button"
         className={cn(
-          "flex w-full cursor-pointer items-center justify-between px-3 py-2 hover:bg-accent/50",
+          "flex w-full items-center justify-between px-3 py-2 text-left hover:bg-accent/50",
           isSelected && "bg-accent"
         )}
         onClick={() => handleModelToggle(model.id, isLocked)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault()
-            handleModelToggle(model.id, isLocked)
-          }
-        }}
-        role="button"
-        tabIndex={0}
       >
         <div className="flex items-center gap-3">
           <Checkbox
@@ -153,7 +146,7 @@ export function MultiModelSelector({
             </div>
           )}
         </div>
-      </div>
+      </button>
     )
   }
 

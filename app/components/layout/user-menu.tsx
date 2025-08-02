@@ -17,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { useSettings } from "@/lib/settings-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 
 import { AppInfoTrigger } from "./app-info/app-info-trigger"
@@ -25,13 +26,12 @@ import { SettingsTrigger } from "./settings/settings-trigger"
 
 export function UserMenu() {
   const { user, signOut } = useUser()
+  const { isOpen: isSettingsOpen } = useSettings()
   const [isMenuOpen, setMenuOpen] = useState(false)
-  const [isSettingsOpen, setSettingsOpen] = useState(false)
 
   if (!user) return null
 
   const handleSettingsOpenChange = (isOpen: boolean) => {
-    setSettingsOpen(isOpen)
     if (!isOpen) {
       setMenuOpen(false)
     }

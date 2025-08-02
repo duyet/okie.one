@@ -28,17 +28,30 @@ global.indexedDB = {
   open: vi.fn().mockReturnValue(mockIDBRequest),
   deleteDatabase: vi.fn().mockReturnValue(mockIDBRequest),
   databases: vi.fn().mockResolvedValue([]),
-} as any
+} as unknown as IDBFactory
 
 // Ensure document.body exists for React Testing Library
 beforeAll(() => {
   if (!document.body) {
     document.body = document.createElement("body")
   }
+
+  // Mock window.scrollTo for JSDOM compatibility with motion library
+  Object.defineProperty(window, "scrollTo", {
+    value: vi.fn(),
+    writable: true,
+  })
 })
 
 // Start server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: "error" }))
+beforeAll(() => {
+  try {
+    server.listen({ onUnhandledRequest: "error" })
+  } catch (error) {
+    console.error("Failed to start MSW server:", error)
+    throw error
+  }
+})
 
 // Reset handlers after each test
 afterEach(() => server.resetHandlers())
@@ -79,6 +92,7 @@ vi.mock("next/image", () => ({
 // Mock environment variables
 vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://localhost:54321")
 vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "test-key")
+vi.stubEnv("NEXT_PUBLIC_APP_NAME", "Okie")
 
 // Mock console methods to reduce noise in tests
 global.console = {

@@ -122,7 +122,7 @@ function MarkdownComponent({
     <div className={className}>
       {blocks.map((block, index) => (
         <MemoizedMarkdownBlock
-          key={`${blockId}-block-${index}`}
+          key={`${blockId}-block-${block.slice(0, 50).replace(/\s/g, "-")}-${index}`}
           content={block}
           components={components}
         />

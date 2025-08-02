@@ -2,7 +2,8 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi, afterEach, beforeEach } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
+
 import {
   generateDeviceFingerprint,
   getOrCreatePersistentGuestId,
@@ -227,7 +228,9 @@ describe("guest-fingerprint", () => {
 
       // Simulate browser restart - clear localStorage except fingerprints
       localStorage.clear()
-      localStorage.setItem("guest-fingerprints", fingerprintMapping!)
+      if (fingerprintMapping) {
+        localStorage.setItem("guest-fingerprints", fingerprintMapping)
+      }
 
       // Second session - should recover same ID
       const secondSessionId = await getOrCreatePersistentGuestId()

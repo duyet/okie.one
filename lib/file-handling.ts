@@ -9,6 +9,7 @@ import {
   MAX_FILE_SIZE,
   MAX_FILES_PER_MESSAGE,
 } from "./config"
+import { fileLogger } from "./logger"
 import { getModelInfo } from "./models"
 import { createClient } from "./supabase/client"
 import { isSupabaseEnabledClient } from "./supabase/config"
@@ -86,7 +87,10 @@ export async function processFiles(
   for (const file of files) {
     const validation = await validateFile(file)
     if (!validation.isValid) {
-      console.warn(`File ${file.name} validation failed:`, validation.error)
+      fileLogger.warn("File validation failed", {
+        fileName: file.name,
+        error: validation.error,
+      })
       toast({
         title: "File validation failed",
         description: validation.error,
@@ -117,7 +121,11 @@ export async function processFiles(
 
       attachments.push(createAttachment(file, url))
     } catch (error) {
-      console.error(`Error processing file ${file.name}:`, error)
+      fileLogger.error("Error processing file", {
+        fileName: file.name,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      })
     }
   }
 

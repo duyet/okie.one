@@ -1,6 +1,7 @@
 "use client"
 
 import {
+  BrainIcon,
   CubeIcon,
   GearSixIcon,
   KeyIcon,
@@ -26,16 +27,32 @@ import { OllamaSection } from "./connections/ollama-section"
 import { AccountManagement } from "./general/account-management"
 import { SignInMethods } from "./general/sign-in-methods"
 import { UserProfile } from "./general/user-profile"
+import { McpSettings } from "./mcp"
 import { ModelsSettings } from "./models/models-settings"
 
 type SettingsContentProps = {
   isDrawer?: boolean
+  activeTab?: TabType
+  onTabChange?: (tab: TabType) => void
 }
 
-type TabType = "general" | "appearance" | "models" | "connections"
+export type TabType =
+  | "general"
+  | "appearance"
+  | "models"
+  | "connections"
+  | "mcp"
 
-export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
-  const [activeTab, setActiveTab] = useState<TabType>("general")
+export function SettingsContent({
+  isDrawer = false,
+  activeTab: controlledActiveTab,
+  onTabChange,
+}: SettingsContentProps) {
+  const [internalActiveTab, setInternalActiveTab] = useState<TabType>("general")
+
+  // Use controlled tab if provided, otherwise use internal state
+  const activeTab = controlledActiveTab ?? internalActiveTab
+  const setActiveTab = onTabChange ?? setInternalActiveTab
 
   return (
     <div
@@ -103,6 +120,13 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
                   <PlugsConnectedIcon className="size-4" />
                   <span>Connections</span>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="mcp"
+                  className="flex shrink-0 items-center gap-2"
+                >
+                  <BrainIcon className="size-4" />
+                  <span>MCP</span>
+                </TabsTrigger>
               </TabsList>
             </div>
 
@@ -132,6 +156,10 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
               {!isDev && <ConnectionsPlaceholder />}
               {isDev && <OllamaSection />}
               {isDev && <DeveloperTools />}
+            </TabsContent>
+
+            <TabsContent value="mcp" className="px-6">
+              <McpSettings />
             </TabsContent>
           </div>
         ) : (
@@ -186,6 +214,15 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
                     <span>Connections</span>
                   </div>
                 </TabsTrigger>
+                <TabsTrigger
+                  value="mcp"
+                  className="w-full justify-start rounded-md px-3 py-2 text-left"
+                >
+                  <div className="flex items-center gap-2">
+                    <BrainIcon className="size-4" />
+                    <span>MCP</span>
+                  </div>
+                </TabsTrigger>
               </div>
             </TabsList>
 
@@ -216,6 +253,10 @@ export function SettingsContent({ isDrawer = false }: SettingsContentProps) {
                 {!isDev && <ConnectionsPlaceholder />}
                 {isDev && <OllamaSection />}
                 {isDev && <DeveloperTools />}
+              </TabsContent>
+
+              <TabsContent value="mcp" className="mt-0 space-y-6">
+                <McpSettings />
               </TabsContent>
             </div>
           </>

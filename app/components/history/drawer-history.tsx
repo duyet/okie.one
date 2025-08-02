@@ -6,7 +6,6 @@ import {
   X,
 } from "@phosphor-icons/react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -43,7 +42,7 @@ export function DrawerHistory({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
-  const params = useParams<{ chatId: string }>()
+  // const _params = useParams<{ chatId: string }>()
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -202,23 +201,7 @@ export function DrawerHistory({
               </form>
             </div>
           ) : (
-            <div
-              className="group flex items-center justify-between rounded-lg px-2 py-1.5"
-              onClick={() => {
-                if (params.chatId === chat.id) {
-                  handleOpenChange(false)
-                }
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  if (params.chatId === chat.id) {
-                    handleOpenChange(false)
-                  }
-                }
-              }}
-              role="button"
-              tabIndex={0}
-            >
+            <div className="group flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-left">
               <Link
                 href={`/c/${chat.id}`}
                 key={chat.id}
@@ -266,8 +249,6 @@ export function DrawerHistory({
       </div>
     ),
     [
-      handleOpenChange,
-      params.chatId,
       editingId,
       deletingId,
       editTitle,

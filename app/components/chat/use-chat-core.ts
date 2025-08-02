@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useChatDraft } from "@/app/hooks/use-chat-draft"
+import type { ContentPart } from "@/app/types/api.types"
 import { toast } from "@/components/ui/toast"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import {
@@ -16,6 +17,7 @@ import { API_ROUTE_CHAT } from "@/lib/routes"
 import type { MessagePart } from "@/lib/type-guards/message-parts"
 import type { UserProfile } from "@/lib/user/types"
 
+import type { ThinkingMode } from "../chat-input/button-think"
 import { useArtifact } from "./artifact-context"
 
 type UseChatCoreProps = {
@@ -25,13 +27,10 @@ type UseChatCoreProps = {
   chatId: string | null
   user: UserProfile | null
   files: File[]
-  createOptimisticAttachments: (
-    files: File[]
-  ) => Array<{ name: string; contentType: string; url: string }>
   setFiles: (files: File[]) => void
   checkLimitsAndNotify: (uid: string) => Promise<boolean>
-  cleanupOptimisticAttachments: (attachments?: Array<{ url?: string }>) => void
   ensureChatExists: (uid: string, input: string) => Promise<string | null>
+  updateUrlForChat: (chatId: string) => void
   handleFileUploads: (
     uid: string,
     chatId: string
@@ -39,6 +38,7 @@ type UseChatCoreProps = {
   selectedModel: string
   clearDraft: () => void
   bumpChat: (chatId: string) => void
+  setHasActiveChatSession: (active: boolean) => void
 }
 
 export function useChatCore({
@@ -48,21 +48,46 @@ export function useChatCore({
   chatId,
   user,
   files,
-  createOptimisticAttachments,
   setFiles,
   checkLimitsAndNotify,
-  cleanupOptimisticAttachments,
   ensureChatExists,
+  updateUrlForChat,
   handleFileUploads,
   selectedModel,
   clearDraft,
   bumpChat,
+  setHasActiveChatSession,
 }: UseChatCoreProps) {
   // State management
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [hasDialogAuth, setHasDialogAuth] = useState(false)
   const [enableSearch, setEnableSearch] = useState(false)
-  const [enableThink, setEnableThink] = useState(false)
+  const [thinkingMode, setThinkingMode] = useState<ThinkingMode>("none")
+
+  // State to track streaming tool invocations for the current message
+  const [streamingToolInvocations, setStreamingToolInvocations] = useState<
+    Record<string, Array<{ toolCall?: unknown; [key: string]: unknown }>>
+  >({})
+  const [currentStreamingMessageId, setCurrentStreamingMessageId] = useState<
+    string | null
+  >(null)
+
+  // Convert current state to unified tools format - memoized for performance
+  const toolsConfig = useMemo(() => {
+    const tools: Array<{ type: string; name?: string }> = []
+
+    if (enableSearch) {
+      tools.push({ type: "web_search" })
+    }
+
+    if (thinkingMode === "sequential") {
+      tools.push({ type: "mcp", name: "server-sequential-thinking" })
+    }
+
+    return tools
+  }, [enableSearch, thinkingMode])
+
+  const getToolsConfig = useCallback(() => toolsConfig, [toolsConfig])
 
   // Refs and derived state
   const hasSentFirstMessageRef = useRef(false)
@@ -99,111 +124,333 @@ export function useChatCore({
     })
   }, [])
 
-  // Cache for storing processed messages to prevent infinite processing and ensure consistency
+  // Optimized LRU cache for storing processed messages
+  const MAX_CACHE_SIZE = 100
   const processedMessagesCache = useRef<Map<string, Message>>(new Map())
+  const cacheAccessOrder = useRef<string[]>([]) // Track access order for true LRU
+
+  // Track artifacts that need to be opened - optimized to reduce re-renders
+  const artifactsToOpenRef = useRef<ContentPart["artifact"][]>([])
+
+  // Optimized artifact opening with ref to avoid re-render cycles
+  const queueArtifactToOpen = useCallback(
+    (artifact: ContentPart["artifact"]) => {
+      artifactsToOpenRef.current = [artifact]
+      // Use setTimeout to batch artifact opening and prevent render blocking
+      setTimeout(() => {
+        const artifacts = artifactsToOpenRef.current
+        if (artifacts.length > 0) {
+          const firstArtifact = artifacts[0]
+          if (firstArtifact) {
+            openArtifact(firstArtifact)
+            artifactsToOpenRef.current = []
+          }
+        }
+      }, 0)
+    },
+    [openArtifact]
+  )
+
+  // Real-time tool invocation processing during streaming
+  const processStreamingToolInvocations = useCallback(
+    (message: Message) => {
+      if (message.role === "assistant") {
+        // Check if message has toolInvocations property from AI SDK
+        const messageWithToolInvocations = message as Message & {
+          toolInvocations?: Array<{
+            toolCall?: unknown
+            [key: string]: unknown
+          }>
+        }
+
+        // Get stored streaming tool invocations for this message
+        // First check by actual message ID, then by streaming message ID
+        let storedToolInvocations = streamingToolInvocations[message.id] || []
+
+        // If no tool invocations found by message ID, check if this is the streaming message
+        if (
+          storedToolInvocations.length === 0 &&
+          currentStreamingMessageId &&
+          currentStreamingMessageId.startsWith("streaming-")
+        ) {
+          storedToolInvocations =
+            streamingToolInvocations[currentStreamingMessageId] || []
+
+          // Transfer tool invocations from streaming ID to actual message ID
+          if (storedToolInvocations.length > 0) {
+            setStreamingToolInvocations((prev) => {
+              const newState = { ...prev }
+              newState[message.id] = storedToolInvocations
+              // Clean up the temporary streaming ID
+              if (currentStreamingMessageId) {
+                delete newState[currentStreamingMessageId]
+              }
+              return newState
+            })
+            setCurrentStreamingMessageId(null)
+          }
+        }
+
+        const allToolInvocations = [
+          ...(messageWithToolInvocations.toolInvocations || []),
+          ...storedToolInvocations,
+        ]
+
+        if (allToolInvocations.length > 0) {
+          console.log("🔧 Processing streaming tool invocations:", {
+            messageId: message.id,
+            toolInvocationsCount: allToolInvocations.length,
+            toolInvocations: allToolInvocations,
+          })
+
+          // Extract reasoning steps from tool invocations
+          const reasoningSteps = allToolInvocations
+            .filter((ti) => {
+              // Handle both direct tool invocations and tool call callbacks
+              const toolName =
+                (ti as { toolName?: string })?.toolName ||
+                (ti.toolCall as { toolName?: string })?.toolName
+              const args =
+                (ti as { args?: Record<string, unknown> })?.args ||
+                (ti.toolCall as { args?: Record<string, unknown> })?.args
+              const result =
+                (ti as { result?: Record<string, unknown> })?.result || args // Use args as result for streaming calls
+
+              return (
+                toolName === "addReasoningStep" &&
+                result &&
+                typeof result === "object" &&
+                "title" in result &&
+                "content" in result
+              )
+            })
+            .map((ti) => {
+              const args =
+                (ti as { args?: Record<string, unknown> })?.args ||
+                (ti.toolCall as { args?: Record<string, unknown> })?.args
+              const result =
+                (ti as { result?: Record<string, unknown> })?.result || args // Use args as result for streaming calls
+
+              return {
+                title: (result as { title?: string })?.title || "",
+                content: (result as { content?: string })?.content || "",
+                nextStep: (result as { nextStep?: string })?.nextStep,
+              }
+            })
+
+          if (reasoningSteps.length > 0) {
+            console.log(
+              "🧠 Found reasoning steps from streaming tool invocations:",
+              reasoningSteps
+            )
+
+            // Add reasoning steps to the message parts array for UI rendering
+            const existingParts = message.parts || []
+            const reasoningParts = reasoningSteps.map((step) => ({
+              type: "sequential-reasoning-step" as const,
+              step: step,
+            }))
+
+            // Create a new message with the reasoning parts added
+            const updatedMessage = {
+              ...message,
+              parts: [
+                ...existingParts.filter(
+                  (p) =>
+                    (p as { type?: string }).type !==
+                    "sequential-reasoning-step"
+                ),
+                ...reasoningParts,
+              ],
+            }
+
+            return updatedMessage as Message
+          }
+        }
+      }
+      return message
+    },
+    [streamingToolInvocations, currentStreamingMessageId]
+  )
+
+  // Utility function to generate stable cache key for messages
+  const generateContentCacheKey = useCallback(
+    (messageId: string, content: string): string => {
+      const contentHash = content.split("").reduce((acc, char, idx) => {
+        return acc + char.charCodeAt(0) * (idx + 1)
+      }, 0)
+      return `${messageId}-${contentHash}`
+    },
+    []
+  )
+
+  // Utility function to handle early artifact detection and sidebar opening
+  const handleEarlyArtifactDetection = useCallback(
+    (content: string) => {
+      const hasCodeBlockStart = content.includes("```")
+      const hasLargeCode = content.length > 300
+
+      if (hasCodeBlockStart && hasLargeCode) {
+        const earlyArtifacts = parseArtifacts(content, true)
+        if (earlyArtifacts.length > 0) {
+          const firstArtifact = earlyArtifacts[0]?.artifact
+          if (firstArtifact) {
+            console.log(
+              "🚀 Early artifact detection - opening sidebar:",
+              firstArtifact.title
+            )
+            queueArtifactToOpen(firstArtifact)
+          }
+        }
+      }
+    },
+    [queueArtifactToOpen]
+  )
+
+  // Utility function to process artifacts and update message content
+  const processArtifactsAndUpdateContent = useCallback(
+    (message: Message, artifactParts: ContentPart[]): Message => {
+      console.log(
+        "🎨 Real-time artifact detected during streaming:",
+        artifactParts.map(
+          (p) => `${p.artifact?.title} (${p.artifact?.metadata.lines} lines)`
+        )
+      )
+
+      // Auto-open the first artifact in the sidebar during streaming
+      const firstArtifact = artifactParts[0]?.artifact
+      if (firstArtifact) {
+        console.log("📌 Auto-opening artifact in sidebar:", firstArtifact.title)
+        queueArtifactToOpen(firstArtifact)
+      }
+
+      // Replace inline code blocks with artifact placeholders in the content
+      const updatedContent = replaceCodeBlocksWithArtifacts(
+        message.content as string,
+        artifactParts
+      )
+
+      // Replace any existing artifact parts with new ones
+      const nonArtifactParts = (message.parts || []).filter(
+        (part) => (part as MessagePart).type !== "artifact"
+      )
+
+      return {
+        ...message,
+        content: updatedContent,
+        parts: [...nonArtifactParts, ...artifactParts],
+      } as Message
+    },
+    [queueArtifactToOpen]
+  )
+
+  // Utility function to handle LRU cache eviction and storage
+  // Optimized LRU cache management
+  const updateMessageCache = useCallback(
+    (cacheKey: string, message: Message) => {
+      const cache = processedMessagesCache.current
+      const accessOrder = cacheAccessOrder.current
+
+      // Remove key from access order if it exists
+      const existingIndex = accessOrder.indexOf(cacheKey)
+      if (existingIndex > -1) {
+        accessOrder.splice(existingIndex, 1)
+      }
+
+      // Add to end (most recently used)
+      accessOrder.push(cacheKey)
+
+      // Evict least recently used items if cache is full
+      while (cache.size >= MAX_CACHE_SIZE && accessOrder.length > 0) {
+        const lruKey = accessOrder.shift()
+        if (lruKey) {
+          cache.delete(lruKey)
+        }
+      }
+
+      cache.set(cacheKey, message)
+    },
+    []
+  )
+
+  const getCachedMessage = useCallback((cacheKey: string): Message | null => {
+    const cache = processedMessagesCache.current
+    const accessOrder = cacheAccessOrder.current
+
+    if (!cache.has(cacheKey)) {
+      return null
+    }
+
+    // Update access order - move to end (most recently used)
+    const existingIndex = accessOrder.indexOf(cacheKey)
+    if (existingIndex > -1) {
+      accessOrder.splice(existingIndex, 1)
+    }
+    accessOrder.push(cacheKey)
+
+    return cache.get(cacheKey) || null
+  }, [])
 
   // Real-time artifact processing during streaming with improved caching
   const processStreamingArtifacts = useCallback(
     (message: Message) => {
       if (message.role === "assistant" && typeof message.content === "string") {
-        // Use a more lenient cache key that allows updates during streaming
-        const contentLength = message.content.length
-        const cacheKey = `${message.id}-${Math.floor(contentLength / 100) * 100}` // Cache per 100 chars
-
-        // Skip processing very short content (lowered threshold to avoid skipping normal messages)
-        if (contentLength < 10) {
+        // Skip processing very short content
+        if (message.content.length < 10) {
           return message
         }
 
+        // Generate stable cache key
+        const cacheKey = generateContentCacheKey(message.id, message.content)
+
         // Return cached processed message if it exists
-        if (processedMessagesCache.current.has(cacheKey)) {
-          const cachedMessage = processedMessagesCache.current.get(cacheKey)
-          if (cachedMessage) {
-            return cachedMessage
-          }
+        const cachedMessage = getCachedMessage(cacheKey)
+        if (cachedMessage) {
+          return cachedMessage
         }
 
-        // Early detection for sidebar opening - detect potential artifacts sooner
-        const hasCodeBlockStart = message.content.includes("```")
-        const hasLargeCode = message.content.length > 300 // Threshold for early artifact detection
+        // Handle early artifact detection
+        handleEarlyArtifactDetection(message.content)
 
-        if (hasCodeBlockStart && hasLargeCode) {
-          // Try to open sidebar early if we detect substantial code content
-          const earlyArtifacts = parseArtifacts(message.content, true)
-          if (earlyArtifacts.length > 0) {
-            const firstArtifact = earlyArtifacts[0]?.artifact
-            if (firstArtifact) {
-              console.log(
-                "🚀 Early artifact detection - opening sidebar:",
-                firstArtifact.title
-              )
-              // Defer artifact opening to avoid setState-in-render warning
-              setTimeout(() => openArtifact(firstArtifact), 0)
-            }
-          }
-        }
-
-        // Parse artifacts from the current content during streaming with streaming flag
+        // Parse artifacts from the current content during streaming
         const artifactParts = parseArtifacts(message.content, true)
 
         if (artifactParts.length > 0) {
-          console.log(
-            "🎨 Real-time artifact detected during streaming:",
-            artifactParts.map(
-              (p) =>
-                `${p.artifact?.title} (${p.artifact?.metadata.lines} lines)`
-            )
-          )
-
-          // Auto-open the first artifact in the sidebar during streaming
-          const firstArtifact = artifactParts[0]?.artifact
-          if (firstArtifact) {
-            console.log(
-              "📌 Auto-opening artifact in sidebar:",
-              firstArtifact.title
-            )
-            // Defer artifact opening to avoid setState-in-render warning
-            setTimeout(() => openArtifact(firstArtifact), 0)
-          }
-
-          // Replace inline code blocks with artifact placeholders in the content
-          const updatedContent = replaceCodeBlocksWithArtifacts(
-            message.content,
+          const updatedMessage = processArtifactsAndUpdateContent(
+            message,
             artifactParts
           )
 
           console.log("🔧 processStreamingArtifacts result:", {
             messageId: message.id,
             originalLength: message.content.length,
-            updatedLength: updatedContent.length,
-            hasMarkers: updatedContent.includes("[ARTIFACT_PREVIEW:"),
+            updatedLength: (updatedMessage.content as string).length,
+            hasMarkers: (updatedMessage.content as string).includes(
+              "[ARTIFACT_PREVIEW:"
+            ),
             artifactCount: artifactParts.length,
             cacheKey,
           })
 
-          // Replace any existing artifact parts with new ones
-          const nonArtifactParts = (message.parts || []).filter(
-            (part) => (part as MessagePart).type !== "artifact"
-          )
-
-          const updatedMessage = {
-            ...message,
-            content: updatedContent,
-            parts: [...nonArtifactParts, ...artifactParts],
-          }
-
-          // Store the processed message in cache for consistency across renders
-          processedMessagesCache.current.set(
-            cacheKey,
-            updatedMessage as Message
-          )
+          // Store the processed message in cache
+          updateMessageCache(cacheKey, updatedMessage as Message)
           return updatedMessage as Message
         }
       }
       return message
     },
-    [openArtifact]
+    [
+      generateContentCacheKey,
+      handleEarlyArtifactDetection,
+      processArtifactsAndUpdateContent,
+      updateMessageCache,
+      getCachedMessage,
+    ]
   )
+
+  // For new chats (chatId is null), use empty messages to avoid conflicts
+  // For existing chats (chatId exists), use initialMessages from the provider
+  const effectiveInitialMessages = chatId ? initialMessages : []
 
   // Initialize useChat
   const {
@@ -219,20 +466,141 @@ export function useChatCore({
     append,
   } = useChat({
     api: API_ROUTE_CHAT,
-    initialMessages,
+    initialMessages: effectiveInitialMessages,
     initialInput: draftValue,
     onFinish: (message) => {
+      console.log("🔍 useChat onFinish:", message)
       // Message already processed by streaming, just cache it
       cacheAndAddMessage(message)
     },
     onError: handleError,
+    // Add debugging for streaming status
+    onResponse: (response) => {
+      console.log("🔍 useChat onResponse - streaming started:", {
+        ok: response.ok,
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+      })
+    },
+    // Add tool invocation callbacks for streaming
+    onToolCall: (toolCall) => {
+      console.log("🔧 Tool call during streaming:", toolCall)
+
+      // Create a temporary message ID for streaming if no current message exists
+      let messageId: string
+
+      // Find the current assistant message (last message with assistant role)
+      const currentMessage = messages.findLast(
+        (msg) => msg.role === "assistant"
+      )
+
+      if (currentMessage) {
+        messageId = currentMessage.id
+        console.log(
+          "🔧 Associating tool call with existing message:",
+          messageId
+        )
+      } else {
+        // Create a temporary streaming message ID if no current message exists
+        messageId = currentStreamingMessageId || `streaming-${Date.now()}`
+        if (!currentStreamingMessageId) {
+          setCurrentStreamingMessageId(messageId)
+        }
+        console.log(
+          "🔧 Associating tool call with streaming message:",
+          messageId
+        )
+      }
+
+      // Store tool invocation by message ID
+      setStreamingToolInvocations((prev) => ({
+        ...prev,
+        [messageId]: [...(prev[messageId] || []), toolCall],
+      }))
+    },
   })
 
-  // Process artifacts in streaming messages (after useChat initialization)
+  // Process both artifacts and tool invocations in streaming messages (after useChat initialization)
   const processedMessages = useMemo(() => {
-    if (!messages) return []
-    return messages.map(processStreamingArtifacts)
-  }, [messages, processStreamingArtifacts])
+    console.log("🔍 useChatCore - processing messages:", {
+      rawMessagesCount: messages?.length || 0,
+      rawMessages:
+        messages?.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content:
+            typeof m.content === "string"
+              ? `${m.content.substring(0, 50)}...`
+              : m.content,
+        })) || [],
+      status,
+    })
+
+    if (!messages?.length) return []
+    const processed = messages.map((message) => {
+      // Apply both processing functions in sequence
+      const withToolInvocations = processStreamingToolInvocations(message)
+      const withArtifacts = processStreamingArtifacts(withToolInvocations)
+      return withArtifacts
+    })
+
+    console.log("🔍 useChatCore - processed messages:", {
+      processedCount: processed.length,
+      processedMessages: processed.map((m) => ({
+        id: m.id,
+        role: m.role,
+        content:
+          typeof m.content === "string"
+            ? `${m.content.substring(0, 50)}...`
+            : m.content,
+      })),
+    })
+
+    return processed
+  }, [
+    messages,
+    processStreamingArtifacts,
+    processStreamingToolInvocations,
+    status,
+  ])
+
+  // Track raw messages changes for debugging
+  useEffect(() => {
+    console.log("🔍 Raw messages changed:", {
+      count: messages?.length || 0,
+      status,
+      lastMessage: messages?.[messages.length - 1]?.content || "none",
+    })
+  }, [messages, status])
+
+  // Track initialMessages changes for debugging
+  useEffect(() => {
+    console.log("🔍 initialMessages changed:", {
+      count: initialMessages?.length || 0,
+      initialMessages:
+        initialMessages?.map((m) => ({
+          id: m.id,
+          role: m.role,
+          content:
+            typeof m.content === "string"
+              ? `${m.content.substring(0, 30)}...`
+              : m.content,
+        })) || [],
+    })
+  }, [initialMessages])
+
+  // Signal when we have an active chat session
+  useEffect(() => {
+    // Set active when we're streaming or have messages
+    const hasActiveSession =
+      status === "streaming" ||
+      status === "submitted" ||
+      (messages.length > 0 && !chatId)
+    setHasActiveChatSession(hasActiveSession)
+
+    // Clean up when component unmounts
+    return () => setHasActiveChatSession(false)
+  }, [status, messages.length, chatId, setHasActiveChatSession])
 
   // Handle search params on mount
   useEffect(() => {
@@ -241,19 +609,49 @@ export function useChatCore({
     }
   }, [prompt, setInput])
 
+  // Cleanup cache on unmount to prevent memory leaks
+  useEffect(() => {
+    // Copy ref to a local variable to avoid stale closure warning
+    const cacheRef = processedMessagesCache.current
+    return () => {
+      cacheRef.clear()
+    }
+  }, [])
+
   // Reset messages when navigating from a chat to home
-  if (
-    prevChatIdRef.current !== null &&
-    chatId === null &&
-    messages.length > 0
-  ) {
-    setMessages([])
-  }
-  prevChatIdRef.current = chatId
+  // But only if we're not in the middle of streaming
+  useEffect(() => {
+    if (
+      prevChatIdRef.current !== null &&
+      chatId === null &&
+      messages.length > 0 &&
+      status === "ready"
+    ) {
+      setMessages([])
+      hasSentFirstMessageRef.current = false // Reset for new session
+    }
+    prevChatIdRef.current = chatId
+  }, [chatId, messages.length, status, setMessages])
 
   // Submit action
   const submit = useCallback(async () => {
+    console.log("🔍 Submit called - initial state:", {
+      inputLength: input.length,
+      messagesCount: messages.length,
+      status,
+    })
+
+    // Prevent double submission
+    if (isSubmitting) {
+      console.warn("🚨 Submit already in progress, ignoring duplicate call")
+      return
+    }
+
     setIsSubmitting(true)
+
+    // Clear streaming tool invocations for new submission
+    setStreamingToolInvocations({})
+    setCurrentStreamingMessageId(null)
 
     const uid = await getOrCreateGuestUserId(user)
     if (!uid) {
@@ -261,38 +659,54 @@ export function useChatCore({
       return
     }
 
-    const optimisticId = `optimistic-${Date.now().toString()}`
-    const optimisticAttachments =
-      files.length > 0 ? createOptimisticAttachments(files) : []
+    // Let AI SDK handle optimistic updates automatically
+    // const optimisticId = `optimistic-${Date.now().toString()}`
+    // const optimisticAttachments =
+    //   files.length > 0 ? createOptimisticAttachments(files) : []
 
-    const optimisticMessage = {
-      id: optimisticId,
-      content: input,
-      role: "user" as const,
-      createdAt: new Date(),
-      experimental_attachments:
-        optimisticAttachments.length > 0 ? optimisticAttachments : undefined,
-    }
+    // const optimisticMessage = {
+    //   id: optimisticId,
+    //   content: input,
+    //   role: "user" as const,
+    //   createdAt: new Date(),
+    //   experimental_attachments:
+    //     optimisticAttachments.length > 0 ? optimisticAttachments : undefined,
+    // }
 
-    setMessages((prev) => [...prev, optimisticMessage])
+    // setMessages((prev) => [...prev, optimisticMessage])
     setInput("")
 
     const submittedFiles = [...files]
     setFiles([])
 
     try {
-      const allowed = await checkLimitsAndNotify(uid)
+      // Add timeout for critical async operations
+      const ASYNC_TIMEOUT = 15000 // 15 second timeout for individual operations
+
+      const allowed = await Promise.race([
+        checkLimitsAndNotify(uid),
+        new Promise<boolean>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Rate limit check timeout")),
+            ASYNC_TIMEOUT
+          )
+        ),
+      ])
       if (!allowed) {
-        setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         setIsSubmitting(false)
         return
       }
 
-      const currentChatId = await ensureChatExists(uid, input)
+      const currentChatId = await Promise.race([
+        ensureChatExists(uid, input),
+        new Promise<string | null>((_, reject) =>
+          setTimeout(
+            () => reject(new Error("Chat creation timeout")),
+            ASYNC_TIMEOUT
+          )
+        ),
+      ])
       if (!currentChatId) {
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         setIsSubmitting(false)
         return
       }
@@ -302,20 +716,23 @@ export function useChatCore({
           title: `The message you submitted was too long, please submit something shorter. (Max ${MESSAGE_MAX_LENGTH} characters)`,
           status: "error",
         })
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
         setIsSubmitting(false)
         return
       }
 
       let attachments: Attachment[] | null = []
       if (submittedFiles.length > 0) {
-        attachments = await handleFileUploads(uid, currentChatId)
+        attachments = await Promise.race([
+          handleFileUploads(uid, currentChatId),
+          new Promise<null>(
+            (_, reject) =>
+              setTimeout(
+                () => reject(new Error("File upload timeout")),
+                ASYNC_TIMEOUT * 2
+              ) // Longer timeout for file uploads
+          ),
+        ])
         if (attachments === null) {
-          setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-          cleanupOptimisticAttachments(
-            optimisticMessage.experimental_attachments
-          )
           setIsSubmitting(false)
           return
         }
@@ -328,78 +745,94 @@ export function useChatCore({
           model: selectedModel,
           isAuthenticated,
           systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+          tools: getToolsConfig(),
+          // Legacy support for backward compatibility
           enableSearch,
-          enableThink,
+          enableThink: thinkingMode === "regular",
+          thinkingMode,
         },
         experimental_attachments: attachments || undefined,
       }
 
+      console.log("🔍 About to call handleSubmit with options:", options)
+      hasSentFirstMessageRef.current = true // Mark that we've sent a message
+
+      // Start streaming first
       handleSubmit(undefined, options)
-      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
-      cacheAndAddMessage(optimisticMessage)
+      console.log("🔍 handleSubmit call completed")
+
+      // Update URL without reload (if we're not already there)
+      if (!chatId) {
+        console.log("🔍 Updating URL for chat without reload:", currentChatId)
+        updateUrlForChat(currentChatId)
+      }
+
       clearDraft()
 
       if (messages.length > 0) {
         bumpChat(currentChatId)
       }
-    } catch {
-      setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
-      toast({ title: "Failed to send message", status: "error" })
+    } catch (error) {
+      console.error("🚨 Submit failed:", error)
+
+      // Provide specific error messages based on error type
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to send message"
+      let toastTitle = "Failed to send message"
+
+      if (errorMessage.includes("timeout")) {
+        toastTitle = "Request timed out - please try again"
+      } else if (errorMessage.includes("Rate limit")) {
+        toastTitle = "Rate limit exceeded"
+      } else if (errorMessage.includes("Chat creation")) {
+        toastTitle = "Failed to create chat"
+      } else if (errorMessage.includes("File upload")) {
+        toastTitle = "File upload failed"
+      }
+
+      toast({ title: toastTitle, status: "error" })
     } finally {
       setIsSubmitting(false)
     }
   }, [
     user,
     files,
-    createOptimisticAttachments,
     input,
-    setMessages,
     setInput,
     setFiles,
     checkLimitsAndNotify,
-    cleanupOptimisticAttachments,
     ensureChatExists,
+    updateUrlForChat,
     handleFileUploads,
     selectedModel,
     isAuthenticated,
     systemPrompt,
     enableSearch,
-    enableThink,
+    thinkingMode,
+    getToolsConfig,
     handleSubmit,
-    cacheAndAddMessage,
     clearDraft,
     messages.length,
     bumpChat,
+    chatId,
+    status,
   ])
 
   // Handle suggestion
   const handleSuggestion = useCallback(
     async (suggestion: string) => {
       setIsSubmitting(true)
-      const optimisticId = `optimistic-${Date.now().toString()}`
-      const optimisticMessage = {
-        id: optimisticId,
-        content: suggestion,
-        role: "user" as const,
-        createdAt: new Date(),
-      }
-
-      setMessages((prev) => [...prev, optimisticMessage])
 
       try {
         const uid = await getOrCreateGuestUserId(user)
 
         if (!uid) {
-          setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
           setIsSubmitting(false)
           return
         }
 
         const allowed = await checkLimitsAndNotify(uid)
         if (!allowed) {
-          setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
           setIsSubmitting(false)
           return
         }
@@ -407,7 +840,6 @@ export function useChatCore({
         const currentChatId = await ensureChatExists(uid, suggestion)
 
         if (!currentChatId) {
-          setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
           setIsSubmitting(false)
           return
         }
@@ -429,9 +861,7 @@ export function useChatCore({
           },
           options
         )
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       } catch {
-        setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
         toast({ title: "Failed to send suggestion", status: "error" })
       } finally {
         setIsSubmitting(false)
@@ -444,7 +874,6 @@ export function useChatCore({
       append,
       checkLimitsAndNotify,
       isAuthenticated,
-      setMessages,
     ]
   )
 
@@ -462,11 +891,24 @@ export function useChatCore({
         model: selectedModel,
         isAuthenticated,
         systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+        tools: getToolsConfig(),
+        // Legacy support for backward compatibility
+        enableThink: thinkingMode === "regular",
+        thinkingMode,
       },
     }
 
     reload(options)
-  }, [user, chatId, selectedModel, isAuthenticated, systemPrompt, reload])
+  }, [
+    user,
+    chatId,
+    selectedModel,
+    isAuthenticated,
+    systemPrompt,
+    thinkingMode,
+    getToolsConfig,
+    reload,
+  ])
 
   // Handle input change - now with access to the real setInput function!
   const { setDraftValue } = useChatDraft(chatId)
@@ -501,8 +943,8 @@ export function useChatCore({
     setHasDialogAuth,
     enableSearch,
     setEnableSearch,
-    enableThink,
-    setEnableThink,
+    thinkingMode,
+    setThinkingMode,
 
     // Actions
     submit,

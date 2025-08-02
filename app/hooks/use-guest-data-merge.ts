@@ -1,7 +1,8 @@
-import { useEffect } from "react"
-import { useUser } from "@/lib/user-store/provider"
 import { useRouter } from "next/navigation"
+import { useEffect } from "react"
+
 import { toast } from "@/components/ui/toast"
+import { useUser } from "@/lib/user-store/provider"
 
 export function useGuestDataMerge() {
   const { user } = useUser()

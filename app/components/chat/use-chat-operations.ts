@@ -1,6 +1,5 @@
 import type { Message } from "@ai-sdk/react"
 import { useCallback } from "react"
-import { useRouter } from "next/navigation"
 
 import { toast } from "@/components/ui/toast"
 import { checkRateLimits } from "@/lib/api"
@@ -39,7 +38,12 @@ export function useChatOperations({
   setHasRateLimitDialog,
   setMessages,
 }: UseChatOperationsProps) {
-  const router = useRouter()
+  // Update URL without page reload to preserve streaming (following Zola pattern)
+  const updateUrlForChat = useCallback((chatId: string) => {
+    console.log("Updating URL for chat:", chatId)
+    // Use history.pushState like original Zola implementation
+    window.history.pushState(null, "", `/c/${chatId}`)
+  }, [])
 
   // Chat utilities
   const checkLimitsAndNotify = async (uid: string): Promise<boolean> => {
@@ -82,12 +86,24 @@ export function useChatOperations({
   }
 
   const ensureChatExists = async (userId: string, input: string) => {
-    // For guest users, check for existing chat but don't rely on it completely
+    // For guest users, check for existing chat but validate it still exists
     if (!isAuthenticated) {
       const storedGuestChatId = localStorage.getItem("guestChatId")
       if (storedGuestChatId && messages.length > 0) {
-        // Only reuse existing chat if we have messages (not a fresh start)
-        return storedGuestChatId
+        // Validate the chat still exists before reusing it
+        try {
+          // For guest users, if we have messages, we can assume the chat exists
+          // Messages don't have chatId property, so we check if we have any messages
+          if (messages.length > 0) {
+            return storedGuestChatId
+          } else {
+            // No messages, so chat might not exist anymore
+            localStorage.removeItem("guestChatId")
+          }
+        } catch (error) {
+          console.error("Error validating guest chat:", error)
+          localStorage.removeItem("guestChatId")
+        }
       }
     }
 
@@ -121,13 +137,10 @@ export function useChatOperations({
 
         console.log("New chat created successfully:", newChat.id)
 
-        if (isAuthenticated) {
-          router.push(`/c/${newChat.id}`)
-        } else {
-          // Store guest chat ID for future reference and navigate to chat page
+        // Store guest chat ID for future reference but don't navigate yet
+        if (!isAuthenticated) {
           localStorage.setItem("guestChatId", newChat.id)
           console.log("Stored guest chat ID:", newChat.id)
-          router.push(`/c/${newChat.id}`)
         }
 
         return newChat.id
@@ -170,26 +183,29 @@ export function useChatOperations({
   // Message handlers
   const handleDelete = useCallback(
     (id: string) => {
-      setMessages(messages.filter((message) => message.id !== id))
+      setMessages((prevMessages) =>
+        prevMessages.filter((message) => message.id !== id)
+      )
     },
-    [messages, setMessages]
+    [setMessages]
   )
 
   const handleEdit = useCallback(
     (id: string, newText: string) => {
-      setMessages(
-        messages.map((message) =>
+      setMessages((prevMessages) =>
+        prevMessages.map((message) =>
           message.id === id ? { ...message, content: newText } : message
         )
       )
     },
-    [messages, setMessages]
+    [setMessages]
   )
 
   return {
     // Utils
     checkLimitsAndNotify,
     ensureChatExists,
+    updateUrlForChat,
 
     // Handlers
     handleDelete,

@@ -79,6 +79,7 @@ describe("Token Tracking API", () => {
       mockSupabase as unknown as SupabaseClient<Database>
     )
     mockSupabase.from.mockReturnValue(mockQuery)
+    mockSupabase.rpc.mockResolvedValue({ data: null, error: null })
     mockQuery.insert.mockReturnValue(mockQuery)
     mockQuery.select.mockReturnValue(mockQuery)
     mockQuery.single.mockReturnValue(mockQuery)

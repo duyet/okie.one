@@ -35,6 +35,40 @@ export const handlers = [
     })
   }),
 
+  // Mock user preferences API
+  http.get("/api/user-preferences", () => {
+    return HttpResponse.json({
+      layout: "fullscreen",
+      prompt_suggestions: true,
+      show_tool_invocations: true,
+      show_conversation_previews: true,
+      multi_model_enabled: false,
+      hidden_models: [],
+      mcp_settings: {
+        "sequential-thinking": true,
+      },
+    })
+  }),
+
+  http.put("/api/user-preferences", async ({ request }) => {
+    const body = await request.json()
+    // Echo back the body with merged settings for testing
+    return HttpResponse.json({
+      layout: "fullscreen",
+      prompt_suggestions: true,
+      show_tool_invocations: true,
+      show_conversation_previews: true,
+      multi_model_enabled: false,
+      hidden_models: [],
+      mcp_settings: {
+        "sequential-thinking": true,
+        ...(typeof body === "object" && body !== null && "mcp_settings" in body
+          ? body.mcp_settings
+          : {}),
+      },
+    })
+  }),
+
   // Mock analytics token usage API
   http.get("/api/analytics/token-usage", ({ request }) => {
     const url = new URL(request.url)

@@ -1,12 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // Token tracking API utilities
 
 import { createClient } from "@/lib/supabase/server"
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
 
 import type {
+  DailyModelSummary,
   DailyTokenUsage,
   LeaderboardEntry,
+  SupabaseClient,
+  TimingAnalytics,
   TokenUsage,
   TokenUsageMetrics,
   UserAnalytics,
@@ -71,7 +73,7 @@ export async function recordTokenUsage(
     }
 
     const { data, error } = await supabase
-      .from("token_usage" as any) // TODO: Fix types after database migration
+      .from("token_usage")
       .insert([tokenUsage])
       .select()
       .single()
@@ -84,7 +86,7 @@ export async function recordTokenUsage(
       )
     }
 
-    return data as any
+    return data as TokenUsage
   } catch (error) {
     if (error instanceof TokenError) {
       throw error
@@ -127,7 +129,7 @@ export async function getDailyLeaderboard(
       )
     }
 
-    return (data || []) as any[] // TODO: Fix types after database migration
+    return (data || []) as LeaderboardEntry[]
   } catch (error) {
     if (error instanceof TokenError) {
       throw error
@@ -170,7 +172,7 @@ export async function getUserTokenAnalytics(
       )
     }
 
-    return (data || []) as any[] // TODO: Fix types after database migration
+    return (data || []) as UserAnalytics[]
   } catch (error) {
     if (error instanceof TokenError) {
       throw error
@@ -198,7 +200,7 @@ export async function getUserDailyUsage(
     }
 
     const { data, error } = await supabase
-      .from("daily_token_usage" as any) // TODO: Fix types after database migration
+      .from("daily_token_usage")
       .select("*")
       .eq("user_id", userId)
       .eq("usage_date", date)
@@ -212,7 +214,7 @@ export async function getUserDailyUsage(
       )
     }
 
-    return (data || []) as any[] // TODO: Fix types after database migration
+    return (data || []) as DailyTokenUsage[]
   } catch (error) {
     if (error instanceof TokenError) {
       throw error
@@ -240,7 +242,7 @@ export async function getChatTokenUsage(
     }
 
     const { data, error } = await supabase
-      .from("token_usage" as any)
+      .from("token_usage")
       .select("*")
       .eq("chat_id", chatId)
       .eq("user_id", userId)
@@ -254,7 +256,7 @@ export async function getChatTokenUsage(
       )
     }
 
-    return (data || []) as any[] // TODO: Fix types after database migration
+    return (data || []) as TokenUsage[]
   } catch (error) {
     if (error instanceof TokenError) {
       throw error
@@ -289,10 +291,7 @@ export async function getUserUsageStats(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    let query = supabase
-      .from("token_usage" as any)
-      .select("*")
-      .eq("user_id", userId)
+    let query = supabase.from("token_usage").select("*").eq("user_id", userId)
 
     if (startDate) {
       query = query.gte("created_at", startDate)
@@ -311,7 +310,7 @@ export async function getUserUsageStats(
       )
     }
 
-    const usage = (data || []) as any[] // TODO: Fix types after database migration
+    const usage: TokenUsage[] = (data || []) as TokenUsage[]
 
     // Calculate aggregated statistics
     const totalTokens = usage.reduce(
@@ -386,8 +385,7 @@ export async function getUserUsageStats(
 export async function getTimingAnalytics(
   userId: string,
   daysBack: number = 7
-): Promise<any[]> {
-  // TODO: Fix types after database migration
+): Promise<TimingAnalytics[]> {
   try {
     const supabase = await createClient()
     if (!supabase) {
@@ -410,7 +408,7 @@ export async function getTimingAnalytics(
       )
     }
 
-    return (data || []) as any[] // TODO: Fix types after database migration
+    return (data || []) as TimingAnalytics[]
   } catch (error) {
     if (error instanceof TokenError) {
       throw error
@@ -430,8 +428,7 @@ export async function getTimingAnalytics(
 export async function getDailyTokenUsageByModel(
   daysBack: number = 30,
   userId?: string
-): Promise<any[]> {
-  // TODO: Fix types after database migration
+): Promise<DailyModelSummary[]> {
   try {
     const supabase = await createClient()
     if (!supabase) {
@@ -454,7 +451,7 @@ export async function getDailyTokenUsageByModel(
       )
     }
 
-    return (data || []) as any[] // TODO: Fix types after database migration
+    return (data || []) as DailyModelSummary[]
   } catch (error) {
     if (error instanceof TokenError) {
       throw error

@@ -55,8 +55,8 @@ vi.mock("@/app/analytics/token-usage", () => ({
   )),
 }))
 
-const mockCreateClient = createClient as any
-const mockRedirect = redirect as any
+const mockCreateClient = createClient as unknown as ReturnType<typeof vi.fn>
+const mockRedirect = redirect as unknown as ReturnType<typeof vi.fn>
 
 describe("AnalyticsPage", () => {
   const mockSupabase = {

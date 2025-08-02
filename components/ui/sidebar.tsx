@@ -25,6 +25,20 @@ import {
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
+// Extended Window interface for Cookie Store API
+declare global {
+  interface Window {
+    cookieStore?: {
+      set(options: {
+        name: string
+        value: string
+        path?: string
+        maxAge?: number
+      }): Promise<void>
+    }
+  }
+}
+
 const SIDEBAR_COOKIE_NAME = "sidebar_state"
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_WIDTH = "16rem"
@@ -83,7 +97,30 @@ function SidebarProvider({
       }
 
       // This sets the cookie to keep the sidebar state.
-      document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+      // Using Cookie Store API if available, fallback to document.cookie
+      if (typeof window !== "undefined") {
+        const setCookie = async () => {
+          try {
+            if (window.cookieStore) {
+              await window.cookieStore.set({
+                name: SIDEBAR_COOKIE_NAME,
+                value: String(openState),
+                path: "/",
+                maxAge: SIDEBAR_COOKIE_MAX_AGE,
+              })
+            } else {
+              // Fallback for browsers without Cookie Store API
+              // biome-ignore lint/suspicious/noDocumentCookie: Intentional fallback for browser compatibility
+              document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+            }
+          } catch {
+            // Silent fallback to document.cookie if Cookie Store API fails
+            // biome-ignore lint/suspicious/noDocumentCookie: Intentional fallback for error handling
+            document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+          }
+        }
+        setCookie()
+      }
     },
     [setOpenProp, open]
   )

@@ -24,6 +24,7 @@ interface MessagesContextType {
   cacheAndAddMessage: (message: MessageAISDK) => Promise<void>
   resetMessages: () => Promise<void>
   deleteMessages: () => Promise<void>
+  setHasActiveChatSession: (active: boolean) => void
 }
 
 const MessagesContext = createContext<MessagesContextType | null>(null)
@@ -39,10 +40,13 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<MessageAISDK[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { chatId } = useChatSession()
+  const [, setHasActiveChatSession] = useState(false)
 
   useEffect(() => {
+    // Only reset messages when navigating away from a chat, not during an active session
+    // Remove this logic temporarily to fix the message persistence issue
+    // TODO: Implement a better solution that doesn't clear messages during navigation
     if (chatId === null) {
-      setMessages([])
       setIsLoading(false)
     }
   }, [chatId])
@@ -141,6 +145,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
         cacheAndAddMessage,
         resetMessages,
         deleteMessages,
+        setHasActiveChatSession,
       }}
     >
       {children}

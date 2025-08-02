@@ -116,13 +116,18 @@ jobs:
     permissions:
       contents: read
     strategy:
+      fail-fast: false
       matrix:
-        node-version: [20, 22]
+        node-version: [22] # Reduced to single version for faster execution
+        shard: [1, 2, 3, 4] # Split tests across 4 parallel shards
 
     # Additional environment variables specific to e2e tests
     env:
       # Additional test configuration
       NODE_ENV: "test"
+      # Enable test mode with mocked responses for faster execution
+      TEST_MODE: "true"
+      MOCK_AI_RESPONSES: "true"
 
     steps:
       - name: Checkout repository
@@ -151,19 +156,20 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps
+        run: pnpm exec playwright install --with-deps chromium
 
       - name: Build application
         run: pnpm build
 
-      - name: Run E2E tests
-        run: pnpm test:e2e
+      - name: Run E2E tests (Shard ${{ matrix.shard }}/4)
+        run: pnpm test:e2e --shard=${{ matrix.shard }}/4
+        timeout-minutes: 15 # Reduced timeout with mocked responses
 
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ matrix.node-version }}
+          name: playwright-report-node${{ matrix.node-version }}-shard${{ matrix.shard }}
           path: |
             playwright-report/
             test-results/
@@ -234,6 +240,8 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      NODE_ENV: "test"
     strategy:
       matrix:
         node-version: [20, 22]

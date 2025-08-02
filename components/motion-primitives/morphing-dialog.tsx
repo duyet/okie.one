@@ -8,6 +8,7 @@ import {
   type Transition,
   type Variant,
 } from "motion/react"
+import Image from "next/image"
 import React, {
   useCallback,
   useContext,
@@ -363,13 +364,19 @@ function MorphingDialogImage({
   const { uniqueId } = useMorphingDialog()
 
   return (
-    <motion.img
-      src={src}
-      alt={alt}
+    <motion.div
       className={cn(className)}
       layoutId={`dialog-img-${uniqueId}`}
       style={style}
-    />
+    >
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+      />
+    </motion.div>
   )
 }
 

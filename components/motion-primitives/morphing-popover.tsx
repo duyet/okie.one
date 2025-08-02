@@ -125,21 +125,16 @@ function MorphingPopoverTrigger({
   }
 
   if (asChild && isValidElement(children)) {
-    const MotionComponent = motion.create(
-      children.type as React.ForwardRefExoticComponent<Record<string, unknown>>
-    )
-    const childProps = children.props as Record<string, unknown>
-
     return (
-      <MotionComponent
-        {...childProps}
+      <motion.div
         onClick={context.open}
         layoutId={`popover-trigger-${context.uniqueId}`}
-        className={childProps.className}
         key={context.uniqueId}
         aria-expanded={context.isOpen}
         aria-controls={`popover-content-${context.uniqueId}`}
-      />
+      >
+        {children}
+      </motion.div>
     )
   }
 
