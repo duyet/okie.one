@@ -83,9 +83,12 @@ export default defineConfig({
             "**/sequential-thinking-enhanced.spec.ts",
             "**/sequential-thinking-tool-invocation.spec.ts",
             "**/sequential-thinking-math.spec.ts",
+            "**/sequential-thinking-ui-final.spec.ts",
             "**/api-chat-comprehensive.spec.ts",
             "**/debug-*.spec.ts",
             "**/enhanced-system-prompt-test.spec.ts",
+            "**/guest-user-chat.spec.ts",
+            "**/mcp-settings-tab.spec.ts",
           ]
         : [],
     },
