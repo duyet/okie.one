@@ -210,20 +210,12 @@ jobs:
             deps-
           fail-on-cache-miss: true
 
-      - name: Cache ESLint
-        uses: actions/cache@v4
-        with:
-          path: .eslintcache
-          key: eslint-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx') }}
-          restore-keys: |
-            eslint-${{ runner.os }}-
-
       - name: Cache TypeScript
         uses: actions/cache@v4
         with:
           path: |
-            .tsbuildinfo
-            tsconfig.tsbuildinfo
+            node_modules/.cache/typescript
+            .next/cache
           key: typescript-${{ runner.os }}-${{ hashFiles('**/*.ts', '**/*.tsx', 'tsconfig.json') }}
           restore-keys: |
             typescript-${{ runner.os }}-
