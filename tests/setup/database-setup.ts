@@ -121,6 +121,7 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
   try {
     // Create test anonymous user with auth.users first
     const testUserId = getDefaultTestUserId() // Use proper UUID format
+    let actualUserId = testUserId
 
     // First, check if user exists in auth.users
     const { data: authUser, error: authCheckError } =
@@ -134,7 +135,6 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
       // Create auth user first (this creates the foreign key reference)
       const { data: newAuthUser, error: createAuthError } =
         await supabase.auth.admin.createUser({
-          user_id: testUserId,
           email: "test-anonymous@example.com",
           email_confirm: true,
           user_metadata: {
@@ -146,14 +146,15 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
       if (createAuthError) {
         console.warn("⚠️ Failed to create auth user:", createAuthError)
         // Continue with database user creation anyway
-      } else {
-        console.log("✅ Created auth user:", newAuthUser.user?.id)
+      } else if (newAuthUser.user?.id) {
+        actualUserId = newAuthUser.user.id
+        console.log("✅ Created auth user:", actualUserId)
       }
     }
 
     // Now create/update the user record in public.users
     const { error: userError } = await supabase.from("users").upsert({
-      id: testUserId,
+      id: actualUserId,
       email: "test-anonymous@example.com",
       created_at: new Date().toISOString(),
     })
@@ -230,6 +231,7 @@ export async function createTestUser(
   const userId = isAnonymous
     ? "00000000-0000-4000-8000-000000000001"
     : crypto.randomUUID()
+  let actualUserId = userId
 
   const user: TestUser = {
     id: userId,
@@ -255,7 +257,6 @@ export async function createTestUser(
 
         const { data: newAuthUser, error: createAuthError } =
           await supabase.auth.admin.createUser({
-            user_id: userId,
             email: testEmail,
             email_confirm: true,
             user_metadata: {
@@ -269,32 +270,38 @@ export async function createTestUser(
             `⚠️ Failed to create auth user ${userId}:`,
             createAuthError
           )
-        } else {
-          console.log(`✅ Created auth user: ${newAuthUser.user?.id}`)
+        } else if (newAuthUser.user?.id) {
+          actualUserId = newAuthUser.user.id
+          console.log(`✅ Created auth user: ${actualUserId}`)
         }
       }
 
       // Now create/update the user in public.users
       const { error } = await supabase.from("users").upsert({
-        id: userId,
-        email: isAnonymous ? `test-anonymous-${userId}@example.com` : email,
+        id: actualUserId,
+        email: isAnonymous
+          ? `test-anonymous-${actualUserId}@example.com`
+          : email,
         created_at: new Date().toISOString(),
       })
 
       if (error && error.code !== "23505") {
         console.warn("⚠️ Failed to create user in database:", error)
       } else {
-        console.log(`✅ Created user in database: ${userId}`)
+        console.log(`✅ Created user in database: ${actualUserId}`)
       }
     } catch (error) {
       console.warn("⚠️ Database user creation failed:", error)
     }
   }
 
-  testUsers.set(userId, user)
+  // Update user object with actual ID
+  user.id = actualUserId
+
+  testUsers.set(actualUserId, user)
   console.log(
     `📦 Created ${isAnonymous ? "anonymous" : "authenticated"} test user:`,
-    userId
+    actualUserId
   )
   return user
 }
