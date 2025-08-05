@@ -164,7 +164,7 @@ export function ModelSelector({
                 </TooltipContent>
               </Tooltip>
             )}
-            {model.reasoning && (
+            {model.reasoningText && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">
@@ -197,7 +197,7 @@ export function ModelSelector({
           </div>
         )}
       </button>
-    )
+    );
   }
 
   // Get the hovered model data
@@ -469,7 +469,7 @@ export function ModelSelector({
                               </TooltipContent>
                             </Tooltip>
                           )}
-                          {model.reasoning && (
+                          {model.reasoningText && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">
@@ -507,7 +507,7 @@ export function ModelSelector({
                         </div>
                       )}
                     </DropdownMenuItem>
-                  )
+                  );
                 })
               ) : (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
@@ -553,5 +553,5 @@ export function ModelSelector({
         </DropdownMenu>
       </Tooltip>
     </div>
-  )
+  );
 }

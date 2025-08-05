@@ -1,6 +1,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport, generateId } from "ai"
 import { ChatCircleIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { AnimatePresence, motion } from "motion/react"
@@ -104,22 +105,38 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     })
   }, [])
 
+  const [input, setInput] = useState("")
+  
   const {
     messages,
-    input,
-    handleSubmit,
+    sendMessage,
+    regenerate,
     status,
-    reload,
     stop,
     setMessages,
-    setInput,
   } = useChat({
     id: `project-${projectId}-${currentChatId}`,
-    api: API_ROUTE_CHAT,
-    initialMessages: [],
-    onFinish: cacheAndAddMessage,
+    transport: new DefaultChatTransport({ api: API_ROUTE_CHAT }),
+    messages: [],
+    onFinish: ({ message }) => cacheAndAddMessage(message),
     onError: handleError,
   })
+
+  // Create v4 compatibility functions
+  const handleSubmit = useCallback(
+    (e?: { preventDefault?: () => void }) => {
+      e?.preventDefault?.()
+      if (input.trim()) {
+        sendMessage({ text: input })
+        setInput("")
+      }
+    },
+    [input, sendMessage]
+  )
+
+  const reload = useCallback(() => {
+    regenerate()
+  }, [regenerate])
 
   const { selectedModel, handleModelChange } = useModel({
     currentChat: null,
@@ -220,11 +237,16 @@ export function ProjectView({ projectId }: ProjectViewProps) {
 
     const optimisticMessage = {
       id: optimisticId,
-      content: input,
       role: "user" as const,
-      createdAt: new Date(),
-      experimental_attachments:
-        optimisticAttachments.length > 0 ? optimisticAttachments : undefined,
+      parts: [
+        { type: "text" as const, text: input },
+        ...optimisticAttachments.map((att) => ({
+          type: "file" as const,
+          name: att.name,
+          mediaType: att.contentType,
+          url: att.url,
+        })),
+      ],
     }
 
     setMessages((prev) => [...prev, optimisticMessage])
@@ -237,7 +259,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       const currentChatId = await ensureChatExists(user.id)
       if (!currentChatId) {
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+        cleanupOptimisticAttachments(optimisticAttachments)
         return
       }
 
@@ -247,7 +269,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
           status: "error",
         })
         setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-        cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+        cleanupOptimisticAttachments(optimisticAttachments)
         return
       }
 
@@ -256,9 +278,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         attachments = await handleFileUploads(user.id, currentChatId)
         if (attachments === null) {
           setMessages((prev) => prev.filter((m) => m.id !== optimisticId))
-          cleanupOptimisticAttachments(
-            optimisticMessage.experimental_attachments
-          )
+          cleanupOptimisticAttachments(optimisticAttachments)
           return
         }
       }
@@ -279,9 +299,26 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         experimental_attachments: attachments || undefined,
       }
 
-      handleSubmit(undefined, options)
+      const body = options?.body || {}
+      const messageAttachments = options?.experimental_attachments
+      
+      // Send message with text and attachments
+      if (messageAttachments && messageAttachments.length > 0) {
+        const parts = [
+          { type: 'text' as const, text: input },
+          ...messageAttachments.map((att) => ({
+            type: 'file' as const,
+            filename: att.name,
+            mediaType: att.contentType || 'application/octet-stream',
+            url: att.url,
+          })),
+        ]
+        sendMessage({ parts })
+      } else {
+        sendMessage({ text: input })
+      }
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+      cleanupOptimisticAttachments(optimisticAttachments)
       cacheAndAddMessage(optimisticMessage)
 
       // Bump existing chats to top (non-blocking, after submit)
@@ -290,7 +327,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       }
     } catch {
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
-      cleanupOptimisticAttachments(optimisticMessage.experimental_attachments)
+      cleanupOptimisticAttachments(optimisticAttachments)
       toast({ title: "Failed to send message", status: "error" })
     } finally {
       setIsSubmitting(false)
@@ -331,7 +368,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       },
     }
 
-    reload(options)
+    reload()
   }, [user, selectedModel, reload])
 
   const formatDate = (dateString: string) => {

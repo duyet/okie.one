@@ -1,6 +1,6 @@
 "use client"
 
-import type { SourceUIPart } from "@ai-sdk/ui-utils"
+import type { SourceUrlUIPart } from 'ai'
 import { CaretDown, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion, type Transition } from "motion/react"
 import Image from "next/image"
@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils"
 import { addUTM, formatUrl, getFavicon } from "./utils"
 
 type SourcesListProps = {
-  sources: SourceUIPart["source"][]
+  sources: SourceUrlUIPart[]
   className?: string
 }
 
@@ -87,13 +87,13 @@ export function SourcesList({ sources, className }: SourcesListProps) {
               className="overflow-hidden"
             >
               <ul className="space-y-2 px-3 pt-3 pb-3">
-                {sources.map((source) => {
+                {sources.map((source, index) => {
                   const faviconUrl = getFavicon(source.url)
                   const showFallback =
                     !faviconUrl || failedFavicons.has(source.url)
 
                   return (
-                    <li key={source.id} className="flex items-center text-sm">
+                    <li key={`${source.url}-${index}`} className="flex items-center text-sm">
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <a
                           href={addUTM(source.url)}

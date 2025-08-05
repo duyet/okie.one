@@ -2,11 +2,23 @@
  * Component tests for MCP ToolInvocation component
  */
 
-import type { ToolInvocationUIPart } from "@ai-sdk/ui-utils"
+// ToolInvocationUIPart type removed in v5 - define local type for tests
 import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it } from "vitest"
 
 import { ToolInvocation } from "@/app/components/mcp/tools/tool-invocation"
+
+// Define local ToolInvocationUIPart type for tests
+interface ToolInvocationUIPart {
+  type: "tool-invocation"
+  toolInvocation: {
+    state: string
+    toolName: string
+    toolCallId: string
+    args?: Record<string, unknown>
+    result?: Record<string, unknown>
+  }
+}
 
 // Mock tool invocation data
 const mockToolInvocation: ToolInvocationUIPart = {
@@ -174,7 +186,7 @@ describe("ToolInvocation Component", () => {
           toolName: "testTool",
           toolCallId: "string-result-id",
           args: {},
-          result: "Simple string result",
+          result: { value: "Simple string result" },
         },
       }
 
@@ -185,7 +197,7 @@ describe("ToolInvocation Component", () => {
         />
       )
 
-      expect(screen.getByText("Simple string result")).toBeInTheDocument()
+      expect(screen.getByText(/Simple string result/)).toBeInTheDocument()
     })
 
     it("should handle array results (like search results)", () => {
@@ -196,13 +208,15 @@ describe("ToolInvocation Component", () => {
           toolName: "searchTool",
           toolCallId: "array-result-id",
           args: {},
-          result: [
-            {
-              url: "https://example.com",
-              title: "Example Result",
-              snippet: "This is an example snippet",
-            },
-          ],
+          result: {
+            items: [
+              {
+                url: "https://example.com",
+                title: "Example Result",
+                snippet: "This is an example snippet",
+              },
+            ],
+          },
         },
       }
 
@@ -213,9 +227,9 @@ describe("ToolInvocation Component", () => {
         />
       )
 
-      expect(screen.getByText("Example Result")).toBeInTheDocument()
-      expect(screen.getByText("https://example.com")).toBeInTheDocument()
-      expect(screen.getByText("This is an example snippet")).toBeInTheDocument()
+      expect(screen.getByText(/Example Result/)).toBeInTheDocument()
+      expect(screen.getByText(/https:\/\/example\.com/)).toBeInTheDocument()
+      expect(screen.getByText(/This is an example snippet/)).toBeInTheDocument()
     })
 
     it("should handle malformed results gracefully", () => {
@@ -226,7 +240,7 @@ describe("ToolInvocation Component", () => {
           toolName: "malformedTool",
           toolCallId: "malformed-result-id",
           args: {},
-          result: null,
+          result: undefined,
         },
       }
 

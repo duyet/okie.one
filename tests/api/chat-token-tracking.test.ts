@@ -49,7 +49,7 @@ type OnChunkCallback = () => void
 
 // Minimal mock return type for streamText
 interface MockStreamTextResult {
-  toDataStreamResponse: () => Response
+  toUIMessageStreamResponse: () => Response
 }
 
 // Mock all external dependencies
@@ -141,7 +141,7 @@ describe("Chat API Token Tracking", () => {
     contextWindow: 128000,
     vision: false,
     tools: true,
-    reasoning: false,
+    reasoningText: false,
     webSearch: false,
     openSource: false,
     apiSdk: vi.fn().mockReturnValue("mock-api-sdk"),
@@ -203,7 +203,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
         } as MockStreamTextResult
@@ -243,8 +243,8 @@ describe("Chat API Token Tracking", () => {
         "openai",
         "gpt-4o",
         expect.objectContaining({
-          inputTokens: 100,
-          outputTokens: 50,
+          promptTokens: 100,
+          completionTokens: 50,
           cachedTokens: 10,
           totalTokens: 150,
           durationMs: expect.any(Number),
@@ -266,7 +266,7 @@ describe("Chat API Token Tracking", () => {
         if (config.onFinish) onFinishCallback = config.onFinish
         if (config.onChunk) onChunkCallback = config.onChunk
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -326,8 +326,8 @@ describe("Chat API Token Tracking", () => {
         "openai",
         "gpt-4o",
         expect.objectContaining({
-          inputTokens: 100,
-          outputTokens: 50,
+          promptTokens: 100,
+          completionTokens: 50,
           cachedTokens: 10,
           totalTokens: 150,
           durationMs: 1500, // Total request duration
@@ -346,7 +346,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -417,7 +417,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -490,7 +490,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -564,7 +564,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -630,7 +630,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -689,7 +689,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -749,7 +749,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -809,7 +809,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -886,7 +886,7 @@ describe("Chat API Token Tracking", () => {
         mockStreamText.mockImplementation((config: any) => {
           if (config.onFinish) onFinishCallback = config.onFinish
           return {
-            toDataStreamResponse: vi
+            toUIMessageStreamResponse: vi
               .fn()
               .mockReturnValue(new Response("mock-stream")),
             // Add required properties for StreamTextResult type
@@ -971,7 +971,7 @@ describe("Chat API Token Tracking", () => {
         if (config.onFinish) onFinishCallback = config.onFinish
         if (config.onChunk) onChunkCallback = config.onChunk
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -1051,7 +1051,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -1127,7 +1127,7 @@ describe("Chat API Token Tracking", () => {
         if (config.onFinish) onFinishCallback = config.onFinish
         if (config.onChunk) onChunkCallback = config.onChunk
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -1214,7 +1214,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type
@@ -1293,7 +1293,7 @@ describe("Chat API Token Tracking", () => {
       mockStreamText.mockImplementation((config: any) => {
         if (config.onFinish) onFinishCallback = config.onFinish
         return {
-          toDataStreamResponse: vi
+          toUIMessageStreamResponse: vi
             .fn()
             .mockReturnValue(new Response("mock-stream")),
           // Add required properties for StreamTextResult type

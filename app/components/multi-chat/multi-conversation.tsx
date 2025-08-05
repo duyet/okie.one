@@ -1,6 +1,6 @@
 "use client"
 
-import type { Message as MessageType } from "@ai-sdk/react"
+import type { UIMessage as MessageType } from "@ai-sdk/react"
 import { useEffect, useState } from "react"
 
 import {
@@ -63,12 +63,16 @@ function ResponseCard({ response, group }: ResponseCardProps) {
           <Message
             id={response.message.id}
             variant="assistant"
-            parts={
-              response.message.parts || [
-                { type: "text", text: response.message.content },
-              ]
+            parts={response.message.parts}
+            attachments={
+              response.message.parts
+                ?.filter((p: any) => p.type === 'file')
+                ?.map((p: any) => ({
+                  name: p.name,
+                  contentType: p.mediaType,
+                  url: p.url || p.data || '',
+                })) || []
             }
-            attachments={response.message.experimental_attachments}
             onDelete={() => group.onDelete(response.model, response.message.id)}
             onEdit={(id, newText) => group.onEdit(response.model, id, newText)}
             onReload={() => group.onReload(response.model)}
@@ -77,7 +81,10 @@ function ResponseCard({ response, group }: ResponseCardProps) {
             hasScrollAnchor={false}
             className="bg-transparent p-0 px-0"
           >
-            {response.message.content}
+            {response.message.parts
+              ?.filter((p: any) => p.type === 'text')
+              ?.map((p: any) => p.text)
+              ?.join('') || ''}
           </Message>
         ) : response.isLoading ? (
           <div className="space-y-2">
@@ -141,18 +148,25 @@ export function MultiModelConversation({
                       <Message
                         id={group.userMessage.id}
                         variant="user"
-                        parts={
-                          group.userMessage.parts || [
-                            { type: "text", text: group.userMessage.content },
-                          ]
+                        parts={group.userMessage.parts}
+                        attachments={
+                          group.userMessage.parts
+                            ?.filter((p: any) => p.type === 'file')
+                            ?.map((p: any) => ({
+                              name: p.name,
+                              contentType: p.mediaType,
+                              url: p.url || p.data || '',
+                            })) || []
                         }
-                        attachments={group.userMessage.experimental_attachments}
                         onDelete={() => {}}
                         onEdit={() => {}}
                         onReload={() => {}}
                         status="ready"
                       >
-                        {group.userMessage.content}
+                        {group.userMessage.parts
+                          ?.filter((p: any) => p.type === 'text')
+                          ?.map((p: any) => p.text)
+                          ?.join('') || ''}
                       </Message>
                     </div>
 

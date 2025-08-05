@@ -15,7 +15,7 @@ export interface ToolInvocationPart {
 
 export interface ReasoningPart {
   type: "reasoning"
-  reasoning: string
+  text: string
 }
 
 export interface SequentialReasoningStepPart {
@@ -60,7 +60,7 @@ export function isToolInvocationPart(
 }
 
 export function isReasoningPart(part: MessagePart): part is ReasoningPart {
-  return part.type === "reasoning" && "reasoning" in part
+  return part.type === "reasoning" && "text" in part
 }
 
 export function isSequentialReasoningStepPart(

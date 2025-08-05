@@ -71,7 +71,7 @@ You should:
 9. Repeat the process until satisfied with the solution
 10. Provide a single, ideally correct answer as the final output
 11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached`,
-  parameters: z.object({
+  inputSchema: z.object({
     thought: z.string().describe("Your current thinking step"),
     nextThoughtNeeded: z
       .boolean()
@@ -196,7 +196,7 @@ You should:
 export const addReasoningStepTool = {
   description:
     "Add a step to the reasoning process. (Legacy - use sequentialthinking instead)",
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe("The title of the reasoning step"),
     content: z
       .string()

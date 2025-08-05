@@ -1,5 +1,10 @@
-import type { Attachment } from "@ai-sdk/ui-utils"
-import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
+// Attachment type removed in v5 - using file parts instead
+import {
+  type UIMessage as MessageAISDK,
+  streamText,
+  type ToolSet,
+  convertToModelMessages,
+} from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -113,7 +118,14 @@ export async function POST(req: Request) {
 
     const userMessage = messages[messages.length - 1]
     const attachments =
-      (userMessage?.experimental_attachments as Attachment[]) || []
+      userMessage?.parts
+        ?.filter((part: any) => part.type === "file")
+        ?.map((part: any) => ({
+          name: part.name || "file",
+          contentType: part.mediaType,
+          url: part.url,
+          content: part.data,
+        })) || []
 
     // Validate file attachments for the selected model
     if (attachments.length > 0) {
@@ -149,7 +161,11 @@ export async function POST(req: Request) {
         supabase,
         userId,
         chatId,
-        content: userMessage.content,
+        content:
+          userMessage.parts
+            ?.filter((part: any) => part.type === "text")
+            ?.map((part: any) => part.text)
+            ?.join("\n") || "",
         attachments: attachments,
         model,
         isAuthenticated,
@@ -248,11 +264,8 @@ ${mcpServer.getSystemPromptEnhancement()}`
           effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
       }),
       system: enhancedSystemPrompt,
-      messages: messages,
+      messages: convertToModelMessages(messages),
       tools: apiTools,
-      maxSteps: sequentialThinkingServer
-        ? sequentialThinkingServer.getMaxSteps()
-        : 10,
       onError: (err: unknown) => {
         apiLogger.error("Streaming error occurred", { error: err })
 
@@ -344,13 +357,13 @@ ${mcpServer.getSystemPromptEnhancement()}`
                 provider,
                 model,
                 {
-                  inputTokens: usage.promptTokens || 0,
-                  outputTokens: usage.completionTokens || 0,
+                  inputTokens: usage.inputTokens || 0,
+                  outputTokens: usage.outputTokens || 0,
                   cachedTokens:
                     (usage as { cachedTokens?: number }).cachedTokens || 0, // Some providers return cached tokens
                   totalTokens:
                     usage.totalTokens ||
-                    (usage.promptTokens || 0) + (usage.completionTokens || 0),
+                    (usage.inputTokens || 0) + (usage.outputTokens || 0),
                   durationMs: requestDuration,
                   timeToFirstTokenMs: timeToFirstChunk, // Using first chunk as proxy for first token
                   timeToFirstChunkMs: timeToFirstChunk,
@@ -361,8 +374,8 @@ ${mcpServer.getSystemPromptEnhancement()}`
               apiLogger.tokenUsage(
                 model,
                 provider,
-                usage.promptTokens,
-                usage.completionTokens,
+                usage.inputTokens || 0,
+                usage.outputTokens || 0,
                 {
                   cachedTokens: (usage as { cachedTokens?: number })
                     .cachedTokens,
@@ -382,13 +395,9 @@ ${mcpServer.getSystemPromptEnhancement()}`
       },
     })
 
-    return result.toDataStreamResponse({
+    return result.toUIMessageStreamResponse({
       sendReasoning: true,
       sendSources: true,
-      getErrorMessage: (error: unknown) => {
-        apiLogger.error("Error forwarded to client", { error })
-        return extractErrorMessage(error)
-      },
     })
   } catch (err: unknown) {
     apiLogger.error("Error in /api/chat", { error: err })

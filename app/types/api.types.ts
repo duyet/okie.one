@@ -1,7 +1,13 @@
-import type { Attachment } from "@ai-sdk/ui-utils"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 import type { Database, Json } from "@/app/types/database.types"
+
+// Define Attachment type locally (removed from ai SDK v5)
+export interface Attachment {
+  name?: string
+  contentType?: string
+  url: string
+}
 
 export type SupabaseClientType = SupabaseClient<Database>
 
@@ -20,7 +26,7 @@ export interface ContentPart {
     args?: Json
     result?: Json
   }
-  reasoning?: string
+  reasoningText?: string
   details?: Json[]
   artifact?: {
     id: string
@@ -41,7 +47,7 @@ export interface Message {
   id?: string
   role: "user" | "assistant" | "system" | "data" | "tool" | "tool-call"
   content: string | null | ContentPart[]
-  reasoning?: string
+  reasoningText?: string
 }
 
 export interface ChatApiParams {

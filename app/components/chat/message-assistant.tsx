@@ -1,5 +1,4 @@
-import type { Message as MessageAISDK } from "@ai-sdk/react"
-import type { ToolInvocationUIPart } from "@ai-sdk/ui-utils"
+import type { UIMessage as MessageAISDK } from "@ai-sdk/react"
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 import type React from "react"
 import { useCallback, useMemo } from "react"
@@ -319,7 +318,7 @@ export function MessageAssistant({
       <div className={cn("flex min-w-full flex-col gap-2", isLast && "pb-8")}>
         {reasoningParts && (
           <Reasoning
-            reasoning={reasoningParts.reasoning}
+            reasoning={reasoningParts.text}
             isStreaming={status === "streaming"}
           />
         )}
@@ -346,7 +345,7 @@ export function MessageAssistant({
                   (part) =>
                     (part.toolInvocation as ToolInvocationData)?.toolName !==
                     "addReasoningStep"
-                ) as ToolInvocationUIPart[]
+                )
               }
             />
           )}
@@ -426,7 +425,7 @@ export function MessageAssistant({
         )}
       </div>
     </Message>
-  )
+  );
 }
 
 /**

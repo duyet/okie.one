@@ -31,9 +31,7 @@ const getOllamaBaseURL = (): string => {
   }
 
   // Server-side: check environment variables
-  return (
-    process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") || "http://localhost:11434"
-  )
+  return (process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") || "http://localhost:11434");
 }
 
 // Simple check: disabled in production or if DISABLE_OLLAMA=true
@@ -99,7 +97,7 @@ async function detectOllamaModels(): Promise<ModelConfig[]> {
         vision: checkVisionCapability(modelName, family),
         tools: true, // Most modern models support tools
         audio: false, // Audio support is rare in local models
-        reasoning: checkReasoningCapability(family),
+        reasoningText: checkReasoningCapability(family),
         openSource: true, // All Ollama models are open source
         speed: estimateSpeed(parameterSize, sizeInGB),
         intelligence: estimateIntelligence(family, parameterSize),
@@ -108,8 +106,8 @@ async function detectOllamaModels(): Promise<ModelConfig[]> {
         modelPage: `https://ollama.com/library/${modelName.split(":")[0]}`,
         apiSdk: (apiKey?: string) =>
           openproviders(modelName as string, undefined, apiKey),
-      }
-    })
+      };
+    });
   } catch (error) {
     console.warn("Failed to detect Ollama models:", error)
     return []
@@ -282,7 +280,7 @@ const staticOllamaModels: ModelConfig[] = [
     vision: false,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     openSource: true,
     speed: "Fast",
     intelligence: "High",
@@ -309,7 +307,7 @@ const staticOllamaModels: ModelConfig[] = [
     vision: false,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     openSource: true,
     speed: "Fast",
     intelligence: "High",

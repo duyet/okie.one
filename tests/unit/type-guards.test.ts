@@ -80,7 +80,7 @@ describe("Message Part Type Guards", () => {
     it("should return true for reasoning parts", () => {
       const reasoningPart = {
         type: "reasoning",
-        reasoning: "I need to analyze this problem step by step...",
+        text: "I need to analyze this problem step by step...",
       }
 
       expect(isReasoningPart(reasoningPart)).toBe(true)
@@ -103,7 +103,8 @@ describe("Message Part Type Guards", () => {
     it("should return true for source parts", () => {
       const sourcePart = {
         type: "source",
-        source: { url: "https://example.com", title: "Example" },
+        url: "https://example.com",
+        title: "Example",
       }
 
       expect(isSourcePart(sourcePart)).toBe(true)
@@ -169,9 +170,9 @@ describe("Message Part Type Guards", () => {
         },
         {
           type: "reasoning",
-          reasoning: "Let me think about this...",
+          text: "Let me think about this...",
         },
-        { type: "source", source: { url: "https://example.com" } },
+        { type: "source", url: "https://example.com" },
       ]
 
       const artifactParts = mixedParts.filter(isArtifactPart)
@@ -187,7 +188,7 @@ describe("Message Part Type Guards", () => {
       // Type assertions should work correctly
       expect(artifactParts[0].artifact?.id).toBe("art_123")
       expect(toolParts[0].toolInvocation?.toolName).toBe("search")
-      expect(reasoningParts[0].reasoning).toBe("Let me think about this...")
+      expect(reasoningParts[0].text).toBe("Let me think about this...")
       expect(sourceParts[0].source.url).toBe("https://example.com")
     })
   })

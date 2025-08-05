@@ -1,4 +1,4 @@
-import type { Message as MessageType } from "@ai-sdk/react"
+import type { UIMessage as MessageType } from "@ai-sdk/react"
 import { useState } from "react"
 
 import { MessageAssistant } from "./message-assistant"
@@ -8,7 +8,11 @@ type MessageProps = {
   variant: MessageType["role"]
   children: string
   id: string
-  attachments?: MessageType["experimental_attachments"]
+  attachments?: Array<{
+    name?: string
+    contentType?: string
+    url: string
+  }>
   isLast?: boolean
   onDelete: (id: string) => void
   onEdit: (id: string, newText: string) => void

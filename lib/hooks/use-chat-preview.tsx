@@ -69,10 +69,10 @@ export function useChatPreview(): UseChatPreviewReturn {
               .slice(-5) // Get last 5 messages
               .map((msg) => ({
                 id: msg.id,
-                content: msg.content,
+                content: msg.parts?.find(p => p.type === 'text')?.text || '',
                 role: msg.role as "user" | "assistant",
                 created_at:
-                  msg.createdAt?.toISOString() || new Date().toISOString(),
+                  (msg as any).createdAt?.toISOString() || new Date().toISOString(),
               }))
             setMessages(cachedMessages)
           }
@@ -93,10 +93,10 @@ export function useChatPreview(): UseChatPreviewReturn {
               .slice(-5) // Get last 5 messages
               .map((msg) => ({
                 id: msg.id,
-                content: msg.content,
+                content: msg.parts?.find(p => p.type === 'text')?.text || '',
                 role: msg.role as "user" | "assistant",
                 created_at:
-                  msg.createdAt?.toISOString() || new Date().toISOString(),
+                  (msg as any).createdAt?.toISOString() || new Date().toISOString(),
               }))
             setMessages(freshMessages)
           }

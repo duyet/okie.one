@@ -90,6 +90,7 @@ export async function POST(req: Request) {
       messages: [
         {
           role: "user",
+
           content: [
             {
               type: "text",

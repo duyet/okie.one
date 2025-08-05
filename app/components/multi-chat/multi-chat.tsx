@@ -1,6 +1,6 @@
 "use client"
 
-import type { Message as MessageTypeBase } from "@ai-sdk/react"
+import type { UIMessage as MessageTypeBase } from "@ai-sdk/react"
 
 // Extended message type with model property
 type MessageType = MessageTypeBase & {
@@ -120,7 +120,10 @@ export function MultiChat() {
       const message = persistedMessages[i]
 
       if (message.role === "user") {
-        const groupKey = message.content
+        const groupKey = message.parts
+          ?.filter((p: any) => p.type === 'text')
+          ?.map((p: any) => p.text)
+          ?.join('') || ''
         if (!groups[groupKey]) {
           groups[groupKey] = {
             userMessage: message,
@@ -137,7 +140,10 @@ export function MultiChat() {
         }
 
         if (associatedUserMessage) {
-          const groupKey = associatedUserMessage.content
+          const groupKey = associatedUserMessage.parts
+            ?.filter((p: any) => p.type === 'text')
+            ?.map((p: any) => p.text)
+            ?.join('') || ''
           if (!groups[groupKey]) {
             groups[groupKey] = {
               userMessage: associatedUserMessage,
@@ -188,7 +194,10 @@ export function MultiChat() {
         const assistantMsg = chat.messages[i + 1]
 
         if (userMsg?.role === "user") {
-          const groupKey = userMsg.content
+          const groupKey = userMsg.parts
+            ?.filter((p: any) => p.type === 'text')
+            ?.map((p: any) => p.text)
+            ?.join('') || ''
 
           if (!liveGroups[groupKey]) {
             liveGroups[groupKey] = {
@@ -215,13 +224,16 @@ export function MultiChat() {
             }
           } else if (
             chat.isLoading &&
-            userMsg.content === prompt &&
+            (userMsg.parts
+              ?.filter((p: any) => p.type === 'text')
+              ?.map((p: any) => p.text)
+              ?.join('') || '') === prompt &&
             selectedModelIds.includes(chat.model.id)
           ) {
             const placeholderMessage: MessageType = {
               id: `loading-${chat.model.id}`,
               role: "assistant",
-              content: "",
+              parts: [{ type: "text", text: "" }],
             }
             liveGroups[groupKey].responses.push({
               model: chat.model.id,
@@ -291,7 +303,7 @@ export function MultiChat() {
             },
           }
 
-          chat.append({ role: "user", content: prompt }, options)
+          chat.append({ role: "user", parts: [{ type: "text", text: prompt }] } as any, options)
         })
       )
 

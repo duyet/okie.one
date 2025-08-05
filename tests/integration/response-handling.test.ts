@@ -42,7 +42,7 @@ describe("Response Message Handling", () => {
     it("should handle responses with reasoning steps", () => {
       const mockReasoningResponse = {
         type: "reasoning",
-        reasoning: {
+        reasoningText: {
           steps: [
             { content: "First, I need to analyze the problem" },
             { content: "Then, I'll consider possible solutions" },
@@ -52,8 +52,8 @@ describe("Response Message Handling", () => {
       }
 
       expect(mockReasoningResponse.type).toBe("reasoning")
-      expect(mockReasoningResponse.reasoning.steps).toHaveLength(3)
-      expect(mockReasoningResponse.reasoning.steps[0].content).toContain(
+      expect(mockReasoningResponse.reasoningText.steps).toHaveLength(3)
+      expect(mockReasoningResponse.reasoningText.steps[0].content).toContain(
         "analyze"
       )
     })
@@ -98,7 +98,7 @@ describe("Response Message Handling", () => {
         parts: [
           {
             type: "reasoning",
-            reasoning: { steps: [{ content: "First, analyzing..." }] },
+            reasoningText: { steps: [{ content: "First, analyzing..." }] },
           },
           {
             type: "tool-invocation",
@@ -224,7 +224,7 @@ describe("Response Message Handling", () => {
       const malformedResponses = [
         { type: "unknown-type", data: null },
         { type: "tool-invocation", toolInvocation: null },
-        { type: "reasoning", reasoning: { steps: [] } },
+        { type: "reasoning", reasoningText: { steps: [] } },
         { type: "artifact", artifact: { id: "", content: "" } },
       ]
 
@@ -235,7 +235,7 @@ describe("Response Message Handling", () => {
           expect(response.toolInvocation).toBe(null)
         }
         if (response.type === "reasoning") {
-          expect(response.reasoning?.steps).toEqual([])
+          expect(response.reasoningText?.steps).toEqual([])
         }
         if (response.type === "artifact") {
           expect(response.artifact?.id).toBe("")
@@ -318,7 +318,7 @@ describe("Response Message Handling", () => {
       const mixedParts = [
         { type: "text", content: "Text content" },
         { type: "tool-invocation", toolInvocation: { state: "result" } },
-        { type: "reasoning", reasoning: { steps: [] } },
+        { type: "reasoning", reasoningText: { steps: [] } },
         { type: "artifact", artifact: { id: "test" } },
         { type: "tool-invocation", toolInvocation: { state: "call" } },
       ]

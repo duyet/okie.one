@@ -1,6 +1,6 @@
 "use client"
 
-import type { Message as MessageType } from "@ai-sdk/react"
+import type { UIMessage as MessageType } from "@ai-sdk/react"
 import { Check, Copy, Trash } from "@phosphor-icons/react"
 import type { Transition } from "motion/react"
 import Image from "next/image"
@@ -30,7 +30,11 @@ const getTextFromDataUrl = (dataUrl: string) => {
 
 export type MessageUserProps = {
   hasScrollAnchor?: boolean
-  attachments?: MessageType["experimental_attachments"]
+  attachments?: Array<{
+    name?: string
+    contentType?: string
+    url: string
+  }>
   children: string
   copied: boolean
   copyToClipboard: () => void
@@ -82,7 +86,7 @@ export function MessageUser({
         className
       )}
     >
-      {attachments?.map((attachment, index) => (
+      {attachments?.map((attachment: { name?: string; contentType?: string; url: string }, index: number) => (
         <div
           className="flex flex-row gap-2"
           key={`${attachment.name}-${index}`}

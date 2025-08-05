@@ -1,5 +1,6 @@
-import type { Message } from "@ai-sdk/react"
+import type { UIMessage as Message } from "@ai-sdk/react"
 import { useChat } from "@ai-sdk/react"
+import { generateId, DefaultChatTransport } from "ai"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -324,21 +325,27 @@ export function useChatCore({
         queueArtifactToOpen(firstArtifact)
       }
 
-      // Replace inline code blocks with artifact placeholders in the content
-      const updatedContent = replaceCodeBlocksWithArtifacts(
-        message.content as string,
+      // Extract text content from parts for v5 message structure
+      const textContent = (message.parts || [])
+        .filter((part: any) => part.type === "text")
+        .map((part: any) => part.text)
+        .join("")
+
+      const updatedTextContent = replaceCodeBlocksWithArtifacts(
+        textContent,
         artifactParts
       )
 
-      // Replace any existing artifact parts with new ones
-      const nonArtifactParts = (message.parts || []).filter(
-        (part) => (part as MessagePart).type !== "artifact"
+      // Create updated text parts
+      const updatedTextParts = [{ type: "text", text: updatedTextContent }]
+      const nonTextParts = (message.parts || []).filter(
+        (part: any) =>
+          part.type !== "text" && (part as MessagePart).type !== "artifact"
       )
 
       return {
         ...message,
-        content: updatedContent,
-        parts: [...nonArtifactParts, ...artifactParts],
+        parts: [...updatedTextParts, ...nonTextParts, ...artifactParts],
       } as Message
     },
     [queueArtifactToOpen]
@@ -394,14 +401,20 @@ export function useChatCore({
   // Real-time artifact processing during streaming with improved caching
   const processStreamingArtifacts = useCallback(
     (message: Message) => {
-      if (message.role === "assistant" && typeof message.content === "string") {
+      if (message.role === "assistant" && message.parts) {
+        // Extract text content from parts
+        const textContent = message.parts
+          .filter((part: any) => part.type === "text")
+          .map((part: any) => part.text)
+          .join("")
+
         // Skip processing very short content
-        if (message.content.length < 10) {
+        if (textContent.length < 10) {
           return message
         }
 
         // Generate stable cache key
-        const cacheKey = generateContentCacheKey(message.id, message.content)
+        const cacheKey = generateContentCacheKey(message.id, textContent)
 
         // Return cached processed message if it exists
         const cachedMessage = getCachedMessage(cacheKey)
@@ -410,10 +423,10 @@ export function useChatCore({
         }
 
         // Handle early artifact detection
-        handleEarlyArtifactDetection(message.content)
+        handleEarlyArtifactDetection(textContent)
 
         // Parse artifacts from the current content during streaming
-        const artifactParts = parseArtifacts(message.content, true)
+        const artifactParts = parseArtifacts(textContent, true)
 
         if (artifactParts.length > 0) {
           const updatedMessage = processArtifactsAndUpdateContent(
@@ -423,11 +436,12 @@ export function useChatCore({
 
           console.log("🔧 processStreamingArtifacts result:", {
             messageId: message.id,
-            originalLength: message.content.length,
-            updatedLength: (updatedMessage.content as string).length,
-            hasMarkers: (updatedMessage.content as string).includes(
-              "[ARTIFACT_PREVIEW:"
-            ),
+            originalLength: textContent.length,
+            textPartsCount: message.parts.filter((p: any) => p.type === "text")
+              .length,
+            hasMarkers: updatedMessage.parts
+              .filter((p: any) => p.type === "text")
+              .some((p: any) => p.text.includes("[ARTIFACT_PREVIEW:")),
             artifactCount: artifactParts.length,
             cacheKey,
           })
@@ -452,36 +466,28 @@ export function useChatCore({
   // For existing chats (chatId exists), use initialMessages from the provider
   const effectiveInitialMessages = chatId ? initialMessages : []
 
-  // Initialize useChat
+  // Initialize useChat with v5 transport
+  const [input, setInput] = useState(draftValue)
   const {
     messages,
-    input,
-    handleSubmit,
+    sendMessage,
+    regenerate,
     status,
     error,
-    reload,
     stop,
     setMessages,
-    setInput,
-    append,
+    addToolResult,
   } = useChat({
-    api: API_ROUTE_CHAT,
-    initialMessages: effectiveInitialMessages,
-    initialInput: draftValue,
-    onFinish: (message) => {
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
+    messages: effectiveInitialMessages,
+    onFinish: ({ message }) => {
       console.log("🔍 useChat onFinish:", message)
       // Message already processed by streaming, just cache it
       cacheAndAddMessage(message)
     },
     onError: handleError,
-    // Add debugging for streaming status
-    onResponse: (response) => {
-      console.log("🔍 useChat onResponse - streaming started:", {
-        ok: response.ok,
-        status: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-      })
-    },
     // Add tool invocation callbacks for streaming
     onToolCall: (toolCall) => {
       console.log("🔧 Tool call during streaming:", toolCall)
@@ -520,6 +526,30 @@ export function useChatCore({
     },
   })
 
+  // Create handleSubmit and append functions for v5 compatibility
+  const handleSubmit = useCallback(
+    (e?: { preventDefault?: () => void }) => {
+      e?.preventDefault?.()
+      if (input.trim()) {
+        sendMessage({ text: input })
+        setInput("")
+      }
+    },
+    [input, sendMessage]
+  )
+
+  const append = useCallback(
+    (message: Message) => {
+      sendMessage(message)
+    },
+    [sendMessage]
+  )
+
+  // Create reload function for v5 compatibility
+  const reload = useCallback(() => {
+    regenerate()
+  }, [regenerate])
+
   // Process both artifacts and tool invocations in streaming messages (after useChat initialization)
   const processedMessages = useMemo(() => {
     console.log("🔍 useChatCore - processing messages:", {
@@ -528,10 +558,14 @@ export function useChatCore({
         messages?.map((m) => ({
           id: m.id,
           role: m.role,
-          content:
-            typeof m.content === "string"
-              ? `${m.content.substring(0, 50)}...`
-              : m.content,
+          content: (() => {
+            const textContent =
+              m.parts
+                ?.filter((p: any) => p.type === "text")
+                ?.map((p: any) => p.text)
+                ?.join("") || ""
+            return `${textContent.substring(0, 50)}...`
+          })(),
         })) || [],
       status,
     })
@@ -549,10 +583,14 @@ export function useChatCore({
       processedMessages: processed.map((m) => ({
         id: m.id,
         role: m.role,
-        content:
-          typeof m.content === "string"
-            ? `${m.content.substring(0, 50)}...`
-            : m.content,
+        content: (() => {
+          const textContent =
+            m.parts
+              ?.filter((p: any) => p.type === "text")
+              ?.map((p: any) => p.text)
+              ?.join("") || ""
+          return `${textContent.substring(0, 50)}...`
+        })(),
       })),
     })
 
@@ -569,7 +607,16 @@ export function useChatCore({
     console.log("🔍 Raw messages changed:", {
       count: messages?.length || 0,
       status,
-      lastMessage: messages?.[messages.length - 1]?.content || "none",
+      lastMessage: (() => {
+        const lastMsg = messages?.[messages.length - 1]
+        if (!lastMsg) return "none"
+        const textContent =
+          lastMsg.parts
+            ?.filter((p: any) => p.type === "text")
+            ?.map((p: any) => p.text)
+            ?.join("") || ""
+        return textContent.substring(0, 50) + "..."
+      })(),
     })
   }, [messages, status])
 
@@ -581,10 +628,14 @@ export function useChatCore({
         initialMessages?.map((m) => ({
           id: m.id,
           role: m.role,
-          content:
-            typeof m.content === "string"
-              ? `${m.content.substring(0, 30)}...`
-              : m.content,
+          content: (() => {
+            const textContent =
+              m.parts
+                ?.filter((p: any) => p.type === "text")
+                ?.map((p: any) => p.text)
+                ?.join("") || ""
+            return `${textContent.substring(0, 30)}...`
+          })(),
         })) || [],
     })
   }, [initialMessages])
@@ -758,7 +809,7 @@ export function useChatCore({
       hasSentFirstMessageRef.current = true // Mark that we've sent a message
 
       // Start streaming first
-      handleSubmit(undefined, options)
+      handleSubmit(undefined)
       console.log("🔍 handleSubmit call completed")
 
       // Update URL without reload (if we're not already there)
@@ -854,13 +905,11 @@ export function useChatCore({
           },
         }
 
-        append(
-          {
-            role: "user",
-            content: suggestion,
-          },
-          options
-        )
+        append({
+          id: generateId(),
+          role: "user",
+          parts: [{ type: "text", text: suggestion }],
+        })
       } catch {
         toast({ title: "Failed to send suggestion", status: "error" })
       } finally {
@@ -898,7 +947,7 @@ export function useChatCore({
       },
     }
 
-    reload(options)
+    reload()
   }, [
     user,
     chatId,

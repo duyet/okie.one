@@ -1,4 +1,4 @@
-import type { Message as MessageAISDK } from "ai"
+import type { UIMessage as MessageAISDK } from "ai"
 
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
@@ -30,27 +30,46 @@ export async function getMessagesFromDb(
     return []
   }
 
-  return data.map((message) => ({
-    ...message,
-    id: String(message.id),
-    content: message.content ?? "",
-    createdAt: new Date(message.created_at || ""),
-    parts: (message?.parts as MessageAISDK["parts"]) || undefined,
-    message_group_id: message.message_group_id,
-    model: message.model,
-  }))
+  return data
+    .filter((message) => message.role !== "data") // Filter out "data" role messages
+    .map((message) => ({
+      ...message,
+      id: String(message.id),
+      role: message.role as "system" | "user" | "assistant",
+      parts: (message?.parts as MessageAISDK["parts"]) || [
+        { type: "text", text: message.content ?? "" },
+      ],
+    }))
 }
 
 async function insertMessageToDb(chatId: string, message: MessageAISDK) {
   const supabase = createClient()
   if (!supabase) return
 
+  const textContent =
+    message.parts
+      ?.filter((p) => p.type === "text")
+      ?.map((p) => p.text)
+      ?.join("\n") || ""
+
+  const attachments =
+    message.parts
+      ?.filter((p) => p.type === "file")
+      ?.map((p) => ({
+        name: (p as any).filename || (p as any).name || "file",
+        contentType:
+          (p as any).mediaType ||
+          (p as any).contentType ||
+          "application/octet-stream",
+        url: (p as any).url || "",
+      })) || []
+
   await supabase.from("messages").insert({
     chat_id: chatId,
     role: message.role,
-    content: message.content,
-    experimental_attachments: message.experimental_attachments,
-    created_at: message.createdAt?.toISOString() || new Date().toISOString(),
+    content: textContent,
+    experimental_attachments: attachments.length > 0 ? attachments : undefined,
+    created_at: new Date().toISOString(),
     message_group_id:
       (message as MessageAISDK & { message_group_id?: string })
         .message_group_id || null,
@@ -62,17 +81,38 @@ async function insertMessagesToDb(chatId: string, messages: MessageAISDK[]) {
   const supabase = createClient()
   if (!supabase) return
 
-  const payload = messages.map((message) => ({
-    chat_id: chatId,
-    role: message.role,
-    content: message.content,
-    experimental_attachments: message.experimental_attachments,
-    created_at: message.createdAt?.toISOString() || new Date().toISOString(),
-    message_group_id:
-      (message as MessageAISDK & { message_group_id?: string })
-        .message_group_id || null,
-    model: (message as MessageAISDK & { model?: string }).model || null,
-  }))
+  const payload = messages.map((message) => {
+    const textContent =
+      message.parts
+        ?.filter((p) => p.type === "text")
+        ?.map((p) => p.text)
+        ?.join("\n") || ""
+
+    const attachments =
+      message.parts
+        ?.filter((p) => p.type === "file")
+        ?.map((p) => ({
+          name: (p as any).filename || (p as any).name || "file",
+          contentType:
+            (p as any).mediaType ||
+            (p as any).contentType ||
+            "application/octet-stream",
+          url: (p as any).url || "",
+        })) || []
+
+    return {
+      chat_id: chatId,
+      role: message.role,
+      content: textContent,
+      experimental_attachments:
+        attachments.length > 0 ? attachments : undefined,
+      created_at: new Date().toISOString(),
+      message_group_id:
+        (message as MessageAISDK & { message_group_id?: string })
+          .message_group_id || null,
+      model: (message as MessageAISDK & { model?: string }).model || null,
+    }
+  })
 
   await supabase.from("messages").insert(payload)
 }
@@ -104,7 +144,9 @@ export async function getCachedMessages(
   if (!entry || Array.isArray(entry)) return []
 
   return (entry.messages || []).sort(
-    (a, b) => +new Date(a.createdAt || 0) - +new Date(b.createdAt || 0)
+    (a, b) =>
+      +new Date((a as any).createdAt || 0) -
+      +new Date((b as any).createdAt || 0)
   )
 }
 
