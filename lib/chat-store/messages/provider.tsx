@@ -27,7 +27,7 @@ interface MessagesContextType {
   setHasActiveChatSession: (active: boolean) => void
 }
 
-const MessagesContext = createContext<MessagesContextType | null>(null)
+export const MessagesContext = createContext<MessagesContextType | null>(null)
 
 export function useMessages() {
   const context = useContext(MessagesContext)

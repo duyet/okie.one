@@ -2,23 +2,29 @@
 
 import { SignOut } from "@phosphor-icons/react"
 import { useRouter } from "next/navigation"
+import { useContext } from "react"
 
 import { Button } from "@/components/ui/button"
 import { toast } from "@/components/ui/toast"
 import { useChats } from "@/lib/chat-store/chats/provider"
-import { useMessages } from "@/lib/chat-store/messages/provider"
+import { MessagesContext } from "@/lib/chat-store/messages/provider"
 import { clearAllIndexedDBStores } from "@/lib/chat-store/persist"
 import { useUser } from "@/lib/user-store/provider"
 
 export function AccountManagement() {
   const { signOut } = useUser()
   const { resetChats } = useChats()
-  const { resetMessages } = useMessages()
+  // Check if we're within a MessagesProvider context
+  const messagesContext = useContext(MessagesContext)
+  const { resetMessages } = messagesContext || {}
   const router = useRouter()
 
   const handleSignOut = async () => {
     try {
-      await resetMessages()
+      // Only reset messages if we have access to the context
+      if (resetMessages) {
+        await resetMessages()
+      }
       await resetChats()
       await signOut()
       await clearAllIndexedDBStores()
