@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
-import type { ChatRequestOptions, UIMessage } from "ai"
+import type { ChatRequestOptions } from "ai"
+import type { Message as UIMessage } from "@ai-sdk/ui-utils"
 import { useMemo } from "react"
 
 import { toast } from "@/components/ui/toast"

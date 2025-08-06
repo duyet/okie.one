@@ -847,6 +847,7 @@ describe("Chat API Token Tracking", () => {
         ],
       }
 
+      const onFinishCallback = getOnFinishCallback()
       await onFinishCallback({
         response: complexResponse,
         usage: sampleUsageData,
@@ -876,7 +877,8 @@ describe("Chat API Token Tracking", () => {
         messages: [], // No messages
       }
 
-      await onFinishCallback({
+      const onFinishCallback2 = getOnFinishCallback()
+      await onFinishCallback2({
         response: emptyResponse,
         usage: sampleUsageData,
         finishReason: "stop",

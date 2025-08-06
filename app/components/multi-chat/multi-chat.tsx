@@ -1,6 +1,6 @@
 "use client"
 
-import type { UIMessage as MessageTypeBase } from "@ai-sdk/react"
+import type { Message as UIMessage } from "@ai-sdk/ui-utils"
 
 // Extended message type with model property
 type MessageType = MessageTypeBase & {

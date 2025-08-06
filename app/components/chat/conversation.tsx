@@ -1,4 +1,4 @@
-import type { UIMessage as MessageType } from "@ai-sdk/react"
+import type { Message as MessageType } from "@ai-sdk/ui-utils"
 import { useRef } from "react"
 
 import {

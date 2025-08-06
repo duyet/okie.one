@@ -1,6 +1,6 @@
 "use client"
 
-import type { UIMessage as MessageType } from "@ai-sdk/react"
+import type { Message as UIMessage } from "@ai-sdk/ui-utils"
 import { useEffect, useState } from "react"
 
 import {

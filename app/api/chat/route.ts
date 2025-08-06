@@ -1,10 +1,5 @@
 // Attachment type removed in v5 - using file parts instead
-import {
-  type UIMessage as MessageAISDK,
-  streamText,
-  type ToolSet,
-  convertToModelMessages,
-} from "ai"
+import { streamText, type ToolSet, convertToCoreMessages } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -120,12 +115,20 @@ export async function POST(req: Request) {
     const attachments =
       userMessage?.parts
         ?.filter((part) => (part as { type?: string }).type === "file")
-        ?.map((part) => ({
-          name: part.name || "file",
-          contentType: part.mediaType,
-          url: part.url,
-          content: part.data,
-        })) || []
+        ?.map((part) => {
+          const filePart = part as {
+            name?: string
+            mediaType?: string
+            url?: string
+            data?: string
+          }
+          return {
+            name: filePart.name || "file",
+            contentType: filePart.mediaType,
+            url: filePart.url,
+            content: filePart.data,
+          }
+        }) || []
 
     // Validate file attachments for the selected model
     if (attachments.length > 0) {
@@ -264,7 +267,7 @@ ${mcpServer.getSystemPromptEnhancement()}`
           effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
       }),
       system: enhancedSystemPrompt,
-      messages: convertToModelMessages(messages),
+      messages: convertToCoreMessages(messages),
       tools: apiTools,
       onError: (err: unknown) => {
         apiLogger.error("Streaming error occurred", { error: err })
@@ -357,13 +360,24 @@ ${mcpServer.getSystemPromptEnhancement()}`
                 provider,
                 model,
                 {
-                  inputTokens: usage.inputTokens || 0,
-                  outputTokens: usage.outputTokens || 0,
+                  inputTokens:
+                    (usage as any).promptTokens ||
+                    (usage as any).inputTokens ||
+                    0,
+                  outputTokens:
+                    (usage as any).completionTokens ||
+                    (usage as any).outputTokens ||
+                    0,
                   cachedTokens:
                     (usage as { cachedTokens?: number }).cachedTokens || 0, // Some providers return cached tokens
                   totalTokens:
                     usage.totalTokens ||
-                    (usage.inputTokens || 0) + (usage.outputTokens || 0),
+                    ((usage as any).promptTokens ||
+                      (usage as any).inputTokens ||
+                      0) +
+                      ((usage as any).completionTokens ||
+                        (usage as any).outputTokens ||
+                        0),
                   durationMs: requestDuration,
                   timeToFirstTokenMs: timeToFirstChunk, // Using first chunk as proxy for first token
                   timeToFirstChunkMs: timeToFirstChunk,
@@ -374,8 +388,10 @@ ${mcpServer.getSystemPromptEnhancement()}`
               apiLogger.tokenUsage(
                 model,
                 provider,
-                usage.inputTokens || 0,
-                usage.outputTokens || 0,
+                (usage as any).promptTokens || (usage as any).inputTokens || 0,
+                (usage as any).completionTokens ||
+                  (usage as any).outputTokens ||
+                  0,
                 {
                   cachedTokens: (usage as { cachedTokens?: number })
                     .cachedTokens,
@@ -395,7 +411,7 @@ ${mcpServer.getSystemPromptEnhancement()}`
       },
     })
 
-    return result.toUIMessageStreamResponse({
+    return (result as any).toDataStreamResponse?.({
       sendReasoning: true,
       sendSources: true,
     })

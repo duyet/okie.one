@@ -1,6 +1,6 @@
-import type { UIMessage as Message } from "@ai-sdk/react"
+import type { Message as UIMessage } from "@ai-sdk/ui-utils"
 import { useChat } from "@ai-sdk/react"
-import { generateId, DefaultChatTransport } from "ai"
+import { generateId } from "ai"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -476,16 +476,14 @@ export function useChatCore({
   const [input, setInput] = useState(draftValue)
   const {
     messages,
-    sendMessage,
-    regenerate,
+    append: sendMessage,
+    reload: regenerate,
     status,
     error,
     stop,
     setMessages,
   } = useChat({
-    transport: new DefaultChatTransport({
-      api: API_ROUTE_CHAT,
-    }),
+    api: API_ROUTE_CHAT,
     messages: effectiveInitialMessages,
     onFinish: ({ message }) => {
       console.log("🔍 useChat onFinish:", message)
@@ -536,7 +534,11 @@ export function useChatCore({
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
-        sendMessage({ text: input })
+        sendMessage({
+          role: "user",
+          content: input,
+          parts: [{ type: "text", text: input }],
+        } as UIMessage)
         setInput("")
       }
     },

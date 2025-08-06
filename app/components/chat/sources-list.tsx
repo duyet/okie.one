@@ -1,6 +1,12 @@
 "use client"
 
-import type { SourceUrlUIPart } from "ai"
+// SourceUrlUIPart doesn't exist in v5, using a custom type
+type SourceUrlUIPart = {
+  type: "source"
+  title?: string
+  url: string
+  description?: string
+}
 import { CaretDown, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion, type Transition } from "motion/react"
 import Image from "next/image"
