@@ -9,7 +9,8 @@ import type { Message as UIUtilsMessage } from "@ai-sdk/ui-utils"
 export type UIMessage = UIUtilsMessage
 
 // Extended Message type with content field for backward compatibility
-export type Message = UIUtilsMessage & {
+export type Message = Omit<UIUtilsMessage, "role"> & {
+  role: "system" | "user" | "assistant" | "data"
   content?: string
   model?: string
   message_group_id?: string

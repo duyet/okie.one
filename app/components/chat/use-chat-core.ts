@@ -441,7 +441,7 @@ export function useChatCore({
               (p) => (p as { type?: string }).type === "text"
             ).length,
             hasMarkers: updatedMessage.parts
-              .filter((p) => (p as { type?: string }).type === "text")
+              ?.filter((p) => (p as { type?: string }).type === "text")
               .some(
                 (p) =>
                   (p as { text?: string }).text?.includes(
@@ -488,7 +488,15 @@ export function useChatCore({
     onFinish: ({ message }) => {
       console.log("🔍 useChat onFinish:", message)
       // Message already processed by streaming, just cache it
-      cacheAndAddMessage(message)
+      const messageWithContent: Message = {
+        ...message,
+        content:
+          message.parts
+            ?.filter((p) => p.type === "text")
+            ?.map((p) => (p as any).text)
+            ?.join("") || "",
+      }
+      cacheAndAddMessage(messageWithContent)
     },
     onError: handleError,
     // Add tool invocation callbacks for streaming
@@ -569,8 +577,18 @@ export function useChatCore({
 
     if (!messages?.length) return []
     const processed = messages.map((message) => {
+      // Convert UIMessage to Message with content field
+      const messageWithContent: Message = {
+        ...message,
+        content:
+          message.parts
+            ?.filter((p) => p.type === "text")
+            ?.map((p) => (p as any).text)
+            ?.join("") || "",
+      }
       // Apply both processing functions in sequence
-      const withToolInvocations = processStreamingToolInvocations(message)
+      const withToolInvocations =
+        processStreamingToolInvocations(messageWithContent)
       const withArtifacts = processStreamingArtifacts(withToolInvocations)
       return withArtifacts
     })

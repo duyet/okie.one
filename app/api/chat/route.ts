@@ -125,9 +125,9 @@ export async function POST(req: Request) {
           }
           return {
             name: filePart.name || "file",
-            contentType: filePart.mediaType,
-            url: filePart.url,
-            content: filePart.data,
+            contentType: filePart.mediaType || "application/octet-stream",
+            url: filePart.url || "",
+            content: filePart.data || "",
           }
         }) || []
 
@@ -268,7 +268,9 @@ ${mcpServer.getSystemPromptEnhancement()}`
           effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
       }),
       system: enhancedSystemPrompt,
-      messages: convertToCoreMessages(messages),
+      messages: convertToCoreMessages(
+        messages.filter((m) => m.role !== "data") as UIMessage[]
+      ),
       tools: apiTools,
       onError: (err: unknown) => {
         apiLogger.error("Streaming error occurred", { error: err })
