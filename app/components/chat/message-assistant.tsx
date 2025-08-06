@@ -340,13 +340,11 @@ export function MessageAssistant({
               "addReasoningStep"
           ).length > 0 && (
             <ToolInvocation
-              toolInvocations={
-                toolInvocationParts.filter(
-                  (part) =>
-                    (part.toolInvocation as ToolInvocationData)?.toolName !==
-                    "addReasoningStep"
-                )
-              }
+              toolInvocations={toolInvocationParts.filter(
+                (part) =>
+                  (part.toolInvocation as ToolInvocationData)?.toolName !==
+                  "addReasoningStep"
+              )}
             />
           )}
 
@@ -425,7 +423,7 @@ export function MessageAssistant({
         )}
       </div>
     </Message>
-  );
+  )
 }
 
 /**

@@ -327,8 +327,8 @@ export function useChatCore({
 
       // Extract text content from parts for v5 message structure
       const textContent = (message.parts || [])
-        .filter((part: any) => part.type === "text")
-        .map((part: any) => part.text)
+        .filter((part) => (part as { type?: string }).type === "text")
+        .map((part) => (part as { text?: string }).text)
         .join("")
 
       const updatedTextContent = replaceCodeBlocksWithArtifacts(
@@ -339,7 +339,7 @@ export function useChatCore({
       // Create updated text parts
       const updatedTextParts = [{ type: "text", text: updatedTextContent }]
       const nonTextParts = (message.parts || []).filter(
-        (part: any) =>
+        (part) =>
           part.type !== "text" && (part as MessagePart).type !== "artifact"
       )
 
@@ -437,11 +437,17 @@ export function useChatCore({
           console.log("🔧 processStreamingArtifacts result:", {
             messageId: message.id,
             originalLength: textContent.length,
-            textPartsCount: message.parts.filter((p: any) => p.type === "text")
-              .length,
+            textPartsCount: message.parts.filter(
+              (p) => (p as { type?: string }).type === "text"
+            ).length,
             hasMarkers: updatedMessage.parts
-              .filter((p: any) => p.type === "text")
-              .some((p: any) => p.text.includes("[ARTIFACT_PREVIEW:")),
+              .filter((p) => (p as { type?: string }).type === "text")
+              .some(
+                (p) =>
+                  (p as { text?: string }).text?.includes(
+                    "[ARTIFACT_PREVIEW:"
+                  ) || false
+              ),
             artifactCount: artifactParts.length,
             cacheKey,
           })
@@ -476,7 +482,6 @@ export function useChatCore({
     error,
     stop,
     setMessages,
-    addToolResult,
   } = useChat({
     transport: new DefaultChatTransport({
       api: API_ROUTE_CHAT,
@@ -561,8 +566,8 @@ export function useChatCore({
           content: (() => {
             const textContent =
               m.parts
-                ?.filter((p: any) => p.type === "text")
-                ?.map((p: any) => p.text)
+                ?.filter((p) => (p as { type?: string }).type === "text")
+                ?.map((p) => (p as { text?: string }).text)
                 ?.join("") || ""
             return `${textContent.substring(0, 50)}...`
           })(),
@@ -631,8 +636,8 @@ export function useChatCore({
           content: (() => {
             const textContent =
               m.parts
-                ?.filter((p: any) => p.type === "text")
-                ?.map((p: any) => p.text)
+                ?.filter((p) => (p as { type?: string }).type === "text")
+                ?.map((p) => (p as { text?: string }).text)
                 ?.join("") || ""
             return `${textContent.substring(0, 30)}...`
           })(),
@@ -895,16 +900,7 @@ export function useChatCore({
           return
         }
 
-        const options = {
-          body: {
-            chatId: currentChatId,
-            userId: uid,
-            model: selectedModel,
-            isAuthenticated,
-            systemPrompt: SYSTEM_PROMPT_DEFAULT,
-          },
-        }
-
+        // Options are now handled internally by the transport
         append({
           id: generateId(),
           role: "user",
@@ -933,20 +929,7 @@ export function useChatCore({
       return
     }
 
-    const options = {
-      body: {
-        chatId,
-        userId: uid,
-        model: selectedModel,
-        isAuthenticated,
-        systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
-        tools: getToolsConfig(),
-        // Legacy support for backward compatibility
-        enableThink: thinkingMode === "regular",
-        thinkingMode,
-      },
-    }
-
+    // Options are now handled internally by the transport
     reload()
   }, [
     user,

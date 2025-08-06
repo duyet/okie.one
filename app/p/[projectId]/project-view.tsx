@@ -106,21 +106,15 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   }, [])
 
   const [input, setInput] = useState("")
-  
-  const {
-    messages,
-    sendMessage,
-    regenerate,
-    status,
-    stop,
-    setMessages,
-  } = useChat({
-    id: `project-${projectId}-${currentChatId}`,
-    transport: new DefaultChatTransport({ api: API_ROUTE_CHAT }),
-    messages: [],
-    onFinish: ({ message }) => cacheAndAddMessage(message),
-    onError: handleError,
-  })
+
+  const { messages, sendMessage, regenerate, status, stop, setMessages } =
+    useChat({
+      id: `project-${projectId}-${currentChatId}`,
+      transport: new DefaultChatTransport({ api: API_ROUTE_CHAT }),
+      messages: [],
+      onFinish: ({ message }) => cacheAndAddMessage(message),
+      onError: handleError,
+    })
 
   // Create v4 compatibility functions
   const handleSubmit = useCallback(
@@ -301,15 +295,15 @@ export function ProjectView({ projectId }: ProjectViewProps) {
 
       const body = options?.body || {}
       const messageAttachments = options?.experimental_attachments
-      
+
       // Send message with text and attachments
       if (messageAttachments && messageAttachments.length > 0) {
         const parts = [
-          { type: 'text' as const, text: input },
+          { type: "text" as const, text: input },
           ...messageAttachments.map((att) => ({
-            type: 'file' as const,
+            type: "file" as const,
             filename: att.name,
-            mediaType: att.contentType || 'application/octet-stream',
+            mediaType: att.contentType || "application/octet-stream",
             url: att.url,
           })),
         ]

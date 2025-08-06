@@ -31,7 +31,9 @@ const getOllamaBaseURL = (): string => {
   }
 
   // Server-side: check environment variables
-  return (process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") || "http://localhost:11434");
+  return (
+    process.env.OLLAMA_BASE_URL?.replace(/\/+$/, "") || "http://localhost:11434"
+  )
 }
 
 // Simple check: disabled in production or if DISABLE_OLLAMA=true
@@ -106,8 +108,8 @@ async function detectOllamaModels(): Promise<ModelConfig[]> {
         modelPage: `https://ollama.com/library/${modelName.split(":")[0]}`,
         apiSdk: (apiKey?: string) =>
           openproviders(modelName as string, undefined, apiKey),
-      };
-    });
+      }
+    })
   } catch (error) {
     console.warn("Failed to detect Ollama models:", error)
     return []

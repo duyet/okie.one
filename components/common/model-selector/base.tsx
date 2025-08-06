@@ -197,7 +197,7 @@ export function ModelSelector({
           </div>
         )}
       </button>
-    );
+    )
   }
 
   // Get the hovered model data
@@ -507,7 +507,7 @@ export function ModelSelector({
                         </div>
                       )}
                     </DropdownMenuItem>
-                  );
+                  )
                 })
               ) : (
                 <div className="flex h-full flex-col items-center justify-center p-6 text-center">
@@ -553,5 +553,5 @@ export function ModelSelector({
         </DropdownMenu>
       </Tooltip>
     </div>
-  );
+  )
 }

@@ -66,11 +66,11 @@ function ResponseCard({ response, group }: ResponseCardProps) {
             parts={response.message.parts}
             attachments={
               response.message.parts
-                ?.filter((p: any) => p.type === 'file')
+                ?.filter((p: any) => p.type === "file")
                 ?.map((p: any) => ({
                   name: p.name,
                   contentType: p.mediaType,
-                  url: p.url || p.data || '',
+                  url: p.url || p.data || "",
                 })) || []
             }
             onDelete={() => group.onDelete(response.model, response.message.id)}
@@ -82,9 +82,9 @@ function ResponseCard({ response, group }: ResponseCardProps) {
             className="bg-transparent p-0 px-0"
           >
             {response.message.parts
-              ?.filter((p: any) => p.type === 'text')
+              ?.filter((p: any) => p.type === "text")
               ?.map((p: any) => p.text)
-              ?.join('') || ''}
+              ?.join("") || ""}
           </Message>
         ) : response.isLoading ? (
           <div className="space-y-2">
@@ -151,11 +151,11 @@ export function MultiModelConversation({
                         parts={group.userMessage.parts}
                         attachments={
                           group.userMessage.parts
-                            ?.filter((p: any) => p.type === 'file')
+                            ?.filter((p: any) => p.type === "file")
                             ?.map((p: any) => ({
                               name: p.name,
                               contentType: p.mediaType,
-                              url: p.url || p.data || '',
+                              url: p.url || p.data || "",
                             })) || []
                         }
                         onDelete={() => {}}
@@ -164,9 +164,9 @@ export function MultiModelConversation({
                         status="ready"
                       >
                         {group.userMessage.parts
-                          ?.filter((p: any) => p.type === 'text')
+                          ?.filter((p: any) => p.type === "text")
                           ?.map((p: any) => p.text)
-                          ?.join('') || ''}
+                          ?.join("") || ""}
                       </Message>
                     </div>
 

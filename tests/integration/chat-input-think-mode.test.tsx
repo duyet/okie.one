@@ -17,7 +17,7 @@ vi.mock("@/lib/models", () => ({
         webSearch: false,
         vision: true,
         tools: true,
-      };
+      }
     }
     if (modelId === "gpt-4o") {
       return {
@@ -28,7 +28,7 @@ vi.mock("@/lib/models", () => ({
         webSearch: true,
         vision: true,
         tools: false, // Change to false so it doesn't show think button
-      };
+      }
     }
     if (modelId === "deepseek-reasoner") {
       return {
@@ -39,7 +39,7 @@ vi.mock("@/lib/models", () => ({
         webSearch: false,
         vision: false,
         tools: true, // Change to true so it shows think button
-      };
+      }
     }
     return null
   }),

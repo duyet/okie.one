@@ -172,7 +172,8 @@ function SingleToolView({
         (item: ToolInvocationUIPart) => item.toolInvocation.state === "call"
       )
       const partialCallTool = group.find(
-        (item: ToolInvocationUIPart) => item.toolInvocation.state === "partial-call"
+        (item: ToolInvocationUIPart) =>
+          item.toolInvocation.state === "partial-call"
       )
 
       // Return the most informative one

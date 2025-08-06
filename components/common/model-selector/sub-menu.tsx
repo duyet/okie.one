@@ -133,5 +133,5 @@ export function SubMenu({ hoveredModelData }: SubMenuProps) {
         </div>
       </div>
     </div>
-  );
+  )
 }

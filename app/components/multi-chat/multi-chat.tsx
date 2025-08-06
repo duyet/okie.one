@@ -120,10 +120,11 @@ export function MultiChat() {
       const message = persistedMessages[i]
 
       if (message.role === "user") {
-        const groupKey = message.parts
-          ?.filter((p: any) => p.type === 'text')
-          ?.map((p: any) => p.text)
-          ?.join('') || ''
+        const groupKey =
+          message.parts
+            ?.filter((p: any) => p.type === "text")
+            ?.map((p: any) => p.text)
+            ?.join("") || ""
         if (!groups[groupKey]) {
           groups[groupKey] = {
             userMessage: message,
@@ -140,10 +141,11 @@ export function MultiChat() {
         }
 
         if (associatedUserMessage) {
-          const groupKey = associatedUserMessage.parts
-            ?.filter((p: any) => p.type === 'text')
-            ?.map((p: any) => p.text)
-            ?.join('') || ''
+          const groupKey =
+            associatedUserMessage.parts
+              ?.filter((p: any) => p.type === "text")
+              ?.map((p: any) => p.text)
+              ?.join("") || ""
           if (!groups[groupKey]) {
             groups[groupKey] = {
               userMessage: associatedUserMessage,
@@ -194,10 +196,11 @@ export function MultiChat() {
         const assistantMsg = chat.messages[i + 1]
 
         if (userMsg?.role === "user") {
-          const groupKey = userMsg.parts
-            ?.filter((p: any) => p.type === 'text')
-            ?.map((p: any) => p.text)
-            ?.join('') || ''
+          const groupKey =
+            userMsg.parts
+              ?.filter((p: any) => p.type === "text")
+              ?.map((p: any) => p.text)
+              ?.join("") || ""
 
           if (!liveGroups[groupKey]) {
             liveGroups[groupKey] = {
@@ -225,9 +228,9 @@ export function MultiChat() {
           } else if (
             chat.isLoading &&
             (userMsg.parts
-              ?.filter((p: any) => p.type === 'text')
+              ?.filter((p: any) => p.type === "text")
               ?.map((p: any) => p.text)
-              ?.join('') || '') === prompt &&
+              ?.join("") || "") === prompt &&
             selectedModelIds.includes(chat.model.id)
           ) {
             const placeholderMessage: MessageType = {
@@ -303,7 +306,10 @@ export function MultiChat() {
             },
           }
 
-          chat.append({ role: "user", parts: [{ type: "text", text: prompt }] } as any, options)
+          chat.append(
+            { role: "user", parts: [{ type: "text", text: prompt }] } as any,
+            options
+          )
         })
       )
 

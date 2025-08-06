@@ -61,7 +61,7 @@ export function Conversation({
                   ?.filter((p) => (p as { type?: string }).type === 'text')
                   ?.map((p) => (p as { text?: string }).text)
                   ?.join(' ')
-                  ?.substring(0, 200)}...` || '',',
+                  ?.substring(0, 200)}...` || '',
                 parts: message.parts,
                 toolInvocations: (
                   message as MessageType & {

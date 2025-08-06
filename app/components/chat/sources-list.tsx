@@ -1,6 +1,6 @@
 "use client"
 
-import type { SourceUrlUIPart } from 'ai'
+import type { SourceUrlUIPart } from "ai"
 import { CaretDown, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion, type Transition } from "motion/react"
 import Image from "next/image"
@@ -93,7 +93,10 @@ export function SourcesList({ sources, className }: SourcesListProps) {
                     !faviconUrl || failedFavicons.has(source.url)
 
                   return (
-                    <li key={`${source.url}-${index}`} className="flex items-center text-sm">
+                    <li
+                      key={`${source.url}-${index}`}
+                      className="flex items-center text-sm"
+                    >
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <a
                           href={addUTM(source.url)}
