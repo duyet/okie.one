@@ -1,5 +1,6 @@
-import type { Attachment } from "@ai-sdk/ui-utils"
-import { type Message as MessageAISDK, streamText, type ToolSet } from "ai"
+// Attachment type removed in v5 - using file parts instead
+import { streamText, type ToolSet, convertToCoreMessages } from "ai"
+import type { UIMessage as MessageAISDK, UIMessage } from "@/lib/ai-sdk-types"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -20,7 +21,7 @@ import {
   storeAssistantMessage,
   validateAndTrackUsage,
 } from "./api"
-import { createErrorResponse, extractErrorMessage } from "./utils"
+import { createErrorResponse } from "./utils"
 
 export const maxDuration = 60
 
@@ -113,7 +114,22 @@ export async function POST(req: Request) {
 
     const userMessage = messages[messages.length - 1]
     const attachments =
-      (userMessage?.experimental_attachments as Attachment[]) || []
+      userMessage?.parts
+        ?.filter((part) => (part as { type?: string }).type === "file")
+        ?.map((part) => {
+          const filePart = part as {
+            name?: string
+            mediaType?: string
+            url?: string
+            data?: string
+          }
+          return {
+            name: filePart.name || "file",
+            contentType: filePart.mediaType || "application/octet-stream",
+            url: filePart.url || "",
+            content: filePart.data || "",
+          }
+        }) || []
 
     // Validate file attachments for the selected model
     if (attachments.length > 0) {
@@ -149,7 +165,11 @@ export async function POST(req: Request) {
         supabase,
         userId,
         chatId,
-        content: userMessage.content,
+        content:
+          userMessage.parts
+            ?.filter((part) => (part as { type?: string }).type === "text")
+            ?.map((part) => (part as { text?: string }).text)
+            ?.join("\n") || "",
         attachments: attachments,
         model,
         isAuthenticated,
@@ -182,7 +202,7 @@ export async function POST(req: Request) {
       webSearch: false,
       mcpSequentialThinking: false,
     }
-    let sequentialThinkingServer: {
+    let _sequentialThinkingServer: {
       getTools: () => ToolSet
       getMaxSteps: () => number
     } | null = null
@@ -204,7 +224,7 @@ export async function POST(req: Request) {
             if (mcpServer) {
               if (serverName === "server-sequential-thinking") {
                 enabledCapabilities.mcpSequentialThinking = true
-                sequentialThinkingServer = mcpServer
+                _sequentialThinkingServer = mcpServer
                 apiLogger.info(
                   "MCP Sequential thinking enabled, adding tools from server"
                 )
@@ -248,11 +268,10 @@ ${mcpServer.getSystemPromptEnhancement()}`
           effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
       }),
       system: enhancedSystemPrompt,
-      messages: messages,
+      messages: convertToCoreMessages(
+        messages.filter((m) => m.role !== "data") as UIMessage[]
+      ),
       tools: apiTools,
-      maxSteps: sequentialThinkingServer
-        ? sequentialThinkingServer.getMaxSteps()
-        : 10,
       onError: (err: unknown) => {
         apiLogger.error("Streaming error occurred", { error: err })
 
@@ -344,13 +363,24 @@ ${mcpServer.getSystemPromptEnhancement()}`
                 provider,
                 model,
                 {
-                  inputTokens: usage.promptTokens || 0,
-                  outputTokens: usage.completionTokens || 0,
+                  inputTokens:
+                    (usage as any).promptTokens ||
+                    (usage as any).inputTokens ||
+                    0,
+                  outputTokens:
+                    (usage as any).completionTokens ||
+                    (usage as any).outputTokens ||
+                    0,
                   cachedTokens:
                     (usage as { cachedTokens?: number }).cachedTokens || 0, // Some providers return cached tokens
                   totalTokens:
                     usage.totalTokens ||
-                    (usage.promptTokens || 0) + (usage.completionTokens || 0),
+                    ((usage as any).promptTokens ||
+                      (usage as any).inputTokens ||
+                      0) +
+                      ((usage as any).completionTokens ||
+                        (usage as any).outputTokens ||
+                        0),
                   durationMs: requestDuration,
                   timeToFirstTokenMs: timeToFirstChunk, // Using first chunk as proxy for first token
                   timeToFirstChunkMs: timeToFirstChunk,
@@ -361,8 +391,10 @@ ${mcpServer.getSystemPromptEnhancement()}`
               apiLogger.tokenUsage(
                 model,
                 provider,
-                usage.promptTokens,
-                usage.completionTokens,
+                (usage as any).promptTokens || (usage as any).inputTokens || 0,
+                (usage as any).completionTokens ||
+                  (usage as any).outputTokens ||
+                  0,
                 {
                   cachedTokens: (usage as { cachedTokens?: number })
                     .cachedTokens,
@@ -382,13 +414,9 @@ ${mcpServer.getSystemPromptEnhancement()}`
       },
     })
 
-    return result.toDataStreamResponse({
+    return (result as any).toDataStreamResponse?.({
       sendReasoning: true,
       sendSources: true,
-      getErrorMessage: (error: unknown) => {
-        apiLogger.error("Error forwarded to client", { error })
-        return extractErrorMessage(error)
-      },
     })
   } catch (err: unknown) {
     apiLogger.error("Error in /api/chat", { error: err })

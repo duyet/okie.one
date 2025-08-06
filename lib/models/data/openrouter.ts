@@ -1,4 +1,5 @@
 import { createOpenRouter } from "@openrouter/ai-sdk-provider"
+import type { LanguageModel } from "ai"
 
 import type { ModelConfig } from "../types"
 
@@ -20,7 +21,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: false,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: false,
     openSource: false,
     speed: "Medium",
@@ -33,7 +34,7 @@ export const openrouterModels: ModelConfig[] = [
     apiSdk: (apiKey?: string) =>
       createOpenRouter({
         apiKey: apiKey || process.env.OPENROUTER_API_KEY,
-      }).chat("deepseek/deepseek-r1:free"),
+      }).chat("deepseek/deepseek-r1:free") as unknown as LanguageModel,
   },
   {
     id: "openrouter:anthropic/claude-sonnet-4",
@@ -52,7 +53,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Medium",
@@ -70,7 +71,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("anthropic/claude-sonnet-4"),
+      }).chat("anthropic/claude-sonnet-4") as unknown as LanguageModel,
   },
   {
     id: "openrouter:anthropic/claude-3.7-sonnet:thinking",
@@ -89,7 +90,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Medium",
@@ -107,7 +108,9 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("anthropic/claude-3.7-sonnet:thinking"),
+      }).chat(
+        "anthropic/claude-3.7-sonnet:thinking"
+      ) as unknown as LanguageModel,
   },
   {
     id: "openrouter:google/gemini-2.5-pro-preview",
@@ -126,7 +129,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: true,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -144,7 +147,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("google/gemini-2.5-pro-preview"),
+      }).chat("google/gemini-2.5-pro-preview") as unknown as LanguageModel,
   },
   {
     id: "openrouter:openai/gpt-4.1",
@@ -163,7 +166,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -181,7 +184,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("openai/gpt-4.1"),
+      }).chat("openai/gpt-4.1") as unknown as LanguageModel,
   },
   {
     id: "openrouter:openai/o4-mini",
@@ -200,7 +203,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -218,7 +221,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("openai/o4-mini"),
+      }).chat("openai/o4-mini") as unknown as LanguageModel,
   },
   {
     id: "openrouter:x-ai/grok-3-mini-beta",
@@ -237,7 +240,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -255,7 +258,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("x-ai/grok-3-mini-beta"),
+      }).chat("x-ai/grok-3-mini-beta") as unknown as LanguageModel,
   },
   {
     id: "openrouter:google/gemini-2.5-flash-preview-05-20",
@@ -274,7 +277,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -292,7 +295,9 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("google/gemini-2.5-flash-preview-05-20"),
+      }).chat(
+        "google/gemini-2.5-flash-preview-05-20"
+      ) as unknown as LanguageModel,
   },
   {
     id: "openrouter:meta-llama/llama-3.3-8b-instruct:free",
@@ -311,7 +316,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -329,7 +334,9 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("meta-llama/llama-3.3-8b-instruct:free"),
+      }).chat(
+        "meta-llama/llama-3.3-8b-instruct:free"
+      ) as unknown as LanguageModel,
   },
   {
     id: "openrouter:openai/gpt-4.1-mini",
@@ -348,7 +355,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -366,7 +373,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("openai/gpt-4.1-mini"),
+      }).chat("openai/gpt-4.1-mini") as unknown as LanguageModel,
   },
   {
     id: "openrouter:openai/gpt-4.1-nano",
@@ -385,7 +392,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -403,7 +410,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("openai/gpt-4.1-nano"),
+      }).chat("openai/gpt-4.1-nano") as unknown as LanguageModel,
   },
   {
     id: "openrouter:openai/o3-mini",
@@ -422,7 +429,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -438,7 +445,7 @@ export const openrouterModels: ModelConfig[] = [
         ...(opts?.enableSearch && {
           plugins: [{ id: "web", max_results: 3 }],
         }),
-      }).chat("openai/o3-mini"),
+      }).chat("openai/o3-mini") as unknown as LanguageModel,
   },
   {
     id: "openrouter:anthropic/claude-3.5-sonnet",
@@ -457,7 +464,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Medium",
@@ -473,7 +480,7 @@ export const openrouterModels: ModelConfig[] = [
         ...(opts?.enableSearch && {
           plugins: [{ id: "web", max_results: 3 }],
         }),
-      }).chat("anthropic/claude-3.5-sonnet"),
+      }).chat("anthropic/claude-3.5-sonnet") as unknown as LanguageModel,
   },
   {
     id: "openrouter:google/gemini-2.0-flash-001",
@@ -492,7 +499,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: true,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -508,7 +515,7 @@ export const openrouterModels: ModelConfig[] = [
         ...(opts?.enableSearch && {
           plugins: [{ id: "web", max_results: 3 }],
         }),
-      }).chat("google/gemini-2.0-flash-001"),
+      }).chat("google/gemini-2.0-flash-001") as unknown as LanguageModel,
   },
   {
     id: "openrouter:google/gemini-2.0-flash-lite-001",
@@ -527,7 +534,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -543,7 +550,7 @@ export const openrouterModels: ModelConfig[] = [
         ...(opts?.enableSearch && {
           plugins: [{ id: "web", max_results: 3 }],
         }),
-      }).chat("google/gemini-2.0-flash-lite-001"),
+      }).chat("google/gemini-2.0-flash-lite-001") as unknown as LanguageModel,
   },
   {
     id: "openrouter:openai/gpt-4.5-preview",
@@ -562,7 +569,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: true,
     tools: true,
     audio: true,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Medium",
@@ -578,7 +585,7 @@ export const openrouterModels: ModelConfig[] = [
         ...(opts?.enableSearch && {
           plugins: [{ id: "web", max_results: 3 }],
         }),
-      }).chat("openai/gpt-4.5-preview"),
+      }).chat("openai/gpt-4.5-preview") as unknown as LanguageModel,
   },
   {
     id: "openrouter:perplexity/sonar",
@@ -597,7 +604,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: false,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -613,7 +620,7 @@ export const openrouterModels: ModelConfig[] = [
         ...(opts?.enableSearch && {
           plugins: [{ id: "web", max_results: 3 }],
         }),
-      }).chat("perplexity/sonar"),
+      }).chat("perplexity/sonar") as unknown as LanguageModel,
   },
   {
     id: "openrouter:perplexity/sonar-reasoning",
@@ -632,7 +639,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: false,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Medium",
@@ -650,7 +657,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("perplexity/sonar-reasoning"),
+      }).chat("perplexity/sonar-reasoning") as unknown as LanguageModel,
   },
   {
     id: "openrouter:perplexity/sonar-reasoning-pro",
@@ -669,7 +676,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: false,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Medium",
@@ -687,7 +694,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("perplexity/sonar-reasoning-pro"),
+      }).chat("perplexity/sonar-reasoning-pro") as unknown as LanguageModel,
   },
   {
     id: "openrouter:perplexity/sonar-pro",
@@ -706,7 +713,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: false,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Fast",
@@ -724,7 +731,7 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("perplexity/sonar-pro"),
+      }).chat("perplexity/sonar-pro") as unknown as LanguageModel,
   },
   {
     id: "openrouter:perplexity/sonar-deep-research",
@@ -743,7 +750,7 @@ export const openrouterModels: ModelConfig[] = [
     vision: false,
     tools: false,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     webSearch: true,
     openSource: false,
     speed: "Medium",
@@ -761,6 +768,6 @@ export const openrouterModels: ModelConfig[] = [
             plugins: [{ id: "web", max_results: 3 }],
           },
         }),
-      }).chat("perplexity/sonar-deep-research"),
+      }).chat("perplexity/sonar-deep-research") as unknown as LanguageModel,
   },
 ]

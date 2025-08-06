@@ -1,6 +1,6 @@
 "use client"
 
-import type { Message as MessageAISDK } from "ai"
+import type { UIMessage as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
 
 import { toast } from "@/components/ui/toast"

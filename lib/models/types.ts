@@ -1,4 +1,4 @@
-import type { LanguageModelV1 } from "ai"
+import type { LanguageModel } from "ai"
 
 type ModelConfig = {
   id: string // "gpt-4.1-nano" // same from AI SDKs
@@ -19,7 +19,7 @@ type ModelConfig = {
   vision?: boolean
   tools?: boolean
   audio?: boolean
-  reasoning?: boolean
+  reasoningText?: boolean
   sequentialThinking?: boolean
   webSearch?: boolean
   openSource?: boolean
@@ -38,7 +38,7 @@ type ModelConfig = {
   apiSdk?: (
     apiKey?: string,
     opts?: { enableSearch?: boolean; enableThink?: boolean }
-  ) => LanguageModelV1
+  ) => LanguageModel
 
   accessible?: boolean // true if the model is accessible to the user
 

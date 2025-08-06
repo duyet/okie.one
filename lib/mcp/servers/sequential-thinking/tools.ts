@@ -17,6 +17,39 @@ import type {
  */
 export const sequentialThinkingTool = {
   name: "sequentialthinking",
+  parameters: z.object({
+    thought: z.string().describe("Your current thinking step"),
+    nextThoughtNeeded: z
+      .boolean()
+      .describe("Whether another thought step is needed"),
+    thoughtNumber: z.number().int().min(1).describe("Current thought number"),
+    totalThoughts: z
+      .number()
+      .int()
+      .min(1)
+      .describe("Estimated total thoughts needed"),
+    isRevision: z
+      .boolean()
+      .default(false)
+      .describe("Whether this revises previous thinking"),
+    revisesThought: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe("Which thought is being reconsidered"),
+    branchFromThought: z
+      .number()
+      .int()
+      .min(1)
+      .optional()
+      .describe("Branching point thought number"),
+    branchId: z.string().optional().describe("Branch identifier"),
+    needsMoreThoughts: z
+      .boolean()
+      .default(false)
+      .describe("If more thoughts are needed"),
+  }),
   description: `A detailed tool for dynamic and reflective problem-solving through thoughts.
 This tool helps analyze problems through a flexible thinking process that can adapt and evolve.
 Each thought can build on, question, or revise previous insights as understanding deepens.
@@ -71,39 +104,6 @@ You should:
 9. Repeat the process until satisfied with the solution
 10. Provide a single, ideally correct answer as the final output
 11. Only set next_thought_needed to false when truly done and a satisfactory answer is reached`,
-  parameters: z.object({
-    thought: z.string().describe("Your current thinking step"),
-    nextThoughtNeeded: z
-      .boolean()
-      .describe("Whether another thought step is needed"),
-    thoughtNumber: z.number().int().min(1).describe("Current thought number"),
-    totalThoughts: z
-      .number()
-      .int()
-      .min(1)
-      .describe("Estimated total thoughts needed"),
-    isRevision: z
-      .boolean()
-      .default(false)
-      .describe("Whether this revises previous thinking"),
-    revisesThought: z
-      .number()
-      .int()
-      .min(1)
-      .optional()
-      .describe("Which thought is being reconsidered"),
-    branchFromThought: z
-      .number()
-      .int()
-      .min(1)
-      .optional()
-      .describe("Branching point thought number"),
-    branchId: z.string().optional().describe("Branch identifier"),
-    needsMoreThoughts: z
-      .boolean()
-      .default(false)
-      .describe("If more thoughts are needed"),
-  }),
   execute: async (
     params: SequentialThinkingParams,
     context?: {

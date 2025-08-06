@@ -3,7 +3,7 @@ import { createGoogleGenerativeAI, google } from "@ai-sdk/google"
 import { createMistral, mistral } from "@ai-sdk/mistral"
 import { createOpenAI, openai } from "@ai-sdk/openai"
 import { createPerplexity, perplexity } from "@ai-sdk/perplexity"
-import type { LanguageModelV1 } from "@ai-sdk/provider"
+import type { LanguageModel } from "ai"
 import { createXai, xai } from "@ai-sdk/xai"
 
 import { getProviderForModel } from "./provider-map"
@@ -18,13 +18,14 @@ import type {
   XaiModel,
 } from "./types"
 
-type OpenAIChatSettings = Parameters<typeof openai>[1]
-type MistralProviderSettings = Parameters<typeof mistral>[1]
-type GoogleGenerativeAIProviderSettings = Parameters<typeof google>[1]
-type PerplexityProviderSettings = Parameters<typeof perplexity>[0]
-type AnthropicProviderSettings = Parameters<typeof anthropic>[1]
-type XaiProviderSettings = Parameters<typeof xai>[1]
-type OllamaProviderSettings = OpenAIChatSettings // Ollama uses OpenAI-compatible API
+// In v5, provider functions only take the model ID, no settings parameter
+type OpenAIChatSettings = never
+type MistralProviderSettings = never
+type GoogleGenerativeAIProviderSettings = never
+type PerplexityProviderSettings = never
+type AnthropicProviderSettings = never
+type XaiProviderSettings = never
+type OllamaProviderSettings = never // Ollama uses OpenAI-compatible API
 
 type ModelSettings<T extends SupportedModel> = T extends OpenAIModel
   ? OpenAIChatSettings
@@ -71,46 +72,33 @@ export function openproviders<T extends SupportedModel>(
   modelId: T,
   settings?: OpenProvidersOptions<T>,
   apiKey?: string
-): LanguageModelV1 {
+): LanguageModel {
   const provider = getProviderForModel(modelId)
 
   if (provider === "openai") {
     if (apiKey) {
       const openaiProvider = createOpenAI({
         apiKey,
-        compatibility: "strict",
       })
-      return openaiProvider(
-        modelId as OpenAIModel,
-        settings as OpenAIChatSettings
-      )
+      return openaiProvider(modelId as OpenAIModel)
     }
-    return openai(modelId as OpenAIModel, settings as OpenAIChatSettings)
+    return openai(modelId as OpenAIModel)
   }
 
   if (provider === "mistral") {
     if (apiKey) {
       const mistralProvider = createMistral({ apiKey })
-      return mistralProvider(
-        modelId as MistralModel,
-        settings as MistralProviderSettings
-      )
+      return mistralProvider(modelId as MistralModel)
     }
-    return mistral(modelId as MistralModel, settings as MistralProviderSettings)
+    return mistral(modelId as MistralModel)
   }
 
   if (provider === "google") {
     if (apiKey) {
       const googleProvider = createGoogleGenerativeAI({ apiKey })
-      return googleProvider(
-        modelId as GeminiModel,
-        settings as GoogleGenerativeAIProviderSettings
-      )
+      return googleProvider(modelId as GeminiModel)
     }
-    return google(
-      modelId as GeminiModel,
-      settings as GoogleGenerativeAIProviderSettings
-    )
+    return google(modelId as GeminiModel)
   }
 
   if (provider === "perplexity") {
@@ -130,31 +118,22 @@ export function openproviders<T extends SupportedModel>(
   if (provider === "anthropic") {
     if (apiKey) {
       const anthropicProvider = createAnthropic({ apiKey })
-      return anthropicProvider(
-        modelId as AnthropicModel,
-        settings as AnthropicProviderSettings
-      )
+      return anthropicProvider(modelId as AnthropicModel)
     }
-    return anthropic(
-      modelId as AnthropicModel,
-      settings as AnthropicProviderSettings
-    )
+    return anthropic(modelId as AnthropicModel)
   }
 
   if (provider === "xai") {
     if (apiKey) {
       const xaiProvider = createXai({ apiKey })
-      return xaiProvider(modelId as XaiModel, settings as XaiProviderSettings)
+      return xaiProvider(modelId as XaiModel)
     }
-    return xai(modelId as XaiModel, settings as XaiProviderSettings)
+    return xai(modelId as XaiModel)
   }
 
   if (provider === "ollama") {
     const ollamaProvider = createOllamaProvider()
-    return ollamaProvider(
-      modelId as OllamaModel,
-      settings as OllamaProviderSettings
-    )
+    return ollamaProvider(modelId as OllamaModel)
   }
 
   throw new Error(`Unsupported model: ${modelId}`)

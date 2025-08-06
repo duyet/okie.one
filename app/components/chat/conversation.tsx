@@ -1,4 +1,4 @@
-import type { Message as MessageType } from "@ai-sdk/react"
+import type { UIMessage as MessageType } from "@/lib/ai-sdk-types"
 import { useRef } from "react"
 
 import {
@@ -57,10 +57,11 @@ export function Conversation({
               console.log("🔍 Conversation - full message object:", {
                 id: message.id,
                 role: message.role,
-                content:
-                  typeof message.content === "string"
-                    ? `${message.content.substring(0, 200)}...`
-                    : message.content,
+                content: `${message.parts
+                  ?.filter((p) => (p as { type?: string }).type === 'text')
+                  ?.map((p) => (p as { text?: string }).text)
+                  ?.join(' ')
+                  ?.substring(0, 200)}...` || '',
                 parts: message.parts,
                 toolInvocations: (
                   message as MessageType & {
@@ -81,7 +82,13 @@ export function Conversation({
                 key={message.id}
                 id={message.id}
                 variant={message.role}
-                attachments={message.experimental_attachments}
+                attachments={message.parts
+                  ?.filter((p: any) => p.type === 'file')
+                  ?.map((p: any) => ({
+                    name: p.name || 'file',
+                    contentType: p.mediaType,
+                    url: p.url || p.data || '',
+                  })) || []}
                 isLast={isLast}
                 onDelete={onDelete}
                 onEdit={onEdit}
@@ -100,7 +107,10 @@ export function Conversation({
                   ).toolInvocations
                 }
               >
-                {message.content}
+                {message.parts
+                  ?.filter((p) => (p as { type?: string }).type === 'text')
+                  ?.map((p) => (p as { text?: string }).text)
+                  ?.join(' ') || ''}
               </Message>
             )
           })}

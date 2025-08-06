@@ -164,7 +164,7 @@ export function ModelSelector({
                 </TooltipContent>
               </Tooltip>
             )}
-            {model.reasoning && (
+            {model.reasoningText && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">
@@ -469,7 +469,7 @@ export function ModelSelector({
                               </TooltipContent>
                             </Tooltip>
                           )}
-                          {model.reasoning && (
+                          {model.reasoningText && (
                             <Tooltip>
                               <TooltipTrigger asChild>
                                 <div className="rounded-full bg-purple-100 p-1 dark:bg-purple-900/20">

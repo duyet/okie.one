@@ -1,9 +1,6 @@
 import { useChat } from "@ai-sdk/react"
-import type {
-  ChatRequestOptions,
-  CreateMessage,
-  Message,
-} from "@ai-sdk/ui-utils"
+import type { ChatRequestOptions } from "ai"
+import type { UIMessage, Message } from "@/lib/ai-sdk-types"
 import { useMemo } from "react"
 
 import { toast } from "@/components/ui/toast"
@@ -16,10 +13,15 @@ type ModelConfig = {
 
 type ModelChat = {
   model: ModelConfig
-  messages: Message[]
+  messages: UIMessage[]
   isLoading: boolean
   append: (
-    message: Message | CreateMessage,
+    message:
+      | UIMessage
+      | (Omit<UIMessage, "id" | "role"> & {
+          id?: string
+          role?: UIMessage["role"]
+        }),
     options?: ChatRequestOptions
   ) => Promise<string | null | undefined>
   stop: () => void
@@ -109,12 +111,26 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
       return {
         model,
         messages: chatHook.messages,
-        isLoading: chatHook.isLoading,
-        append: (
-          message: Message | CreateMessage,
+        isLoading: chatHook.status === "streaming",
+        append: async (
+          message:
+            | UIMessage
+            | (Omit<UIMessage, "id" | "role"> & {
+                id?: string
+                role?: UIMessage["role"]
+              }),
           options?: ChatRequestOptions
         ) => {
-          return chatHook.append(message, options)
+          if ("id" in message && "role" in message) {
+            chatHook.append(message as UIMessage)
+          } else {
+            chatHook.append({
+              role: "user",
+              content: (message as any).content || "",
+              parts: [{ type: "text", text: (message as any).content || "" }],
+            } as UIMessage)
+          }
+          return null
         },
         stop: chatHook.stop,
       }

@@ -1,4 +1,9 @@
-import type { Attachment } from "@ai-sdk/ui-utils"
+// Define Attachment type locally (removed from ai SDK v5)
+interface Attachment {
+  name?: string
+  contentType?: string
+  url: string
+}
 
 export type Json =
   | string
