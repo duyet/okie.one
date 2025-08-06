@@ -35,8 +35,8 @@ type OnFinishCallback = (params: {
     }>
   }
   usage: {
-    promptTokens: number
-    completionTokens: number
+    inputTokens: number
+    outputTokens: number
     totalTokens: number
     cachedTokens?: number
   }
@@ -148,8 +148,8 @@ describe("Chat API Token Tracking", () => {
   }
 
   const sampleUsageData = {
-    promptTokens: 100,
-    completionTokens: 50,
+    inputTokens: 100,
+    outputTokens: 50,
     totalTokens: 150,
     cachedTokens: 10,
   }
@@ -160,6 +160,27 @@ describe("Chat API Token Tracking", () => {
       content: "Hello! How can I help you today?",
     },
   ]
+
+  // Helper to set up streamText mock with callback capture
+  const setupStreamTextMock = () => {
+    let onFinishCallback: OnFinishCallback | null = null
+    let onChunkCallback: OnChunkCallback | null = null
+
+    mockStreamText.mockImplementation((config: any) => {
+      if (config.onFinish) onFinishCallback = config.onFinish
+      if (config.onChunk) onChunkCallback = config.onChunk
+      return {
+        toUIMessageStreamResponse: vi
+          .fn()
+          .mockReturnValue(new Response("mock-stream")),
+      } as MockStreamTextResult
+    })
+
+    return {
+      getOnFinishCallback: () => onFinishCallback as OnFinishCallback,
+      getOnChunkCallback: () => onChunkCallback as OnChunkCallback,
+    }
+  }
 
   beforeEach(() => {
     vi.clearAllMocks()
@@ -178,15 +199,6 @@ describe("Chat API Token Tracking", () => {
     mockGetProviderForModel.mockReturnValue("openai")
     mockParseArtifacts.mockReturnValue([])
     mockRecordTokenUsage.mockResolvedValue({} as never)
-
-    // Mock streamText with proper structure
-    const mockResult = {
-      toDataStreamResponse: vi
-        .fn()
-        .mockReturnValue(new Response("mock-stream")),
-    }
-    // biome-ignore lint/suspicious/noExplicitAny: Mock return value requires any
-    mockStreamText.mockReturnValue(mockResult as any)
   })
 
   afterEach(() => {
@@ -195,19 +207,7 @@ describe("Chat API Token Tracking", () => {
 
   describe("Token Usage Recording", () => {
     it("should record token usage successfully after AI response", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // Capture the onFinish callback when streamText is called
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -229,6 +229,9 @@ describe("Chat API Token Tracking", () => {
         messages: sampleResponseMessages,
       }
 
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
+
       await onFinishCallback({
         response: mockResponse,
         usage: sampleUsageData,
@@ -243,8 +246,8 @@ describe("Chat API Token Tracking", () => {
         "openai",
         "gpt-4o",
         expect.objectContaining({
-          promptTokens: 100,
-          completionTokens: 50,
+          inputTokens: 100,
+          outputTokens: 50,
           cachedTokens: 10,
           totalTokens: 150,
           durationMs: expect.any(Number),
@@ -257,41 +260,7 @@ describe("Chat API Token Tracking", () => {
 
     it("should handle timing metrics when chunks are received", async () => {
       // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onChunkCallback: OnChunkCallback = (() => {}) as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        if (config.onChunk) onChunkCallback = config.onChunk
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback, getOnChunkCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -303,6 +272,7 @@ describe("Chat API Token Tracking", () => {
 
       // Simulate first chunk after 500ms
       vi.advanceTimersByTime(500)
+      const onChunkCallback = getOnChunkCallback()
       onChunkCallback()
 
       // Simulate completion after another 1000ms
@@ -311,6 +281,9 @@ describe("Chat API Token Tracking", () => {
       const mockResponse = {
         messages: sampleResponseMessages,
       }
+
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
 
       await onFinishCallback({
         response: mockResponse,
@@ -326,8 +299,8 @@ describe("Chat API Token Tracking", () => {
         "openai",
         "gpt-4o",
         expect.objectContaining({
-          promptTokens: 100,
-          completionTokens: 50,
+          inputTokens: 100,
+          outputTokens: 50,
           cachedTokens: 10,
           totalTokens: 150,
           durationMs: 1500, // Total request duration
@@ -339,39 +312,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle cached tokens from AI SDK usage data", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -390,6 +331,9 @@ describe("Chat API Token Tracking", () => {
       const mockResponse = {
         messages: sampleResponseMessages,
       }
+
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
 
       await onFinishCallback({
         response: mockResponse,
@@ -410,39 +354,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle missing cachedTokens in usage data", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -454,8 +366,8 @@ describe("Chat API Token Tracking", () => {
 
       // Usage data without cached tokens
       const usageDataNoCached = {
-        promptTokens: 100,
-        completionTokens: 50,
+        inputTokens: 100,
+        outputTokens: 50,
         totalTokens: 150,
         // No cachedTokens property
       }
@@ -463,6 +375,9 @@ describe("Chat API Token Tracking", () => {
       const mockResponse = {
         messages: sampleResponseMessages,
       }
+
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
 
       await onFinishCallback({
         response: mockResponse,
@@ -483,39 +398,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should calculate totalTokens when not provided by AI SDK", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -527,14 +410,17 @@ describe("Chat API Token Tracking", () => {
 
       // Usage data without totalTokens
       const usageDataNoTotal = {
-        promptTokens: 75,
-        completionTokens: 25,
+        inputTokens: 75,
+        outputTokens: 25,
         totalTokens: 100, // Add totalTokens
       }
 
       const mockResponse = {
         messages: sampleResponseMessages,
       }
+
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
 
       await onFinishCallback({
         response: mockResponse,
@@ -549,7 +435,7 @@ describe("Chat API Token Tracking", () => {
         "openai",
         "gpt-4o",
         expect.objectContaining({
-          totalTokens: 100, // Should be promptTokens + completionTokens
+          totalTokens: 100, // Should be inputTokens + outputTokens
         })
       )
     })
@@ -557,39 +443,7 @@ describe("Chat API Token Tracking", () => {
 
   describe("Error Handling", () => {
     it("should not fail chat when token tracking fails", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       // Make recordTokenUsage throw an error
       mockRecordTokenUsage.mockRejectedValue(
@@ -623,39 +477,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should skip token recording when usage data is missing", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -682,39 +504,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should skip token recording when assistantMessageId is missing", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       // Make storeAssistantMessage return null
       mockStoreAssistantMessage.mockResolvedValue(null)
@@ -731,6 +521,9 @@ describe("Chat API Token Tracking", () => {
         messages: sampleResponseMessages,
       }
 
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
+
       await onFinishCallback({
         response: mockResponse,
         usage: sampleUsageData,
@@ -742,39 +535,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should skip token recording when Supabase is not available", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       // Make validateAndTrackUsage return null (no Supabase)
       mockValidateAndTrackUsage.mockResolvedValue(null)
@@ -791,6 +552,9 @@ describe("Chat API Token Tracking", () => {
         messages: sampleResponseMessages,
       }
 
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
+
       await onFinishCallback({
         response: mockResponse,
         usage: sampleUsageData,
@@ -802,39 +566,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle provider mapping errors gracefully", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -879,43 +611,7 @@ describe("Chat API Token Tracking", () => {
       for (const testCase of testCases) {
         vi.clearAllMocks()
 
-        // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-        let onFinishCallback: OnFinishCallback = null as any
-
-        // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-        mockStreamText.mockImplementation((config: any) => {
-          if (config.onFinish) onFinishCallback = config.onFinish
-          return {
-            toUIMessageStreamResponse: vi
-              .fn()
-              .mockReturnValue(new Response("mock-stream")),
-            // Add required properties for StreamTextResult type
-            warnings: undefined,
-            usage: {
-              promptTokens: 100,
-              completionTokens: 50,
-              totalTokens: 150,
-            },
-            sources: undefined,
-            files: undefined,
-            response: {
-              messages: [],
-              id: "test-id",
-              timestamp: new Date(),
-              modelId: "test-model",
-            },
-            experimental_providerMetadata: undefined,
-            finishReason: "stop",
-            text: "mock response",
-            toolCalls: [],
-            toolResults: [],
-            rawResponse: undefined,
-            request: undefined,
-            logprobs: undefined,
-            responseMessages: [],
-            roundtrips: [],
-          } as MockStreamTextResult
-        })
+        const { getOnFinishCallback } = setupStreamTextMock()
 
         mockGetProviderForModel.mockReturnValue(
           testCase.expectedProvider as ProviderWithoutOllama
@@ -941,6 +637,9 @@ describe("Chat API Token Tracking", () => {
           messages: sampleResponseMessages,
         }
 
+        const onFinishCallback = getOnFinishCallback()
+        expect(onFinishCallback).toBeDefined()
+
         await onFinishCallback({
           response: mockResponse,
           usage: sampleUsageData,
@@ -961,42 +660,7 @@ describe("Chat API Token Tracking", () => {
 
   describe("Timing Edge Cases", () => {
     it("should handle multiple chunk callbacks correctly", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onChunkCallback: OnChunkCallback = (() => {}) as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        if (config.onChunk) onChunkCallback = config.onChunk
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback, getOnChunkCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -1008,6 +672,7 @@ describe("Chat API Token Tracking", () => {
 
       // Simulate multiple chunk callbacks - only first should set timing
       vi.advanceTimersByTime(300)
+      const onChunkCallback = getOnChunkCallback()
       onChunkCallback() // First chunk - should set timings
 
       vi.advanceTimersByTime(200)
@@ -1021,6 +686,9 @@ describe("Chat API Token Tracking", () => {
       const mockResponse = {
         messages: sampleResponseMessages,
       }
+
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
 
       await onFinishCallback({
         response: mockResponse,
@@ -1044,39 +712,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle timing when no chunks are received", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -1092,6 +728,9 @@ describe("Chat API Token Tracking", () => {
       const mockResponse = {
         messages: sampleResponseMessages,
       }
+
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
 
       await onFinishCallback({
         response: mockResponse,
@@ -1117,42 +756,7 @@ describe("Chat API Token Tracking", () => {
 
   describe("Cost Calculation Integration", () => {
     it("should pass timing and cost data to recordTokenUsage", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onChunkCallback: OnChunkCallback = (() => {}) as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        if (config.onChunk) onChunkCallback = config.onChunk
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback, getOnChunkCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -1164,6 +768,7 @@ describe("Chat API Token Tracking", () => {
 
       // Simulate streaming with timing
       vi.advanceTimersByTime(400)
+      const onChunkCallback = getOnChunkCallback()
       onChunkCallback()
       vi.advanceTimersByTime(1200)
 
@@ -1171,11 +776,14 @@ describe("Chat API Token Tracking", () => {
         messages: sampleResponseMessages,
       }
 
+      const onFinishCallback = getOnFinishCallback()
+      expect(onFinishCallback).toBeDefined()
+
       await onFinishCallback({
         response: mockResponse,
         usage: {
-          promptTokens: 200,
-          completionTokens: 100,
+          inputTokens: 200,
+          outputTokens: 100,
           totalTokens: 300,
           cachedTokens: 15,
         },
@@ -1207,39 +815,7 @@ describe("Chat API Token Tracking", () => {
 
   describe("Response Processing", () => {
     it("should handle complex response message formats", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",
@@ -1286,39 +862,7 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle empty or missing response messages", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
-      let onFinishCallback: OnFinishCallback = null as any
-
-      // biome-ignore lint/suspicious/noExplicitAny: Mock implementation requires any
-      mockStreamText.mockImplementation((config: any) => {
-        if (config.onFinish) onFinishCallback = config.onFinish
-        return {
-          toUIMessageStreamResponse: vi
-            .fn()
-            .mockReturnValue(new Response("mock-stream")),
-          // Add required properties for StreamTextResult type
-          warnings: undefined,
-          usage: { promptTokens: 100, completionTokens: 50, totalTokens: 150 },
-          sources: undefined,
-          files: undefined,
-          response: {
-            messages: [],
-            id: "test-id",
-            timestamp: new Date(),
-            modelId: "test-model",
-          },
-          experimental_providerMetadata: undefined,
-          finishReason: "stop",
-          text: "mock response",
-          toolCalls: [],
-          toolResults: [],
-          rawResponse: undefined,
-          request: undefined,
-          logprobs: undefined,
-          responseMessages: [],
-          roundtrips: [],
-        } as MockStreamTextResult
-      })
+      const { getOnFinishCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
         method: "POST",

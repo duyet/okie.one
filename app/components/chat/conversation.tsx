@@ -57,11 +57,11 @@ export function Conversation({
               console.log("🔍 Conversation - full message object:", {
                 id: message.id,
                 role: message.role,
-                content: message.parts
-                  ?.filter((p: any) => p.type === 'text')
-                  ?.map((p: any) => p.text)
+                content: `${message.parts
+                  ?.filter((p) => (p as { type?: string }).type === 'text')
+                  ?.map((p) => (p as { text?: string }).text)
                   ?.join(' ')
-                  ?.substring(0, 200) + '...' || '',
+                  ?.substring(0, 200)}...` || '',',
                 parts: message.parts,
                 toolInvocations: (
                   message as MessageType & {
@@ -83,8 +83,8 @@ export function Conversation({
                 id={message.id}
                 variant={message.role}
                 attachments={message.parts
-                  ?.filter((p: any) => p.type === 'file')
-                  ?.map((p: any) => ({
+                  ?.filter((p) => (p as { type?: string }).type === 'file')
+                  ?.map((p) => ({
                     name: p.name,
                     contentType: p.mediaType,
                     url: p.url || p.data || '',
@@ -108,8 +108,8 @@ export function Conversation({
                 }
               >
                 {message.parts
-                  ?.filter((p: any) => p.type === 'text')
-                  ?.map((p: any) => p.text)
+                  ?.filter((p) => (p as { type?: string }).type === 'text')
+                  ?.map((p) => (p as { text?: string }).text)
                   ?.join(' ') || ''}
               </Message>
             )

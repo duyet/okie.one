@@ -25,7 +25,7 @@ import {
   storeAssistantMessage,
   validateAndTrackUsage,
 } from "./api"
-import { createErrorResponse, extractErrorMessage } from "./utils"
+import { createErrorResponse } from "./utils"
 
 export const maxDuration = 60
 
@@ -119,8 +119,8 @@ export async function POST(req: Request) {
     const userMessage = messages[messages.length - 1]
     const attachments =
       userMessage?.parts
-        ?.filter((part: any) => part.type === "file")
-        ?.map((part: any) => ({
+        ?.filter((part) => (part as { type?: string }).type === "file")
+        ?.map((part) => ({
           name: part.name || "file",
           contentType: part.mediaType,
           url: part.url,
@@ -163,8 +163,8 @@ export async function POST(req: Request) {
         chatId,
         content:
           userMessage.parts
-            ?.filter((part: any) => part.type === "text")
-            ?.map((part: any) => part.text)
+            ?.filter((part) => (part as { type?: string }).type === "text")
+            ?.map((part) => (part as { text?: string }).text)
             ?.join("\n") || "",
         attachments: attachments,
         model,
@@ -198,7 +198,7 @@ export async function POST(req: Request) {
       webSearch: false,
       mcpSequentialThinking: false,
     }
-    let sequentialThinkingServer: {
+    let _sequentialThinkingServer: {
       getTools: () => ToolSet
       getMaxSteps: () => number
     } | null = null
@@ -220,7 +220,7 @@ export async function POST(req: Request) {
             if (mcpServer) {
               if (serverName === "server-sequential-thinking") {
                 enabledCapabilities.mcpSequentialThinking = true
-                sequentialThinkingServer = mcpServer
+                _sequentialThinkingServer = mcpServer
                 apiLogger.info(
                   "MCP Sequential thinking enabled, adding tools from server"
                 )

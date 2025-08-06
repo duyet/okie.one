@@ -28,7 +28,7 @@ export function cleanMessagesForTools(
         // Remove tool invocations from parts
         if (cleanedMessage.parts) {
           cleanedMessage.parts = cleanedMessage.parts.filter(
-            (part: any) => !part.type?.includes("tool")
+            (part) => !(part as { type?: string }).type?.includes("tool")
           )
         }
 
@@ -41,7 +41,7 @@ export function cleanMessagesForTools(
 
         // Ensure at least one text part exists
         const hasTextPart = cleanedMessage.parts.some(
-          (part: any) => part.type === "text"
+          (part) => (part as { type?: string }).type === "text"
         )
         if (!hasTextPart) {
           cleanedMessage.parts.push({
@@ -55,7 +55,7 @@ export function cleanMessagesForTools(
 
       // For user messages, clean any tool-related content from parts
       if (message.role === "user" && Array.isArray(message.parts)) {
-        const filteredParts = message.parts.filter((part: any) => {
+        const filteredParts = message.parts.filter((part) => {
           if (part && typeof part === "object" && part.type) {
             const isToolPart = part.type?.includes("tool")
             return !isToolPart
@@ -86,8 +86,9 @@ export function cleanMessagesForTools(
  */
 export function messageHasToolContent(message: MessageAISDK): boolean {
   return !!(
-    message.parts?.some((part: any) => part.type?.includes("tool")) ||
-    (message as { role: string }).role === "tool"
+    message.parts?.some((part) =>
+      (part as { type?: string }).type?.includes("tool")
+    ) || (message as { role: string }).role === "tool"
   )
 }
 

@@ -1,6 +1,5 @@
 "use client"
 
-import type { UIMessage as MessageType } from "@ai-sdk/react"
 import { Check, Copy, Trash } from "@phosphor-icons/react"
 import type { Transition } from "motion/react"
 import Image from "next/image"

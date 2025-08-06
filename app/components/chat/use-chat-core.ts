@@ -615,7 +615,7 @@ export function useChatCore({
             ?.filter((p: any) => p.type === "text")
             ?.map((p: any) => p.text)
             ?.join("") || ""
-        return textContent.substring(0, 50) + "..."
+        return `${textContent.substring(0, 50)}...`
       })(),
     })
   }, [messages, status])
