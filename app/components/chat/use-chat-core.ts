@@ -476,8 +476,8 @@ export function useChatCore({
   const [input, setInput] = useState(draftValue)
   const {
     messages,
-    append: sendMessage,
-    reload: regenerate,
+    sendMessage,
+    regenerate,
     status,
     error,
     stop,
