@@ -1,4 +1,4 @@
-import type { Message as MessageAISDK } from "@ai-sdk/ui-utils"
+import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
 
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
@@ -36,6 +36,7 @@ export async function getMessagesFromDb(
       ...message,
       id: String(message.id),
       role: message.role as "system" | "user" | "assistant",
+      content: message.content || "",
       parts: (message?.parts as MessageAISDK["parts"]) || [
         { type: "text", text: message.content ?? "" },
       ],

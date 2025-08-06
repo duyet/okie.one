@@ -1,6 +1,6 @@
 "use client"
 
-import type { Message as UIMessage } from "@ai-sdk/ui-utils"
+import type { UIMessage, Message as MessageTypeBase } from "@/lib/ai-sdk-types"
 
 // Extended message type with model property
 type MessageType = MessageTypeBase & {

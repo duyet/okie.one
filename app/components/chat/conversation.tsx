@@ -1,4 +1,4 @@
-import type { Message as MessageType } from "@ai-sdk/ui-utils"
+import type { UIMessage as MessageType } from "@/lib/ai-sdk-types"
 import { useRef } from "react"
 
 import {
@@ -83,9 +83,9 @@ export function Conversation({
                 id={message.id}
                 variant={message.role}
                 attachments={message.parts
-                  ?.filter((p) => (p as { type?: string }).type === 'file')
-                  ?.map((p) => ({
-                    name: p.name,
+                  ?.filter((p: any) => p.type === 'file')
+                  ?.map((p: any) => ({
+                    name: p.name || 'file',
                     contentType: p.mediaType,
                     url: p.url || p.data || '',
                   })) || []}

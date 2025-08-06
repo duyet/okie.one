@@ -1,4 +1,4 @@
-import type { Message as UIMessage } from "@ai-sdk/ui-utils"
+import type { UIMessage, Message } from "@/lib/ai-sdk-types"
 import { useChat } from "@ai-sdk/react"
 import { generateId } from "ai"
 import { useSearchParams } from "next/navigation"
@@ -545,17 +545,7 @@ export function useChatCore({
     [input, sendMessage]
   )
 
-  const append = useCallback(
-    (message: Message) => {
-      sendMessage(message)
-    },
-    [sendMessage]
-  )
-
-  // Create reload function for v5 compatibility
-  const reload = useCallback(() => {
-    regenerate()
-  }, [regenerate])
+  // sendMessage and regenerate are provided by useChat above
 
   // Process both artifacts and tool invocations in streaming messages (after useChat initialization)
   const processedMessages = useMemo(() => {
@@ -903,7 +893,7 @@ export function useChatCore({
         }
 
         // Options are now handled internally by the transport
-        append({
+        sendMessage({
           id: generateId(),
           role: "user",
           parts: [{ type: "text", text: suggestion }],
@@ -918,7 +908,7 @@ export function useChatCore({
       ensureChatExists,
       selectedModel,
       user,
-      append,
+      sendMessage,
       checkLimitsAndNotify,
       isAuthenticated,
     ]
@@ -932,7 +922,7 @@ export function useChatCore({
     }
 
     // Options are now handled internally by the transport
-    reload()
+    regenerate()
   }, [
     user,
     chatId,
@@ -941,7 +931,7 @@ export function useChatCore({
     systemPrompt,
     thinkingMode,
     getToolsConfig,
-    reload,
+    regenerate,
   ])
 
   // Handle input change - now with access to the real setInput function!
@@ -961,11 +951,11 @@ export function useChatCore({
     handleSubmit,
     status,
     error,
-    reload,
+    reload: regenerate,
     stop,
     setMessages,
     setInput,
-    append,
+    append: sendMessage,
     isAuthenticated,
     systemPrompt,
     hasSentFirstMessageRef,

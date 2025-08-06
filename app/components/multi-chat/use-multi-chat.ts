@@ -1,6 +1,6 @@
 import { useChat } from "@ai-sdk/react"
 import type { ChatRequestOptions } from "ai"
-import type { Message as UIMessage } from "@ai-sdk/ui-utils"
+import type { UIMessage, Message } from "@/lib/ai-sdk-types"
 import { useMemo } from "react"
 
 import { toast } from "@/components/ui/toast"
@@ -44,43 +44,43 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
 
   // Create a fixed number of useChat hooks to avoid conditional hook calls
   const chat0 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[0]),
   })
   const chat1 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[1]),
   })
   const chat2 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[2]),
   })
   const chat3 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[3]),
   })
   const chat4 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[4]),
   })
   const chat5 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[5]),
   })
   const chat6 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[6]),
   })
   const chat7 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[7]),
   })
   const chat8 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[8]),
   })
   const chat9 = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    api: "/api/chat",
     onError: (error) => handleError(error, models[9]),
   })
 
@@ -122,9 +122,13 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
           options?: ChatRequestOptions
         ) => {
           if ("id" in message && "role" in message) {
-            chatHook.sendMessage(message as UIMessage)
+            chatHook.append(message as UIMessage)
           } else {
-            chatHook.sendMessage({ text: (message as any).content || "" })
+            chatHook.append({
+              role: "user",
+              content: (message as any).content || "",
+              parts: [{ type: "text", text: (message as any).content || "" }],
+            } as UIMessage)
           }
           return null
         },

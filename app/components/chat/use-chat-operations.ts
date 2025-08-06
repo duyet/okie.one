@@ -1,4 +1,4 @@
-import type { Message as UIMessage } from "@ai-sdk/ui-utils"
+import type { UIMessage, Message } from "@/lib/ai-sdk-types"
 import { useCallback } from "react"
 
 import { toast } from "@/components/ui/toast"

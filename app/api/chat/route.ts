@@ -1,5 +1,6 @@
 // Attachment type removed in v5 - using file parts instead
 import { streamText, type ToolSet, convertToCoreMessages } from "ai"
+import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"

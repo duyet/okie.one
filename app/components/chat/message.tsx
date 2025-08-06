@@ -1,4 +1,4 @@
-import type { Message as UIMessage } from "@ai-sdk/ui-utils"
+import type { UIMessage, Message as MessageType } from "@/lib/ai-sdk-types"
 import { useState } from "react"
 
 import { MessageAssistant } from "./message-assistant"
@@ -74,7 +74,7 @@ export function Message({
           : children,
       parts: parts,
       partsCount: parts?.length || 0,
-      partsTypes: parts?.map((p) => p?.type) || [],
+      partsTypes: parts?.map((p: any) => p?.type) || [],
       status,
     })
 

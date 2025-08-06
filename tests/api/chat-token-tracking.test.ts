@@ -463,6 +463,7 @@ describe("Chat API Token Tracking", () => {
       }
 
       // This should not throw an error
+      const onFinishCallback = getOnFinishCallback()
       await expect(
         onFinishCallback({
           response: mockResponse,
@@ -492,6 +493,7 @@ describe("Chat API Token Tracking", () => {
       }
 
       // Call onFinish without usage data
+      const onFinishCallback = getOnFinishCallback()
       await onFinishCallback({
         response: mockResponse,
         // biome-ignore lint/suspicious/noExplicitAny: Null usage requires any
@@ -586,6 +588,7 @@ describe("Chat API Token Tracking", () => {
       }
 
       // This should not crash the entire request
+      const onFinishCallback = getOnFinishCallback()
       await expect(
         onFinishCallback({
           response: mockResponse,

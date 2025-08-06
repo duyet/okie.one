@@ -2,6 +2,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { generateId } from "ai"
+import type { UIMessage, Message } from "@/lib/ai-sdk-types"
 import { ChatCircleIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { AnimatePresence, motion } from "motion/react"
@@ -107,10 +108,10 @@ export function ProjectView({ projectId }: ProjectViewProps) {
 
   const [input, setInput] = useState("")
 
-  const { messages, sendMessage, regenerate, status, stop, setMessages } =
+  const { messages, append: sendMessage, reload: regenerate, status, stop, setMessages } =
     useChat({
       id: `project-${projectId}-${currentChatId}`,
-      transport: new DefaultChatTransport({ api: API_ROUTE_CHAT }),
+      api: API_ROUTE_CHAT,
       messages: [],
       onFinish: ({ message }) => cacheAndAddMessage(message),
       onError: handleError,
