@@ -1,6 +1,6 @@
 // Attachment type removed in v5 - using file parts instead
 import { streamText, type ToolSet, convertToCoreMessages } from "ai"
-import type { UIMessage as MessageAISDK, UIMessage } from "@/lib/ai-sdk-types"
+import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -14,6 +14,33 @@ import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
+
+// Extended usage type to handle different provider formats
+type ExtendedUsage = {
+  totalTokens?: number
+  inputTokens?: number
+  outputTokens?: number
+  promptTokens?: number
+  completionTokens?: number
+  cachedTokens?: number
+}
+
+// Extended message type to handle parts property
+type ExtendedMessage = {
+  id: string
+  role: string
+  content?: string
+  parts?: Array<{ type: string; text?: string; [key: string]: unknown }>
+  experimental_attachments?: unknown
+}
+
+// Stream result type with toDataStreamResponse method
+type StreamResult = {
+  toDataStreamResponse?: (options?: {
+    sendReasoning?: boolean
+    sendSources?: boolean
+  }) => Response
+}
 
 import {
   incrementMessageCount,
@@ -275,11 +302,11 @@ ${mcpServer.getSystemPromptEnhancement()}`
             id: m.id,
             role: m.role as "system" | "user" | "assistant",
             content: m.content || "",
-            parts: (m as any).parts || [
+            parts: (m as ExtendedMessage).parts || [
               { type: "text", text: m.content || "" },
             ],
             experimental_attachments: m.experimental_attachments,
-          }))
+          })) as never
       ),
       tools: apiTools,
       onError: (err: unknown) => {
@@ -374,22 +401,21 @@ ${mcpServer.getSystemPromptEnhancement()}`
                 model,
                 {
                   inputTokens:
-                    (usage as any).promptTokens ||
-                    (usage as any).inputTokens ||
+                    (usage as ExtendedUsage).promptTokens ||
+                    (usage as ExtendedUsage).inputTokens ||
                     0,
                   outputTokens:
-                    (usage as any).completionTokens ||
-                    (usage as any).outputTokens ||
+                    (usage as ExtendedUsage).completionTokens ||
+                    (usage as ExtendedUsage).outputTokens ||
                     0,
-                  cachedTokens:
-                    (usage as { cachedTokens?: number }).cachedTokens || 0, // Some providers return cached tokens
+                  cachedTokens: (usage as ExtendedUsage).cachedTokens || 0, // Some providers return cached tokens
                   totalTokens:
                     usage.totalTokens ||
-                    ((usage as any).promptTokens ||
-                      (usage as any).inputTokens ||
+                    ((usage as ExtendedUsage).promptTokens ||
+                      (usage as ExtendedUsage).inputTokens ||
                       0) +
-                      ((usage as any).completionTokens ||
-                        (usage as any).outputTokens ||
+                      ((usage as ExtendedUsage).completionTokens ||
+                        (usage as ExtendedUsage).outputTokens ||
                         0),
                   durationMs: requestDuration,
                   timeToFirstTokenMs: timeToFirstChunk, // Using first chunk as proxy for first token
@@ -401,13 +427,14 @@ ${mcpServer.getSystemPromptEnhancement()}`
               apiLogger.tokenUsage(
                 model,
                 provider,
-                (usage as any).promptTokens || (usage as any).inputTokens || 0,
-                (usage as any).completionTokens ||
-                  (usage as any).outputTokens ||
+                (usage as ExtendedUsage).promptTokens ||
+                  (usage as ExtendedUsage).inputTokens ||
+                  0,
+                (usage as ExtendedUsage).completionTokens ||
+                  (usage as ExtendedUsage).outputTokens ||
                   0,
                 {
-                  cachedTokens: (usage as { cachedTokens?: number })
-                    .cachedTokens,
+                  cachedTokens: (usage as ExtendedUsage).cachedTokens,
                   duration: requestDuration,
                   timeToFirstChunk,
                   streamingDuration,
@@ -424,7 +451,7 @@ ${mcpServer.getSystemPromptEnhancement()}`
       },
     })
 
-    return (result as any).toDataStreamResponse?.({
+    return (result as StreamResult).toDataStreamResponse?.({
       sendReasoning: true,
       sendSources: true,
     })

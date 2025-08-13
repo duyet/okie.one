@@ -1,8 +1,14 @@
-import type { UIMessage, Message as MessageType } from "@/lib/ai-sdk-types"
+import type { Message as MessageType } from "@/lib/ai-sdk-types"
 import { useState } from "react"
 
 import { MessageAssistant } from "./message-assistant"
 import { MessageUser } from "./message-user"
+
+// Type for message parts to avoid any usage
+type MessagePart = {
+  type: string
+  [key: string]: unknown
+}
 
 type MessageProps = {
   variant: MessageType["role"]
@@ -74,7 +80,7 @@ export function Message({
           : children,
       parts: parts,
       partsCount: parts?.length || 0,
-      partsTypes: parts?.map((p: any) => p?.type) || [],
+      partsTypes: parts?.map((p: MessagePart) => p?.type) || [],
       status,
     })
 

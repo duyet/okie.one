@@ -10,6 +10,15 @@ import { ScrollButton } from "@/components/prompt-kit/scroll-button"
 
 import { Message } from "./message"
 
+// Type for message parts to avoid any usage
+type MessagePart = {
+  type: string
+  name?: string
+  mediaType?: string
+  url?: string
+  data?: string
+}
+
 type ConversationProps = {
   messages: MessageType[]
   status?: "streaming" | "ready" | "submitted" | "error"
@@ -83,8 +92,8 @@ export function Conversation({
                 id={message.id}
                 variant={message.role}
                 attachments={message.parts
-                  ?.filter((p: any) => p.type === 'file')
-                  ?.map((p: any) => ({
+                  ?.filter((p: MessagePart) => p.type === 'file')
+                  ?.map((p: MessagePart) => ({
                     name: p.name || 'file',
                     contentType: p.mediaType,
                     url: p.url || p.data || '',

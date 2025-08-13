@@ -5,7 +5,8 @@ import dynamic from "next/dynamic"
 import { redirect } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
 
-import type { Message } from "@/lib/ai-sdk-types"
+import type { Message, UIMessage } from "@/lib/ai-sdk-types"
+import { uiMessageToMessage } from "@/lib/ai-sdk-types"
 import { Conversation } from "@/app/components/chat/conversation"
 import { useModel } from "@/app/components/chat/use-model"
 import { ChatInput } from "@/app/components/chat-input/chat-input"
@@ -67,7 +68,7 @@ function ChatInner() {
   
   // Convert MessageAISDK[] to Message[] to ensure content property exists
   const initialMessages = useMemo(
-    () => rawMessages as any as Message[],
+    () => rawMessages.map(msg => uiMessageToMessage(msg as UIMessage)),
     [rawMessages]
   )
   
