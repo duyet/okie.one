@@ -41,6 +41,7 @@ export async function getMessagesFromDb(
         content: message.content || "",
         parts: (message?.parts as any) || undefined,
         model: message.model || undefined,
+        message_group_id: message.message_group_id || undefined,
       })
     )
 }

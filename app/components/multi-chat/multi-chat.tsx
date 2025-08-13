@@ -128,7 +128,7 @@ export function MultiChat() {
             ?.join("") || ""
         if (!groups[groupKey]) {
           groups[groupKey] = {
-            userMessage: uiMessageToMessage(message),
+            userMessage: uiMessageToMessage(message as any),
             assistantMessages: [],
           }
         }
@@ -149,11 +149,11 @@ export function MultiChat() {
               ?.join("") || ""
           if (!groups[groupKey]) {
             groups[groupKey] = {
-              userMessage: uiMessageToMessage(associatedUserMessage),
+              userMessage: uiMessageToMessage(associatedUserMessage as any),
               assistantMessages: [],
             }
           }
-          groups[groupKey].assistantMessages.push(uiMessageToMessage(message))
+          groups[groupKey].assistantMessages.push(uiMessageToMessage(message as any))
         }
       }
     }

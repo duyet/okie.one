@@ -172,7 +172,12 @@ describe("Message Part Type Guards", () => {
           type: "reasoning",
           text: "Let me think about this...",
         },
-        { type: "source", url: "https://example.com" },
+        {
+          type: "source",
+          source: {
+            url: "https://example.com",
+          },
+        },
       ]
 
       const artifactParts = mixedParts.filter(isArtifactPart)

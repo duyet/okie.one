@@ -46,43 +46,43 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
   // Create a fixed number of useChat hooks to avoid conditional hook calls
   const chat0 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[0]),
+    onError: (error: Error) => handleError(error, models[0]),
   } as any)
   const chat1 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[1]),
+    onError: (error: Error) => handleError(error, models[1]),
   } as any)
   const chat2 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[2]),
+    onError: (error: Error) => handleError(error, models[2]),
   } as any)
   const chat3 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[3]),
+    onError: (error: Error) => handleError(error, models[3]),
   } as any)
   const chat4 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[4]),
+    onError: (error: Error) => handleError(error, models[4]),
   } as any)
   const chat5 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[5]),
+    onError: (error: Error) => handleError(error, models[5]),
   } as any)
   const chat6 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[6]),
+    onError: (error: Error) => handleError(error, models[6]),
   } as any)
   const chat7 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[7]),
+    onError: (error: Error) => handleError(error, models[7]),
   } as any)
   const chat8 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[8]),
+    onError: (error: Error) => handleError(error, models[8]),
   } as any)
   const chat9 = useChat({
     api: "/api/chat",
-    onError: (error) => handleError(error, models[9]),
+    onError: (error: Error) => handleError(error, models[9]),
   } as any)
 
   const chatHooks = useMemo(
@@ -111,7 +111,9 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
 
       return {
         model,
-        messages: chatHook.messages.map(uiMessageToMessage),
+        messages: chatHook.messages.map((msg) =>
+          uiMessageToMessage(msg as any)
+        ),
         isLoading: chatHook.status === "streaming",
         append: async (
           message:
@@ -126,7 +128,7 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
           await chatHook.sendMessage({
             role: "user",
             content,
-          })
+          } as any)
           return null
         },
         stop: chatHook.stop,

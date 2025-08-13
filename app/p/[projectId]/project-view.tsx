@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react"
 import { generateId } from "ai"
 import type { UIMessage, Message } from "@/lib/ai-sdk-types"
+import { uiMessageToMessage, messageToUIMessage } from "@/lib/ai-sdk-types"
 import { ChatCircleIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { AnimatePresence, motion } from "motion/react"
@@ -113,7 +114,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       id: `project-${projectId}-${currentChatId}`,
       api: API_ROUTE_CHAT,
       initialMessages: [],
-      onFinish: ({ message }) => cacheAndAddMessage(message),
+      onFinish: ({ message }: any) => cacheAndAddMessage(message),
       onError: handleError,
     } as any)
 
@@ -201,12 +202,12 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const { handleDelete, handleEdit } = useChatOperations({
     isAuthenticated: true, // Always authenticated in project context
     chatId: null,
-    messages,
+    messages: messages.map((msg) => uiMessageToMessage(msg as any)),
     selectedModel,
     systemPrompt: SYSTEM_PROMPT_DEFAULT,
     createNewChat,
     setHasDialogAuth: () => {}, // Not used in project context
-    setMessages,
+    setMessages: (msgs: any) => setMessages(msgs),
     setInput,
   })
 
@@ -464,7 +465,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
             </div>
           </motion.div>
         ) : (
-          <Conversation key="conversation" {...conversationProps} />
+          <Conversation key="conversation" {...conversationProps as any} />
         )}
       </AnimatePresence>
 
