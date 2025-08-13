@@ -2,7 +2,7 @@
 
 import type { UIMessage as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
-import { messageToUIMessage } from "@/lib/ai-sdk-types"
+import { messageToUIMessage, uiMessageToMessage } from "@/lib/ai-sdk-types"
 
 import { toast } from "@/components/ui/toast"
 import { useChatSession } from "@/lib/chat-store/session/provider"
@@ -62,7 +62,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
 
       try {
         const fresh = await getMessagesFromDb(chatId)
-        setMessages(fresh)
+        setMessages(fresh as any)
         cacheMessages(chatId, fresh)
       } catch (error) {
         console.error("Failed to fetch messages:", error)
@@ -79,7 +79,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const fresh = await getMessagesFromDb(chatId)
-      setMessages(fresh)
+      setMessages(fresh as any)
     } catch {
       toast({ title: "Failed to refresh messages", status: "error" })
     }
@@ -101,7 +101,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
       setTimeout(async () => {
         try {
           const fresh = await getMessagesFromDb(chatId)
-          setMessages(fresh)
+          setMessages(fresh as any)
           cacheMessages(chatId, fresh)
         } catch (error) {
           console.error("Failed to refresh messages after caching:", error)
@@ -117,8 +117,9 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     if (!chatId) return
 
     try {
-      await saveMessages(chatId, newMessages)
-      setMessages(newMessages)
+      const convertedMessages = newMessages.map(msg => uiMessageToMessage(msg as any))
+      await saveMessages(chatId, convertedMessages)
+      setMessages(newMessages as any)
     } catch {
       toast({ title: "Failed to save messages", status: "error" })
     }
