@@ -76,9 +76,13 @@ vi.mock("@/lib/artifacts/parser", () => ({
   parseArtifacts: vi.fn(),
 }))
 
-vi.mock("ai", () => ({
-  streamText: vi.fn(),
-}))
+vi.mock("ai", async () => {
+  const actual = await vi.importActual("ai")
+  return {
+    ...actual,
+    streamText: vi.fn(),
+  }
+})
 
 // Mock the fetch API
 global.fetch = vi.fn()
@@ -170,6 +174,9 @@ describe("Chat API Token Tracking", () => {
       if (config.onFinish) onFinishCallback = config.onFinish
       if (config.onChunk) onChunkCallback = config.onChunk
       return {
+        toDataStreamResponse: vi
+          .fn()
+          .mockReturnValue(new Response("mock-stream")),
         toUIMessageStreamResponse: vi
           .fn()
           .mockReturnValue(new Response("mock-stream")),

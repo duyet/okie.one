@@ -108,14 +108,14 @@ export function ProjectView({ projectId }: ProjectViewProps) {
 
   const [input, setInput] = useState("")
 
-  const { messages, append: sendMessage, reload: regenerate, status, stop, setMessages } =
+  const { messages, sendMessage, regenerate, status, stop, setMessages } =
     useChat({
       id: `project-${projectId}-${currentChatId}`,
       api: API_ROUTE_CHAT,
-      messages: [],
+      initialMessages: [],
       onFinish: ({ message }) => cacheAndAddMessage(message),
       onError: handleError,
-    })
+    } as any)
 
   // Create v4 compatibility functions
   const handleSubmit = useCallback(

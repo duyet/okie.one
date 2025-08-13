@@ -58,3 +58,34 @@ export function getTextContent(parts?: MessagePart[]): string {
     .map((part) => part.text || "")
     .join("")
 }
+
+// Helper to convert UIMessage to legacy Message format
+export function uiMessageToMessage(uiMessage: UIMessage): Message {
+  return {
+    id: uiMessage.id,
+    role: uiMessage.role as "system" | "user" | "assistant" | "data",
+    content: getTextContent(uiMessage.parts as MessagePart[]),
+    parts: uiMessage.parts,
+    createdAt: uiMessage.createdAt,
+    // Preserve additional fields
+    ...(uiMessage as any),
+  }
+}
+
+// Helper to convert legacy Message to UIMessage format
+export function messageToUIMessage(message: Message): UIMessage {
+  const parts =
+    message.parts ||
+    (message.content ? [{ type: "text", text: message.content }] : [])
+
+  return {
+    id: message.id,
+    role: message.role === "data" ? "system" : message.role,
+    parts,
+    createdAt: message.createdAt,
+    // Preserve additional fields but exclude content
+    ...Object.fromEntries(
+      Object.entries(message).filter(([key]) => key !== "content")
+    ),
+  } as UIMessage
+}

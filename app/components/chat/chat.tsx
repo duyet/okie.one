@@ -3,8 +3,9 @@
 import { AnimatePresence, motion } from "motion/react"
 import dynamic from "next/dynamic"
 import { redirect } from "next/navigation"
-import { useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
+import type { Message } from "@/lib/ai-sdk-types"
 import { Conversation } from "@/app/components/chat/conversation"
 import { useModel } from "@/app/components/chat/use-model"
 import { ChatInput } from "@/app/components/chat-input/chat-input"
@@ -59,10 +60,30 @@ function ChatInner() {
   )
 
   const {
-    messages: initialMessages,
-    cacheAndAddMessage,
+    messages: rawMessages,
+    cacheAndAddMessage: originalCacheAndAddMessage,
     setHasActiveChatSession,
   } = useMessages()
+  
+  // Convert MessageAISDK[] to Message[] to ensure content property exists
+  const initialMessages = useMemo(
+    () => rawMessages as any as Message[],
+    [rawMessages]
+  )
+  
+  // Wrap cacheAndAddMessage to handle type conversion
+  const cacheAndAddMessage = useCallback(
+    (message: Message) => {
+      // Convert Message back to MessageAISDK format
+      const aiMessage = {
+        ...message,
+        role: message.role as "system" | "user" | "assistant",
+      }
+      originalCacheAndAddMessage(aiMessage as any)
+    },
+    [originalCacheAndAddMessage]
+  )
+  
   const { user } = useUser()
   const { preferences } = useUserPreferences()
   const { draftValue, clearDraft } = useChatDraft(chatId)

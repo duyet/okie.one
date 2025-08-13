@@ -269,7 +269,17 @@ ${mcpServer.getSystemPromptEnhancement()}`
       }),
       system: enhancedSystemPrompt,
       messages: convertToCoreMessages(
-        messages.filter((m) => m.role !== "data") as UIMessage[]
+        messages
+          .filter((m) => m.role !== "data")
+          .map((m) => ({
+            id: m.id,
+            role: m.role as "system" | "user" | "assistant",
+            content: m.content || "",
+            parts: (m as any).parts || [
+              { type: "text", text: m.content || "" },
+            ],
+            experimental_attachments: m.experimental_attachments,
+          }))
       ),
       tools: apiTools,
       onError: (err: unknown) => {

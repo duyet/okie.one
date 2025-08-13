@@ -470,7 +470,19 @@ export function useChatCore({
 
   // For new chats (chatId is null), use empty messages to avoid conflicts
   // For existing chats (chatId exists), use initialMessages from the provider
-  const effectiveInitialMessages = chatId ? initialMessages : []
+  // Filter out "data" role messages and convert to UIMessage format
+  const effectiveInitialMessages = useMemo(
+    () =>
+      chatId
+        ? (initialMessages
+            .filter((m) => m.role !== "data")
+            .map((m) => ({
+              ...m,
+              role: m.role as "system" | "user" | "assistant",
+            })) as any)
+        : [],
+    [chatId, initialMessages]
+  )
 
   // Initialize useChat with v5 transport
   const [input, setInput] = useState(draftValue)
@@ -484,23 +496,23 @@ export function useChatCore({
     setMessages,
   } = useChat({
     api: API_ROUTE_CHAT,
-    messages: effectiveInitialMessages,
-    onFinish: ({ message }) => {
+    initialMessages: effectiveInitialMessages,
+    onFinish: ({ message }: any) => {
       console.log("🔍 useChat onFinish:", message)
       // Message already processed by streaming, just cache it
       const messageWithContent: Message = {
         ...message,
         content:
           message.parts
-            ?.filter((p) => p.type === "text")
-            ?.map((p) => (p as any).text)
+            ?.filter((p: any) => p.type === "text")
+            ?.map((p: any) => (p as any).text)
             ?.join("") || "",
-      }
+      } as Message
       cacheAndAddMessage(messageWithContent)
     },
     onError: handleError,
     // Add tool invocation callbacks for streaming
-    onToolCall: (toolCall) => {
+    onToolCall: (toolCall: any) => {
       console.log("🔧 Tool call during streaming:", toolCall)
 
       // Create a temporary message ID for streaming if no current message exists
@@ -535,7 +547,7 @@ export function useChatCore({
         [messageId]: [...(prev[messageId] || []), toolCall],
       }))
     },
-  })
+  } as any)
 
   // Create handleSubmit and append functions for v5 compatibility
   const handleSubmit = useCallback(
@@ -546,7 +558,7 @@ export function useChatCore({
           role: "user",
           content: input,
           parts: [{ type: "text", text: input }],
-        } as UIMessage)
+        } as any)
         setInput("")
       }
     },
@@ -582,10 +594,10 @@ export function useChatCore({
         ...message,
         content:
           message.parts
-            ?.filter((p) => p.type === "text")
-            ?.map((p) => (p as any).text)
+            ?.filter((p: any) => p.type === "text")
+            ?.map((p: any) => (p as any).text)
             ?.join("") || "",
-      }
+      } as Message
       // Apply both processing functions in sequence
       const withToolInvocations =
         processStreamingToolInvocations(messageWithContent)

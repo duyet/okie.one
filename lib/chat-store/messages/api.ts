@@ -1,4 +1,5 @@
 import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
+import { messageToUIMessage } from "@/lib/ai-sdk-types"
 
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
@@ -32,15 +33,16 @@ export async function getMessagesFromDb(
 
   return data
     .filter((message) => message.role !== "data") // Filter out "data" role messages
-    .map((message) => ({
-      ...message,
-      id: String(message.id),
-      role: message.role as "system" | "user" | "assistant",
-      content: message.content || "",
-      parts: (message?.parts as MessageAISDK["parts"]) || [
-        { type: "text", text: message.content ?? "" },
-      ],
-    }))
+    .map((message) =>
+      messageToUIMessage({
+        ...message,
+        id: String(message.id),
+        role: message.role as "system" | "user" | "assistant",
+        content: message.content || "",
+        parts: (message?.parts as any) || undefined,
+        model: message.model || undefined,
+      })
+    )
 }
 
 async function insertMessageToDb(chatId: string, message: MessageAISDK) {
