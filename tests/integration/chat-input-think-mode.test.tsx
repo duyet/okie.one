@@ -13,7 +13,7 @@ vi.mock("@/lib/models", () => ({
         id: "claude-3.5-sonnet",
         name: "Claude 3.5 Sonnet",
         provider: "Anthropic",
-        reasoning: true,
+        reasoningText: true,
         webSearch: false,
         vision: true,
         tools: true,
@@ -24,7 +24,7 @@ vi.mock("@/lib/models", () => ({
         id: "gpt-4o",
         name: "GPT-4o",
         provider: "OpenAI",
-        reasoning: false,
+        reasoningText: false,
         webSearch: true,
         vision: true,
         tools: false, // Change to false so it doesn't show think button
@@ -35,7 +35,7 @@ vi.mock("@/lib/models", () => ({
         id: "deepseek-reasoner",
         name: "DeepSeek Reasoner",
         provider: "DeepSeek",
-        reasoning: true,
+        reasoningText: true,
         webSearch: false,
         vision: false,
         tools: true, // Change to true so it shows think button

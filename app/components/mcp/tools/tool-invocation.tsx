@@ -1,6 +1,6 @@
 "use client"
 
-import type { ToolInvocationUIPart } from "@ai-sdk/ui-utils"
+// ToolInvocationUIPart removed in v5 - using custom type
 import {
   CaretDown,
   CheckCircle,
@@ -15,8 +15,20 @@ import { useMemo, useState } from "react"
 
 import { cn } from "@/lib/utils"
 
+// Define ToolInvocationUIPart type for v5 compatibility
+interface ToolInvocationUIPart {
+  type: "tool-invocation"
+  toolInvocation: {
+    state: string
+    toolName: string
+    toolCallId: string
+    args?: Record<string, unknown>
+    result?: Record<string, unknown>
+  }
+}
+
 interface ToolInvocationProps {
-  toolInvocations: ToolInvocationUIPart[]
+  toolInvocations: any[]
   className?: string
   defaultOpen?: boolean
 }
@@ -152,15 +164,16 @@ function SingleToolView({
 
   // For each toolCallId, get the most informative state (result > call > requested)
   const toolsToDisplay = Object.values(groupedTools)
-    .map((group) => {
+    .map((group: ToolInvocationUIPart[]) => {
       const resultTool = group.find(
-        (item) => item.toolInvocation.state === "result"
+        (item: ToolInvocationUIPart) => item.toolInvocation.state === "result"
       )
       const callTool = group.find(
-        (item) => item.toolInvocation.state === "call"
+        (item: ToolInvocationUIPart) => item.toolInvocation.state === "call"
       )
       const partialCallTool = group.find(
-        (item) => item.toolInvocation.state === "partial-call"
+        (item: ToolInvocationUIPart) =>
+          item.toolInvocation.state === "partial-call"
       )
 
       // Return the most informative one
@@ -227,9 +240,11 @@ function SingleToolCard({
         result !== null &&
         "content" in result
       ) {
-        const textContent = result.content?.find(
-          (item: { type: string }) => item.type === "text"
-        )
+        const textContent = Array.isArray(result.content)
+          ? result.content.find(
+              (item: { type: string }) => item.type === "text"
+            )
+          : null
         if (!textContent?.text) return { parsedResult: null, parseError: null }
 
         try {

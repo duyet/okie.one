@@ -159,7 +159,9 @@ describe("MCP Preferences Integration", () => {
             hidden_models: [],
             mcp_settings: {
               "sequential-thinking": false,
-              ...(typeof body === "object" && body !== null && "mcp_settings" in body
+              ...(typeof body === "object" &&
+              body !== null &&
+              "mcp_settings" in body
                 ? // biome-ignore lint/suspicious/noExplicitAny: Request body type is dynamic
                   (body as any).mcp_settings
                 : {}),
@@ -207,7 +209,9 @@ describe("MCP Preferences Integration", () => {
             mcp_settings: {
               "sequential-thinking": true,
               "new-server": true,
-              ...(typeof body === "object" && body !== null && "mcp_settings" in body
+              ...(typeof body === "object" &&
+              body !== null &&
+              "mcp_settings" in body
                 ? // biome-ignore lint/suspicious/noExplicitAny: Request body type is dynamic
                   (body as any).mcp_settings
                 : {}),
@@ -236,7 +240,7 @@ describe("MCP Preferences Integration", () => {
       // This test is flaky due to timing issues with React Query optimistic updates
       // The core functionality works correctly but the test has race conditions
       // Skipping for now to prevent CI failures
-      
+
       const wrapper = createWrapper()
       const { result } = renderHook(() => useUserPreferences(), { wrapper })
 
@@ -262,7 +266,7 @@ describe("MCP Preferences Integration", () => {
       })
 
       // Wait a bit for the error handling to complete
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise((resolve) => setTimeout(resolve, 100))
 
       // State should remain unchanged after error with more generous timeout
       await waitFor(
@@ -317,7 +321,7 @@ describe("MCP Preferences Integration", () => {
     test("uses localStorage for anonymous users", async () => {
       // Mock localStorage to return stored preferences with explicit false for sequential-thinking
       // biome-ignore lint/suspicious/noExplicitAny: Mock function requires any
-      (localStorageMock.getItem as any).mockReturnValue(
+      ;(localStorageMock.getItem as any).mockReturnValue(
         JSON.stringify({
           layout: "fullscreen",
           promptSuggestions: true,
@@ -395,7 +399,9 @@ describe("MCP Preferences Integration", () => {
             hidden_models: [],
             mcp_settings: {
               "sequential-thinking": false,
-              ...(typeof body === "object" && body !== null && "mcp_settings" in body
+              ...(typeof body === "object" &&
+              body !== null &&
+              "mcp_settings" in body
                 ? // biome-ignore lint/suspicious/noExplicitAny: Request body type is dynamic
                   (body as any).mcp_settings
                 : {}),

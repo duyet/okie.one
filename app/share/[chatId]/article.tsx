@@ -1,4 +1,4 @@
-import type { Message as MessageAISDK } from "@ai-sdk/react"
+import type { UIMessage, Message as MessageAISDK } from "@/lib/ai-sdk-types"
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
 import Link from "next/link"
 

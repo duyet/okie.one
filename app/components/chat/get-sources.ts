@@ -1,9 +1,11 @@
-import type { Message as MessageAISDK } from "@ai-sdk/react"
+import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
 
 export function getSources(parts: MessageAISDK["parts"]) {
   const sources = parts
     ?.filter(
-      (part) => part.type === "source" || part.type === "tool-invocation"
+      (part) =>
+        (part as { type?: string }).type === "source" ||
+        (part as { type?: string }).type === "tool-invocation"
     )
     .map((part) => {
       if (part.type === "source") {

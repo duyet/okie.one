@@ -99,7 +99,7 @@ async function detectOllamaModels(): Promise<ModelConfig[]> {
         vision: checkVisionCapability(modelName, family),
         tools: true, // Most modern models support tools
         audio: false, // Audio support is rare in local models
-        reasoning: checkReasoningCapability(family),
+        reasoningText: checkReasoningCapability(family),
         openSource: true, // All Ollama models are open source
         speed: estimateSpeed(parameterSize, sizeInGB),
         intelligence: estimateIntelligence(family, parameterSize),
@@ -282,7 +282,7 @@ const staticOllamaModels: ModelConfig[] = [
     vision: false,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     openSource: true,
     speed: "Fast",
     intelligence: "High",
@@ -309,7 +309,7 @@ const staticOllamaModels: ModelConfig[] = [
     vision: false,
     tools: true,
     audio: false,
-    reasoning: true,
+    reasoningText: true,
     openSource: true,
     speed: "Fast",
     intelligence: "High",

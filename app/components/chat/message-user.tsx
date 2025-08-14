@@ -1,6 +1,5 @@
 "use client"
 
-import type { Message as MessageType } from "@ai-sdk/react"
 import { Check, Copy, Trash } from "@phosphor-icons/react"
 import type { Transition } from "motion/react"
 import Image from "next/image"
@@ -30,7 +29,11 @@ const getTextFromDataUrl = (dataUrl: string) => {
 
 export type MessageUserProps = {
   hasScrollAnchor?: boolean
-  attachments?: MessageType["experimental_attachments"]
+  attachments?: Array<{
+    name?: string
+    contentType?: string
+    url: string
+  }>
   children: string
   copied: boolean
   copyToClipboard: () => void
@@ -82,50 +85,55 @@ export function MessageUser({
         className
       )}
     >
-      {attachments?.map((attachment, index) => (
-        <div
-          className="flex flex-row gap-2"
-          key={`${attachment.name}-${index}`}
-        >
-          {attachment.contentType?.startsWith("image") ? (
-            <MorphingDialog
-              transition={
-                {
-                  type: "spring",
-                  stiffness: 280,
-                  damping: 18,
-                  mass: 0.3,
-                } as Transition
-              }
-            >
-              <MorphingDialogTrigger className="z-10">
-                <Image
-                  className="mb-1 w-40 rounded-md"
-                  key={attachment.name}
-                  src={attachment.url}
-                  alt={attachment.name || "Attachment"}
-                  width={160}
-                  height={120}
-                />
-              </MorphingDialogTrigger>
-              <MorphingDialogContainer>
-                <MorphingDialogContent className="relative rounded-lg">
-                  <MorphingDialogImage
+      {attachments?.map(
+        (
+          attachment: { name?: string; contentType?: string; url: string },
+          index: number
+        ) => (
+          <div
+            className="flex flex-row gap-2"
+            key={`${attachment.name}-${index}`}
+          >
+            {attachment.contentType?.startsWith("image") ? (
+              <MorphingDialog
+                transition={
+                  {
+                    type: "spring",
+                    stiffness: 280,
+                    damping: 18,
+                    mass: 0.3,
+                  } as Transition
+                }
+              >
+                <MorphingDialogTrigger className="z-10">
+                  <Image
+                    className="mb-1 w-40 rounded-md"
+                    key={attachment.name}
                     src={attachment.url}
-                    alt={attachment.name || ""}
-                    className="max-h-[90vh] max-w-[90vw] object-contain"
+                    alt={attachment.name || "Attachment"}
+                    width={160}
+                    height={120}
                   />
-                </MorphingDialogContent>
-                <MorphingDialogClose className="text-primary" />
-              </MorphingDialogContainer>
-            </MorphingDialog>
-          ) : attachment.contentType?.startsWith("text") ? (
-            <div className="mb-3 h-24 w-40 overflow-hidden rounded-md border p-2 text-primary text-xs">
-              {getTextFromDataUrl(attachment.url)}
-            </div>
-          ) : null}
-        </div>
-      ))}
+                </MorphingDialogTrigger>
+                <MorphingDialogContainer>
+                  <MorphingDialogContent className="relative rounded-lg">
+                    <MorphingDialogImage
+                      src={attachment.url}
+                      alt={attachment.name || ""}
+                      className="max-h-[90vh] max-w-[90vw] object-contain"
+                    />
+                  </MorphingDialogContent>
+                  <MorphingDialogClose className="text-primary" />
+                </MorphingDialogContainer>
+              </MorphingDialog>
+            ) : attachment.contentType?.startsWith("text") ? (
+              <div className="mb-3 h-24 w-40 overflow-hidden rounded-md border p-2 text-primary text-xs">
+                {getTextFromDataUrl(attachment.url)}
+              </div>
+            ) : null}
+          </div>
+        )
+      )}
       {isEditing ? (
         <div
           className="relative flex min-w-[180px] flex-col gap-2 rounded-3xl bg-accent px-5 py-2.5"

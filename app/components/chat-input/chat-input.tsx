@@ -66,7 +66,7 @@ export function ChatInput({
   const selectModelConfig = getModelInfo(selectedModel)
   const hasSearchSupport = Boolean(selectModelConfig?.webSearch)
   const hasThinkingSupport = Boolean(selectModelConfig?.tools)
-  const hasNativeReasoning = Boolean(selectModelConfig?.reasoning)
+  const hasNativeReasoning = Boolean(selectModelConfig?.reasoningText)
 
   useEffect(() => {
     setIsMounted(true)
