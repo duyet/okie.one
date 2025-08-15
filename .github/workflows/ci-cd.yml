@@ -208,7 +208,7 @@ jobs:
           restore-keys: |
             deps-${{ hashFiles('**/pnpm-lock.yaml') }}
             deps-
-          fail-on-cache-miss: true
+          fail-on-cache-miss: false
 
       - name: Cache TypeScript
         uses: actions/cache@v4
@@ -261,7 +261,7 @@ jobs:
           restore-keys: |
             deps-${{ hashFiles('**/pnpm-lock.yaml') }}
             deps-
-          fail-on-cache-miss: true
+          fail-on-cache-miss: false
 
       - name: Cache Vitest
         uses: actions/cache@v4
