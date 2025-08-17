@@ -18,8 +18,8 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(zod@3.25.76)
       '@ai-sdk/openai':
-        specifier: ^2.0.2
-        version: 2.0.2(zod@3.25.76)
+        specifier: ^2.0.13
+        version: 2.0.13(zod@3.25.76)
       '@ai-sdk/perplexity':
         specifier: ^2.0.0
         version: 2.0.0(zod@3.25.76)
@@ -318,8 +318,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4
 
-  '@ai-sdk/openai@2.0.2':
-    resolution: {integrity: sha512-D4zYz2uR90aooKQvX1XnS00Z7PkbrcY+snUvPfm5bCabTG7bzLrVtD56nJ5bSaZG8lmuOMfXpyiEEArYLyWPpw==}
+  '@ai-sdk/openai@2.0.13':
+    resolution: {integrity: sha512-xt9C0Mg3+ytKnHrXFPR4JeV/V2GWaP7Awgok8eAuFHNcb9jShBLtSO0B3vNm1PtxJOwmT85tzOkZam/fRgHdYw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -344,6 +344,12 @@ packages:
 
   '@ai-sdk/provider-utils@3.0.1':
     resolution: {integrity: sha512-/iP1sKc6UdJgGH98OCly7sWJKv+J9G47PnTjIj40IJMUQKwDrUMyf7zOOfRtPwSuNifYhSoJQ4s1WltI65gJ/g==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4
+
+  '@ai-sdk/provider-utils@3.0.3':
+    resolution: {integrity: sha512-kAxIw1nYmFW1g5TvE54ZB3eNtgZna0RnLjPUp1ltz1+t9xkXJIuDT4atrwfau9IbS0BOef38wqrI8CjFfQrxhw==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -4925,10 +4931,10 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.0(zod@3.25.76)
       zod: 3.25.76
 
-  '@ai-sdk/openai@2.0.2(zod@3.25.76)':
+  '@ai-sdk/openai@2.0.13(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
-      '@ai-sdk/provider-utils': 3.0.0(zod@3.25.76)
+      '@ai-sdk/provider-utils': 3.0.3(zod@3.25.76)
       zod: 3.25.76
 
   '@ai-sdk/perplexity@2.0.0(zod@3.25.76)':
@@ -4953,6 +4959,14 @@ snapshots:
       zod-to-json-schema: 3.24.6(zod@3.25.76)
 
   '@ai-sdk/provider-utils@3.0.1(zod@3.25.76)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@standard-schema/spec': 1.0.0
+      eventsource-parser: 3.0.3
+      zod: 3.25.76
+      zod-to-json-schema: 3.24.6(zod@3.25.76)
+
+  '@ai-sdk/provider-utils@3.0.3(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
       '@standard-schema/spec': 1.0.0
