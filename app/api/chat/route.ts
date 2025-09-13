@@ -322,9 +322,7 @@ ${mcpServer.getSystemPromptEnhancement()}`
           effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
       }),
       system: enhancedSystemPrompt,
-      messages: convertToModelMessages(
-        messages.filter((m) => m.role !== "data")
-      ),
+      messages: convertToModelMessages(messages),
       tools: apiTools,
       maxOutputTokens: 8192, // Modern token limit for better responses
       onError: (err: unknown) => {
