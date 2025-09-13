@@ -1,6 +1,10 @@
-// Attachment type removed in v5 - using file parts instead
-import { streamText, type ToolSet, convertToCoreMessages } from "ai"
-import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
+// AI SDK v5 - State-of-the-art streaming chat implementation
+import {
+  streamText,
+  convertToModelMessages,
+  type ToolSet,
+  type UIMessage,
+} from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -25,22 +29,7 @@ type ExtendedUsage = {
   cachedTokens?: number
 }
 
-// Extended message type to handle parts property
-type ExtendedMessage = {
-  id: string
-  role: string
-  content?: string
-  parts?: Array<{ type: string; text?: string; [key: string]: unknown }>
-  experimental_attachments?: unknown
-}
-
-// Stream result type with toDataStreamResponse method
-type StreamResult = {
-  toDataStreamResponse?: (options?: {
-    sendReasoning?: boolean
-    sendSources?: boolean
-  }) => Response
-}
+// AI SDK v5 - Simplified types, leveraging built-in UIMessage format
 
 import {
   incrementMessageCount,
@@ -54,15 +43,16 @@ export const maxDuration = 60
 
 type ToolConfig = { type: "mcp"; name: string } | { type: "web_search" }
 
+// AI SDK v5 - Modern chat request format
 type ChatRequest = {
-  messages: MessageAISDK[]
+  messages: UIMessage[]
   chatId: string
   userId: string
   model: string
   isAuthenticated: boolean
   systemPrompt: string
   tools?: ToolConfig[]
-  enableThink?: boolean // Native thinking capability - separate from tools
+  enableThink?: boolean // Native thinking capability
   // Legacy support - will be deprecated
   enableSearch?: boolean
   thinkingMode?: "none" | "regular" | "sequential"
@@ -121,10 +111,46 @@ export async function POST(req: Request) {
       thinkingMode,
     })
 
-    if (!messages || !chatId || !userId) {
+    // Enhanced validation with specific error messages
+    const missingFields: string[] = []
+
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+      missingFields.push("messages (must be non-empty array)")
+    }
+    if (!chatId) {
+      missingFields.push("chatId or id")
+    }
+    if (!userId) {
+      missingFields.push("userId")
+    }
+    if (!model) {
+      missingFields.push("model")
+    }
+
+    if (missingFields.length > 0) {
+      const errorMessage = `Missing required fields: ${missingFields.join(", ")}. Please provide all required fields in the request body.`
+      apiLogger.error("Request validation failed", {
+        missingFields,
+        receivedFields: Object.keys(requestBody),
+      })
+
       return new Response(
-        JSON.stringify({ error: "Error, missing information" }),
-        { status: 400 }
+        JSON.stringify({
+          error: errorMessage,
+          missingFields,
+          // Help developers understand the current API format
+          expectedFormat: {
+            messages: "[{role: 'user', content: '...', parts: [...]}]",
+            chatId: "string (required)",
+            userId: "string (required)",
+            model: "string (required)",
+            isAuthenticated: "boolean (required)",
+            systemPrompt: "string (required)",
+            tools: "[{type: 'web_search' | 'mcp', name?: string}] (optional)",
+            thinkingMode: "'none' | 'regular' | 'sequential' (optional)",
+          },
+        }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
       )
     }
 
@@ -288,6 +314,7 @@ ${mcpServer.getSystemPromptEnhancement()}`
       }
     }
 
+    // AI SDK v5 - State-of-the-art streaming implementation
     const result = streamText({
       model: modelConfig.apiSdk(apiKey, {
         enableSearch: enabledCapabilities.webSearch,
@@ -295,20 +322,11 @@ ${mcpServer.getSystemPromptEnhancement()}`
           effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
       }),
       system: enhancedSystemPrompt,
-      messages: convertToCoreMessages(
-        messages
-          .filter((m) => m.role !== "data")
-          .map((m) => ({
-            id: m.id,
-            role: m.role as "system" | "user" | "assistant",
-            content: m.content || "",
-            parts: (m as ExtendedMessage).parts || [
-              { type: "text", text: m.content || "" },
-            ],
-            experimental_attachments: m.experimental_attachments,
-          })) as never
+      messages: convertToModelMessages(
+        messages.filter((m) => m.role !== "data")
       ),
       tools: apiTools,
+      maxOutputTokens: 8192, // Modern token limit for better responses
       onError: (err: unknown) => {
         apiLogger.error("Streaming error occurred", { error: err })
 
@@ -451,9 +469,30 @@ ${mcpServer.getSystemPromptEnhancement()}`
       },
     })
 
-    return (result as StreamResult).toDataStreamResponse?.({
-      sendReasoning: true,
-      sendSources: true,
+    // AI SDK v5 - Modern streaming response with enhanced features
+    return result.toUIMessageStreamResponse({
+      originalMessages: messages,
+      onFinish: async ({ messages: finishedMessages }) => {
+        // Enhanced message persistence with proper AI SDK v5 format
+        if (supabase) {
+          try {
+            const finalMessage = finishedMessages[finishedMessages.length - 1]
+            if (finalMessage?.role === "assistant") {
+              await storeAssistantMessage({
+                supabase,
+                chatId,
+                messages:
+                  finishedMessages as unknown as import("@/app/types/api.types").Message[],
+                message_group_id,
+                model,
+                artifactParts: [], // Will be processed separately if needed
+              })
+            }
+          } catch (error) {
+            apiLogger.error("Failed to store assistant message", { error })
+          }
+        }
+      },
     })
   } catch (err: unknown) {
     apiLogger.error("Error in /api/chat", { error: err })
