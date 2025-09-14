@@ -80,7 +80,7 @@ function ChatInner() {
         ...message,
         role: message.role as "system" | "user" | "assistant",
       }
-      originalCacheAndAddMessage(aiMessage as any)
+      originalCacheAndAddMessage(aiMessage)
     },
     [originalCacheAndAddMessage]
   )

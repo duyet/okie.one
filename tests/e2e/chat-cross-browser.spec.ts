@@ -65,6 +65,10 @@ const crossBrowserConfigs = [
 // Create individual test projects for each configuration
 // Note: This approach avoids the test.use() in describe block issue
 
+crossBrowserConfigs.forEach((config) => {
+  test.describe(`Cross-Browser Tests - ${config.name}`, () => {
+    test.use(config.device)
+
     test.beforeEach(async ({ page }) => {
       await prepareTestEnvironment(page, {
         clearState: true,
@@ -378,7 +382,7 @@ const crossBrowserConfigs = [
       }
     })
   })
-}
+})
 
 // Additional cross-browser compatibility tests
 test.describe("Cross-Browser Compatibility Features", () => {
@@ -407,7 +411,9 @@ test.describe("Cross-Browser Compatibility Features", () => {
 
       try {
         // Set user agent
-        await page.setUserAgent(agent.ua)
+        await page.setExtraHTTPHeaders({
+          "User-Agent": agent.ua,
+        })
 
         // Navigate to app
         await page.goto("/")
