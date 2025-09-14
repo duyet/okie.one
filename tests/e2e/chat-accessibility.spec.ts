@@ -560,9 +560,9 @@ test.describe("Chat Accessibility Tests", () => {
       })
 
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
       await chatInput.fill("Error announcement test")
+      const sendButton = await waitForSendButton(page, { timeout: 15000 })
       await sendButton.click()
 
       // Wait for error handling

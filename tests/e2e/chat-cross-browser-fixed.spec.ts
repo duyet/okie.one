@@ -67,7 +67,6 @@ test.describe("Cross-Browser Compatibility Tests", () => {
       await setupMockAIResponse(page, "Input method test successful!")
 
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
       // Test different input methods
       const testMessage = "Input method compatibility test"
@@ -122,7 +121,10 @@ test.describe("Cross-Browser Compatibility Tests", () => {
         const chatInput = await waitForChatInput(page, { timeout: 15000 })
         await expect(chatInput).toBeVisible()
 
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
+        const sendButton = await waitForSendButton(page, {
+          timeout: 15000,
+          waitForEnabled: false,
+        })
         await expect(sendButton).toBeVisible()
 
         // Check element dimensions
@@ -156,7 +158,6 @@ test.describe("Cross-Browser Compatibility Tests", () => {
 
     try {
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
       // Test Tab navigation
       await chatInput.focus()
@@ -206,10 +207,10 @@ test.describe("Cross-Browser Compatibility Tests", () => {
       })
 
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
       const testMessage = "Error handling test"
       await chatInput.fill(testMessage)
+      const sendButton = await waitForSendButton(page, { timeout: 15000 })
       await sendButton.click()
 
       // Wait for error handling
