@@ -55,7 +55,7 @@ const crossBrowserConfigs = [
   },
   {
     name: "Tablet",
-    device: devices["iPad Pro"],
+    device: devices["iPad Pro 11"],
     isMobile: false, // Tablet treated as desktop-like
     hasTouch: true,
     description: "Tablet touch and larger screen testing",
@@ -63,323 +63,343 @@ const crossBrowserConfigs = [
 ]
 
 // Create individual test projects for each configuration
-// Note: This approach avoids the test.use() in describe block issue
+// Note: Moving test.use() calls outside of describe blocks to avoid Playwright limitation
 
-crossBrowserConfigs.forEach((config) => {
-  test.describe(`Cross-Browser Tests - ${config.name}`, () => {
-    test.use(config.device)
+test.describe("Cross-Browser Tests", () => {
+  crossBrowserConfigs.forEach((config) => {
+    test.describe(`${config.name}`, () => {
+      test.beforeEach(async ({ page }) => {
+        // Set device configuration manually per test
+        if (config.device?.userAgent) {
+          await page.setExtraHTTPHeaders({
+            "User-Agent": config.device.userAgent,
+          })
+        }
+        if (config.device?.viewport) {
+          await page.setViewportSize(config.device.viewport)
+        }
 
-    test.beforeEach(async ({ page }) => {
-      await prepareTestEnvironment(page, {
-        clearState: true,
-        timeout: 60000,
-        enableMockResponses: true,
+        await prepareTestEnvironment(page, {
+          clearState: true,
+          timeout: 60000,
+          enableMockResponses: true,
+        })
       })
-    })
 
-    test(`should handle basic chat functionality on ${config.name}`, async ({
-      page,
-    }) => {
-      console.log(`🌐 Testing basic chat on ${config.name}...`)
-
-      try {
-        await setupMockAIResponse(
-          page,
-          `Hello from ${config.name}! Chat is working.`
-        )
-
-        // Basic message sending test
-        const testMessage = `Testing on ${config.name}`
-        await sendMessage(page, testMessage)
-
-        // Verify navigation and message display
-        await expect(page).toHaveURL(/\/c\/[a-f0-9-]+/, { timeout: 20000 })
-        await expect(page.getByText(testMessage)).toBeVisible({
-          timeout: 15000,
-        })
-
-        // Wait for AI response
-        const responseResult = await waitForAIResponse(page, {
-          timeout: 30000,
-          expectResponse: true,
-        })
-
-        expect(responseResult.hasResponse).toBe(true)
-
-        console.log(`✅ Basic chat functionality works on ${config.name}`)
-      } catch (error) {
-        console.error(`❌ Basic chat failed on ${config.name}:`, error)
-        await takeDebugScreenshot(
-          page,
-          `basic-chat-failed-${config.name.replace(/\s+/g, "-")}`
-        )
-        throw error
-      }
-    })
-
-    test(`should handle input interactions properly on ${config.name}`, async ({
-      page,
-    }) => {
-      console.log(`⌨️ Testing input interactions on ${config.name}...`)
-
-      const capture = setupNetworkCapture(page)
-
-      try {
-        await setupMockAIResponse(page, "Input interaction test successful!")
-
-        const chatInput = await waitForChatInput(page, { timeout: 30000 })
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
-
-        // Test different input methods based on device capabilities
-        const testMessage = `Input test on ${config.name}`
-
-        if (config.hasTouch) {
-          console.log("📱 Testing touch interactions...")
-
-          // Test tap to focus
-          await chatInput.tap()
-          await expect(chatInput).toBeFocused()
-
-          // Test typing on touch device
-          await chatInput.fill(testMessage)
-
-          // Test tap to send
-          await sendButton.tap()
-        } else {
-          console.log("🖱️ Testing mouse and keyboard interactions...")
-
-          // Test click to focus
-          await chatInput.click()
-          await expect(chatInput).toBeFocused()
-
-          // Test typing
-          await chatInput.type(testMessage, { delay: 50 })
-
-          // Test Enter key submission
-          await chatInput.press("Enter")
-        }
-
-        // Verify message was sent regardless of input method
-        await expect(page).toHaveURL(/\/c\/[a-f0-9-]+/, { timeout: 20000 })
-        await expect(page.getByText(testMessage)).toBeVisible({
-          timeout: 15000,
-        })
-
-        console.log(`✅ Input interactions work on ${config.name}`)
-      } catch (error) {
-        console.error(`❌ Input interactions failed on ${config.name}:`, error)
-        await takeDebugScreenshot(
-          page,
-          `input-failed-${config.name.replace(/\s+/g, "-")}`
-        )
-        throw error
-      }
-    })
-
-    test(`should handle responsive design on ${config.name}`, async ({
-      page,
-    }) => {
-      console.log(`📐 Testing responsive design on ${config.name}...`)
-
-      try {
-        // Get viewport information
-        const viewport = await page.viewportSize()
-        console.log(`Viewport: ${viewport?.width}x${viewport?.height}`)
-
-        // Test that UI elements are properly sized and accessible
-        const chatInput = await waitForChatInput(page, { timeout: 30000 })
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
-
-        // Verify elements are visible and properly sized
-        const chatInputBox = await chatInput.boundingBox()
-        const sendButtonBox = await sendButton.boundingBox()
-
-        expect(chatInputBox).not.toBeNull()
-        expect(sendButtonBox).not.toBeNull()
-
-        if (chatInputBox && sendButtonBox) {
-          // Input should be reasonably sized
-          expect(chatInputBox.width).toBeGreaterThan(100)
-          expect(chatInputBox.height).toBeGreaterThan(30)
-
-          // Send button should be accessible size (at least 44px for touch)
-          if (config.hasTouch) {
-            expect(sendButtonBox.width).toBeGreaterThan(40)
-            expect(sendButtonBox.height).toBeGreaterThan(40)
-          }
-
-          console.log(
-            `📏 Element sizes: Input ${chatInputBox.width}x${chatInputBox.height}, Button ${sendButtonBox.width}x${sendButtonBox.height}`
-          )
-        }
-
-        // Test that elements don't overflow or get cut off
-        const isInputVisible = await chatInput.isVisible()
-        const isButtonVisible = await sendButton.isVisible()
-
-        expect(isInputVisible).toBe(true)
-        expect(isButtonVisible).toBe(true)
-
-        console.log(`✅ Responsive design works on ${config.name}`)
-      } catch (error) {
-        console.error(`❌ Responsive design failed on ${config.name}:`, error)
-        await takeDebugScreenshot(
-          page,
-          `responsive-failed-${config.name.replace(/\s+/g, "-")}`
-        )
-        throw error
-      }
-    })
-
-    test(`should handle keyboard navigation on ${config.name}`, async ({
-      page,
-    }) => {
-      console.log(`⌨️ Testing keyboard navigation on ${config.name}...`)
-
-      try {
-        const chatInput = await waitForChatInput(page, { timeout: 30000 })
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
-
-        // Test Tab navigation
-        await chatInput.focus()
-        await expect(chatInput).toBeFocused()
-
-        // Tab to next element (should be send button or related element)
-        await page.keyboard.press("Tab")
-
-        // Check if send button got focus or if focus moved to another interactive element
-        const focusedElement = await page.evaluate(
-          () => document.activeElement?.tagName
-        )
-        expect(focusedElement).toBeTruthy()
-
-        // Test Shift+Tab (reverse navigation)
-        await page.keyboard.press("Shift+Tab")
-        await expect(chatInput).toBeFocused()
-
-        // Test escape key (should not break anything)
-        await page.keyboard.press("Escape")
-
-        // Input should still be functional
-        await chatInput.fill("Keyboard navigation test")
-        const inputValue = await chatInput.inputValue()
-        expect(inputValue).toBe("Keyboard navigation test")
-
-        console.log(`✅ Keyboard navigation works on ${config.name}`)
-      } catch (error) {
-        console.error(`❌ Keyboard navigation failed on ${config.name}:`, error)
-        await takeDebugScreenshot(
-          page,
-          `keyboard-failed-${config.name.replace(/\s+/g, "-")}`
-        )
-        throw error
-      }
-    })
-
-    if (config.isMobile) {
-      test(`should handle mobile-specific features on ${config.name}`, async ({
+      test(`should handle basic chat functionality on ${config.name}`, async ({
         page,
       }) => {
-        console.log(`📱 Testing mobile-specific features on ${config.name}...`)
+        console.log(`🌐 Testing basic chat on ${config.name}...`)
 
         try {
-          await setupMockAIResponse(page, "Mobile test successful!")
+          await setupMockAIResponse(
+            page,
+            `Hello from ${config.name}! Chat is working.`
+          )
 
-          const chatInput = await waitForChatInput(page, { timeout: 30000 })
+          // Basic message sending test
+          const testMessage = `Testing on ${config.name}`
+          await sendMessage(page, testMessage)
 
-          // Test virtual keyboard handling
-          console.log("⌨️ Testing virtual keyboard interaction...")
-
-          // Focus should bring up virtual keyboard
-          await chatInput.tap()
-          await expect(chatInput).toBeFocused()
-
-          // Type and verify (virtual keyboard interaction)
-          const mobileMessage = "Testing mobile keyboard"
-          await chatInput.fill(mobileMessage)
-
-          const inputValue = await chatInput.inputValue()
-          expect(inputValue).toBe(mobileMessage)
-
-          // Test that UI remains accessible with virtual keyboard
-          const sendButton = await waitForSendButton(page, { timeout: 15000 })
-          const isButtonVisible = await sendButton.isVisible()
-          expect(isButtonVisible).toBe(true)
-
-          // Test submission
-          await sendButton.tap()
-
-          // Verify message sending works
+          // Verify navigation and message display
           await expect(page).toHaveURL(/\/c\/[a-f0-9-]+/, { timeout: 20000 })
-          await expect(page.getByText(mobileMessage)).toBeVisible({
+          await expect(page.getByText(testMessage)).toBeVisible({
             timeout: 15000,
           })
 
-          console.log(`✅ Mobile-specific features work on ${config.name}`)
+          // Wait for AI response
+          const responseResult = await waitForAIResponse(page, {
+            timeout: 30000,
+            expectResponse: true,
+          })
+
+          expect(responseResult.hasResponse).toBe(true)
+
+          console.log(`✅ Basic chat functionality works on ${config.name}`)
         } catch (error) {
-          console.error(`❌ Mobile features failed on ${config.name}:`, error)
+          console.error(`❌ Basic chat failed on ${config.name}:`, error)
           await takeDebugScreenshot(
             page,
-            `mobile-failed-${config.name.replace(/\s+/g, "-")}`
+            `basic-chat-failed-${config.name.replace(/\s+/g, "-")}`
           )
           throw error
         }
       })
-    }
 
-    test(`should handle error states consistently on ${config.name}`, async ({
-      page,
-    }) => {
-      console.log(`🚨 Testing error handling consistency on ${config.name}...`)
+      test(`should handle input interactions properly on ${config.name}`, async ({
+        page,
+      }) => {
+        console.log(`⌨️ Testing input interactions on ${config.name}...`)
 
-      try {
-        // Simulate an API error
-        await page.route("**/api/chat", async (route) => {
-          await route.fulfill({
-            status: 500,
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({
-              error: "Server Error",
-              message: "Something went wrong",
-            }),
+        const capture = setupNetworkCapture(page)
+
+        try {
+          await setupMockAIResponse(page, "Input interaction test successful!")
+
+          const chatInput = await waitForChatInput(page, { timeout: 30000 })
+          const sendButton = await waitForSendButton(page, { timeout: 15000 })
+
+          // Test different input methods based on device capabilities
+          const testMessage = `Input test on ${config.name}`
+
+          if (config.hasTouch) {
+            console.log("📱 Testing touch interactions...")
+
+            // Test tap to focus
+            await chatInput.tap()
+            await expect(chatInput).toBeFocused()
+
+            // Test typing on touch device
+            await chatInput.fill(testMessage)
+
+            // Test tap to send
+            await sendButton.tap()
+          } else {
+            console.log("🖱️ Testing mouse and keyboard interactions...")
+
+            // Test click to focus
+            await chatInput.click()
+            await expect(chatInput).toBeFocused()
+
+            // Test typing
+            await chatInput.type(testMessage, { delay: 50 })
+
+            // Test Enter key submission
+            await chatInput.press("Enter")
+          }
+
+          // Verify message was sent regardless of input method
+          await expect(page).toHaveURL(/\/c\/[a-f0-9-]+/, { timeout: 20000 })
+          await expect(page.getByText(testMessage)).toBeVisible({
+            timeout: 15000,
           })
-        })
 
-        const chatInput = await waitForChatInput(page, { timeout: 30000 })
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
-
-        const testMessage = `Error test on ${config.name}`
-        await chatInput.fill(testMessage)
-
-        if (config.hasTouch) {
-          await sendButton.tap()
-        } else {
-          await sendButton.click()
+          console.log(`✅ Input interactions work on ${config.name}`)
+        } catch (error) {
+          console.error(
+            `❌ Input interactions failed on ${config.name}:`,
+            error
+          )
+          await takeDebugScreenshot(
+            page,
+            `input-failed-${config.name.replace(/\s+/g, "-")}`
+          )
+          throw error
         }
+      })
 
-        // Wait for error handling
-        await page.waitForTimeout(5000)
+      test(`should handle responsive design on ${config.name}`, async ({
+        page,
+      }) => {
+        console.log(`📐 Testing responsive design on ${config.name}...`)
 
-        // Verify error doesn't break the interface
-        await expect(sendButton).toBeEnabled({ timeout: 10000 })
+        try {
+          // Get viewport information
+          const viewport = await page.viewportSize()
+          console.log(`Viewport: ${viewport?.width}x${viewport?.height}`)
 
-        // Verify message is preserved for retry
-        const inputValue = await chatInput.inputValue()
-        expect(inputValue).toBe(testMessage)
+          // Test that UI elements are properly sized and accessible
+          const chatInput = await waitForChatInput(page, { timeout: 30000 })
+          const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
-        // Verify no navigation occurred (error case)
-        const currentUrl = page.url()
-        expect(currentUrl).not.toMatch(/\/c\/[a-f0-9-]+/)
+          // Verify elements are visible and properly sized
+          const chatInputBox = await chatInput.boundingBox()
+          const sendButtonBox = await sendButton.boundingBox()
 
-        console.log(`✅ Error handling consistent on ${config.name}`)
-      } catch (error) {
-        console.error(`❌ Error handling failed on ${config.name}:`, error)
-        await takeDebugScreenshot(
+          expect(chatInputBox).not.toBeNull()
+          expect(sendButtonBox).not.toBeNull()
+
+          if (chatInputBox && sendButtonBox) {
+            // Input should be reasonably sized
+            expect(chatInputBox.width).toBeGreaterThan(100)
+            expect(chatInputBox.height).toBeGreaterThan(30)
+
+            // Send button should be accessible size (at least 44px for touch)
+            if (config.hasTouch) {
+              expect(sendButtonBox.width).toBeGreaterThan(40)
+              expect(sendButtonBox.height).toBeGreaterThan(40)
+            }
+
+            console.log(
+              `📏 Element sizes: Input ${chatInputBox.width}x${chatInputBox.height}, Button ${sendButtonBox.width}x${sendButtonBox.height}`
+            )
+          }
+
+          // Test that elements don't overflow or get cut off
+          const isInputVisible = await chatInput.isVisible()
+          const isButtonVisible = await sendButton.isVisible()
+
+          expect(isInputVisible).toBe(true)
+          expect(isButtonVisible).toBe(true)
+
+          console.log(`✅ Responsive design works on ${config.name}`)
+        } catch (error) {
+          console.error(`❌ Responsive design failed on ${config.name}:`, error)
+          await takeDebugScreenshot(
+            page,
+            `responsive-failed-${config.name.replace(/\s+/g, "-")}`
+          )
+          throw error
+        }
+      })
+
+      test(`should handle keyboard navigation on ${config.name}`, async ({
+        page,
+      }) => {
+        console.log(`⌨️ Testing keyboard navigation on ${config.name}...`)
+
+        try {
+          const chatInput = await waitForChatInput(page, { timeout: 30000 })
+          const sendButton = await waitForSendButton(page, { timeout: 15000 })
+
+          // Test Tab navigation
+          await chatInput.focus()
+          await expect(chatInput).toBeFocused()
+
+          // Tab to next element (should be send button or related element)
+          await page.keyboard.press("Tab")
+
+          // Check if send button got focus or if focus moved to another interactive element
+          const focusedElement = await page.evaluate(
+            () => document.activeElement?.tagName
+          )
+          expect(focusedElement).toBeTruthy()
+
+          // Test Shift+Tab (reverse navigation)
+          await page.keyboard.press("Shift+Tab")
+          await expect(chatInput).toBeFocused()
+
+          // Test escape key (should not break anything)
+          await page.keyboard.press("Escape")
+
+          // Input should still be functional
+          await chatInput.fill("Keyboard navigation test")
+          const inputValue = await chatInput.inputValue()
+          expect(inputValue).toBe("Keyboard navigation test")
+
+          console.log(`✅ Keyboard navigation works on ${config.name}`)
+        } catch (error) {
+          console.error(
+            `❌ Keyboard navigation failed on ${config.name}:`,
+            error
+          )
+          await takeDebugScreenshot(
+            page,
+            `keyboard-failed-${config.name.replace(/\s+/g, "-")}`
+          )
+          throw error
+        }
+      })
+
+      if (config.isMobile) {
+        test(`should handle mobile-specific features on ${config.name}`, async ({
           page,
-          `error-handling-failed-${config.name.replace(/\s+/g, "-")}`
-        )
-        throw error
+        }) => {
+          console.log(
+            `📱 Testing mobile-specific features on ${config.name}...`
+          )
+
+          try {
+            await setupMockAIResponse(page, "Mobile test successful!")
+
+            const chatInput = await waitForChatInput(page, { timeout: 30000 })
+
+            // Test virtual keyboard handling
+            console.log("⌨️ Testing virtual keyboard interaction...")
+
+            // Focus should bring up virtual keyboard
+            await chatInput.tap()
+            await expect(chatInput).toBeFocused()
+
+            // Type and verify (virtual keyboard interaction)
+            const mobileMessage = "Testing mobile keyboard"
+            await chatInput.fill(mobileMessage)
+
+            const inputValue = await chatInput.inputValue()
+            expect(inputValue).toBe(mobileMessage)
+
+            // Test that UI remains accessible with virtual keyboard
+            const sendButton = await waitForSendButton(page, { timeout: 15000 })
+            const isButtonVisible = await sendButton.isVisible()
+            expect(isButtonVisible).toBe(true)
+
+            // Test submission
+            await sendButton.tap()
+
+            // Verify message sending works
+            await expect(page).toHaveURL(/\/c\/[a-f0-9-]+/, { timeout: 20000 })
+            await expect(page.getByText(mobileMessage)).toBeVisible({
+              timeout: 15000,
+            })
+
+            console.log(`✅ Mobile-specific features work on ${config.name}`)
+          } catch (error) {
+            console.error(`❌ Mobile features failed on ${config.name}:`, error)
+            await takeDebugScreenshot(
+              page,
+              `mobile-failed-${config.name.replace(/\s+/g, "-")}`
+            )
+            throw error
+          }
+        })
       }
+
+      test(`should handle error states consistently on ${config.name}`, async ({
+        page,
+      }) => {
+        console.log(
+          `🚨 Testing error handling consistency on ${config.name}...`
+        )
+
+        try {
+          // Simulate an API error
+          await page.route("**/api/chat", async (route) => {
+            await route.fulfill({
+              status: 500,
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({
+                error: "Server Error",
+                message: "Something went wrong",
+              }),
+            })
+          })
+
+          const chatInput = await waitForChatInput(page, { timeout: 30000 })
+          const sendButton = await waitForSendButton(page, { timeout: 15000 })
+
+          const testMessage = `Error test on ${config.name}`
+          await chatInput.fill(testMessage)
+
+          if (config.hasTouch) {
+            await sendButton.tap()
+          } else {
+            await sendButton.click()
+          }
+
+          // Wait for error handling
+          await page.waitForTimeout(5000)
+
+          // Verify error doesn't break the interface
+          await expect(sendButton).toBeEnabled({ timeout: 10000 })
+
+          // Verify message is preserved for retry
+          const inputValue = await chatInput.inputValue()
+          expect(inputValue).toBe(testMessage)
+
+          // Verify no navigation occurred (error case)
+          const currentUrl = page.url()
+          expect(currentUrl).not.toMatch(/\/c\/[a-f0-9-]+/)
+
+          console.log(`✅ Error handling consistent on ${config.name}`)
+        } catch (error) {
+          console.error(`❌ Error handling failed on ${config.name}:`, error)
+          await takeDebugScreenshot(
+            page,
+            `error-handling-failed-${config.name.replace(/\s+/g, "-")}`
+          )
+          throw error
+        }
+      })
     })
   })
 })
