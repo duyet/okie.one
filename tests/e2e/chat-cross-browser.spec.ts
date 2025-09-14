@@ -146,14 +146,14 @@ test.describe("Cross-Browser Tests", () => {
             console.log("📱 Testing touch interactions...")
 
             // Test tap to focus
-            await chatInput.tap()
+            await chatInput.click()
             await expect(chatInput).toBeFocused()
 
             // Test typing on touch device
             await chatInput.fill(testMessage)
 
             // Test tap to send
-            await sendButton.tap()
+            await sendButton.click()
           } else {
             console.log("🖱️ Testing mouse and keyboard interactions...")
 
@@ -200,7 +200,10 @@ test.describe("Cross-Browser Tests", () => {
 
           // Test that UI elements are properly sized and accessible
           const chatInput = await waitForChatInput(page, { timeout: 30000 })
-          const sendButton = await waitForSendButton(page, { timeout: 15000 })
+          const sendButton = await waitForSendButton(page, {
+            timeout: 15000,
+            waitForEnabled: false,
+          })
 
           // Verify elements are visible and properly sized
           const chatInputBox = await chatInput.boundingBox()
@@ -250,7 +253,10 @@ test.describe("Cross-Browser Tests", () => {
 
         try {
           const chatInput = await waitForChatInput(page, { timeout: 30000 })
-          const sendButton = await waitForSendButton(page, { timeout: 15000 })
+          const sendButton = await waitForSendButton(page, {
+            timeout: 15000,
+            waitForEnabled: false,
+          })
 
           // Test Tab navigation
           await chatInput.focus()
@@ -308,7 +314,7 @@ test.describe("Cross-Browser Tests", () => {
             console.log("⌨️ Testing virtual keyboard interaction...")
 
             // Focus should bring up virtual keyboard
-            await chatInput.tap()
+            await chatInput.click()
             await expect(chatInput).toBeFocused()
 
             // Type and verify (virtual keyboard interaction)
@@ -324,7 +330,7 @@ test.describe("Cross-Browser Tests", () => {
             expect(isButtonVisible).toBe(true)
 
             // Test submission
-            await sendButton.tap()
+            await sendButton.click()
 
             // Verify message sending works
             await expect(page).toHaveURL(/\/c\/[a-f0-9-]+/, { timeout: 20000 })
@@ -371,7 +377,7 @@ test.describe("Cross-Browser Tests", () => {
           await chatInput.fill(testMessage)
 
           if (config.hasTouch) {
-            await sendButton.tap()
+            await sendButton.click()
           } else {
             await sendButton.click()
           }

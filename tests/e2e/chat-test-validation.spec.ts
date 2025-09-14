@@ -30,7 +30,10 @@ test.describe("Chat Test Infrastructure Validation", () => {
       await expect(chatInput).toBeVisible()
       console.log("✅ Chat input found and visible")
 
-      const sendButton = await waitForSendButton(page, { timeout: 10000 })
+      const sendButton = await waitForSendButton(page, {
+        timeout: 10000,
+        waitForEnabled: false,
+      })
       await expect(sendButton).toBeVisible()
       console.log("✅ Send button found and visible")
 
@@ -65,7 +68,10 @@ test.describe("Chat Test Infrastructure Validation", () => {
       })
 
       const chatInput = await waitForChatInput(page, { timeout: 10000 })
-      const sendButton = await waitForSendButton(page, { timeout: 10000 })
+      const sendButton = await waitForSendButton(page, {
+        timeout: 10000,
+        waitForEnabled: false,
+      })
 
       // Check basic ARIA attributes
       const inputPlaceholder = await chatInput.getAttribute("placeholder")
@@ -110,7 +116,10 @@ test.describe("Chat Test Infrastructure Validation", () => {
       })
 
       const chatInput = await waitForChatInput(page, { timeout: 10000 })
-      const sendButton = await waitForSendButton(page, { timeout: 10000 })
+      const sendButton = await waitForSendButton(page, {
+        timeout: 10000,
+        waitForEnabled: false,
+      })
 
       await chatInput.fill("Error test message")
       await sendButton.click()
