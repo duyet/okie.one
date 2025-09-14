@@ -37,7 +37,10 @@ test.describe("Chat Accessibility Tests", () => {
 
     try {
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
+      const sendButton = await waitForSendButton(page, {
+        timeout: 15000,
+        waitForEnabled: false,
+      })
 
       // Test chat input accessibility
       console.log("🔍 Checking chat input ARIA attributes...")
@@ -73,7 +76,7 @@ test.describe("Chat Accessibility Tests", () => {
 
       // Button should have proper labeling
       const hasButtonLabeling =
-        buttonAriaLabel || (buttonText && buttonText.trim().length > 0)
+        !!buttonAriaLabel || !!(buttonText && buttonText.trim().length > 0)
       expect(hasButtonLabeling).toBe(true)
 
       if (buttonAriaLabel) {
@@ -158,14 +161,13 @@ test.describe("Chat Accessibility Tests", () => {
 
       // Test Space bar on buttons after navigation
       console.log("🔍 Testing Space bar on buttons...")
-      const newSendButton = await waitForSendButton(page, { timeout: 15000 })
-      await newSendButton.focus()
 
-      // Fill new message
+      // Fill new message first to enable send button
       const newChatInput = await waitForChatInput(page, { timeout: 15000 })
       await newChatInput.fill("Space bar test")
 
-      // Focus button and use Space
+      // Now get the enabled send button and focus it
+      const newSendButton = await waitForSendButton(page, { timeout: 15000 })
       await newSendButton.focus()
       await page.keyboard.press("Space")
 
@@ -412,7 +414,10 @@ test.describe("Chat Accessibility Tests", () => {
       await page.waitForLoadState("networkidle")
 
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
+      const sendButton = await waitForSendButton(page, {
+        timeout: 15000,
+        waitForEnabled: false,
+      })
 
       // Verify elements are still visible and accessible
       await expect(chatInput).toBeVisible()
@@ -478,7 +483,10 @@ test.describe("Chat Accessibility Tests", () => {
 
     try {
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
+      const sendButton = await waitForSendButton(page, {
+        timeout: 15000,
+        waitForEnabled: false,
+      })
 
       // Check form structure
       console.log("🔍 Checking form structure...")

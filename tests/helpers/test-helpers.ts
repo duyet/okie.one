@@ -189,21 +189,27 @@ export async function waitForChatInput(
 }
 
 /**
- * Wait for send button to be available and enabled
+ * Wait for send button to be available and optionally enabled
  */
 export async function waitForSendButton(
   page: Page,
-  options: { timeout?: number } = {}
+  options: { timeout?: number; waitForEnabled?: boolean } = {}
 ): Promise<Locator> {
   const timeout = options.timeout || 10000
+  const waitForEnabled = options.waitForEnabled !== false // Default to true for backward compatibility
 
-  console.log("⏳ Waiting for send button...")
+  console.log(
+    `⏳ Waiting for send button${waitForEnabled ? " (enabled)" : " (visible only)"}...`
+  )
 
   try {
     const sendButton = page.locator('button[aria-label="Send message"]')
 
     await expect(sendButton).toBeVisible({ timeout })
-    await expect(sendButton).toBeEnabled({ timeout: 5000 })
+
+    if (waitForEnabled) {
+      await expect(sendButton).toBeEnabled({ timeout: 5000 })
+    }
 
     console.log("✅ Send button is ready")
     return sendButton
