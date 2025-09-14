@@ -441,6 +441,7 @@ test.describe("Chat API Integration Tests", () => {
         }
 
         await chatInput.fill(testCase.content)
+        const sendButton = await waitForSendButton(page, { timeout: 15000 })
         await sendButton.click()
 
         // Wait for response
