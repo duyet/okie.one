@@ -508,15 +508,15 @@ export function useChatCore({
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages: effectiveInitialMessages,
-    onFinish: ({ message }: { message: UIMessage }) => {
-      console.log("🔍 useChat onFinish:", message)
+    onFinish: (options: any) => {
+      console.log("🔍 useChat onFinish:", options.message)
       // Message already processed by streaming, just cache it
       const messageWithContent: Message = {
-        ...message,
+        ...options.message,
         content:
-          message.parts
-            ?.filter((p) => (p as { type?: string }).type === "text")
-            ?.map((p) => (p as { text?: string }).text)
+          options.message.parts
+            ?.filter((p: any) => p.type === "text")
+            ?.map((p: any) => p.text)
             ?.join("") || "",
       } as Message
       cacheAndAddMessage(messageWithContent)
@@ -558,18 +558,14 @@ export function useChatCore({
         [messageId]: [...(prev[messageId] || []), toolCall],
       }))
     },
-  })
+  } as any)
 
   // Create handleSubmit and append functions for v5 compatibility
   const handleSubmit = useCallback(
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
-        sendMessage({
-          role: "user",
-          content: input,
-          parts: [{ type: "text", text: input }],
-        } as UIMessage)
+        sendMessage({ text: input })
         setInput("")
       }
     },

@@ -54,7 +54,7 @@ test.describe("Chat API Validation E2E Tests", () => {
       console.log("🧪 Testing missing chatId validation")
 
       const payload = createChatRequest({ chatId: undefined })
-      delete payload.chatId
+      delete (payload as any).chatId
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()
@@ -80,7 +80,7 @@ test.describe("Chat API Validation E2E Tests", () => {
       console.log("🧪 Testing missing userId validation")
 
       const payload = createChatRequest({ userId: undefined })
-      delete payload.userId
+      delete (payload as any).userId
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()
@@ -106,7 +106,7 @@ test.describe("Chat API Validation E2E Tests", () => {
       console.log("🧪 Testing missing model validation")
 
       const payload = createChatRequest({ model: undefined })
-      delete payload.model
+      delete (payload as any).model
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()
@@ -132,7 +132,7 @@ test.describe("Chat API Validation E2E Tests", () => {
       console.log("🧪 Testing missing messages validation")
 
       const payload = createChatRequest({ messages: undefined })
-      delete payload.messages
+      delete (payload as any).messages
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()

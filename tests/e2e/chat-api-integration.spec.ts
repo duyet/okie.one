@@ -47,19 +47,19 @@ test.describe("Chat API Integration Tests", () => {
     console.log("🔧 Testing API request structure and validation fix...")
 
     const capture = setupNetworkCapture(page)
-    let interceptedRequest: ChatRequestBody | null = null
+    let interceptedRequest: any = null
 
     try {
       // Intercept and analyze the actual request being sent
       await page.route("**/api/chat", async (route) => {
         const request = route.request()
-        const requestBody = request.postDataJSON()
+        const requestBody = request.postDataJSON() as any
         interceptedRequest = requestBody
 
         console.log("📤 Intercepted API request:", {
           method: request.method(),
           url: request.url(),
-          headers: Object.fromEntries(request.headers()),
+          headers: Object.fromEntries(Object.entries(request.headers())),
           bodyKeys: Object.keys(requestBody || {}),
         })
 
@@ -103,8 +103,8 @@ test.describe("Chat API Integration Tests", () => {
         )
 
         // Verify message structure
-        const userMessage = interceptedRequest.messages.find(
-          (msg) => msg.role === "user"
+        const userMessage = interceptedRequest.messages?.find(
+          (msg: any) => msg.role === "user"
         )
         expect(userMessage).toBeTruthy()
         expect(userMessage?.content).toBe(testMessage)
@@ -200,7 +200,7 @@ test.describe("Chat API Integration Tests", () => {
     for (const testCase of testCases) {
       console.log(`🧪 Testing: ${testCase.name}`)
 
-      let interceptedRequest: ChatRequestBody | null = null
+      let interceptedRequest: any = null
 
       await page.route("**/api/chat", async (route) => {
         const requestBody = route.request().postDataJSON()
@@ -235,7 +235,7 @@ test.describe("Chat API Integration Tests", () => {
           expect(interceptedRequest.messages.length).toBeGreaterThan(0)
 
           const userMessage = interceptedRequest.messages.find(
-            (msg) => msg.role === "user"
+            (msg: any) => msg.role === "user"
           )
           expect(userMessage?.content).toBe(testCase.content)
 
@@ -262,8 +262,8 @@ test.describe("Chat API Integration Tests", () => {
   }) => {
     console.log("👤 Testing session context in API requests...")
 
-    let firstRequest: ChatRequestBody | null = null
-    let secondRequest: ChatRequestBody | null = null
+    let firstRequest: any = null
+    let secondRequest: any = null
     let requestCount = 0
 
     try {
@@ -336,11 +336,12 @@ test.describe("Chat API Integration Tests", () => {
 
         // Verify conversation flow
         const firstUserMessage = firstRequest.messages.find(
-          (msg) => msg.role === "user"
+          (msg: any) => msg.role === "user"
         )
         const secondRequestMessages = secondRequest.messages
         const hasFirstMessage = secondRequestMessages.some(
-          (msg) => msg.role === "user" && msg.content.includes("First message")
+          (msg: any) =>
+            msg.role === "user" && msg.content.includes("First message")
         )
 
         expect(hasFirstMessage).toBe(true)
@@ -376,7 +377,7 @@ test.describe("Chat API Integration Tests", () => {
     for (const testCase of edgeCases) {
       console.log(`🔬 Edge case: ${testCase.name}`)
 
-      let interceptedRequest: ChatRequestBody | null = null
+      let interceptedRequest: any = null
       let responseStatus = 0
 
       await page.route("**/api/chat", async (route) => {
@@ -447,7 +448,7 @@ test.describe("Chat API Integration Tests", () => {
           expect(interceptedRequest.messages.length).toBeGreaterThan(0)
 
           const userMessage = interceptedRequest.messages.find(
-            (msg) => msg.role === "user"
+            (msg: any) => msg.role === "user"
           )
           expect(userMessage).toBeTruthy()
 
@@ -471,7 +472,7 @@ test.describe("Chat API Integration Tests", () => {
   }) => {
     console.log("🧠 Testing thinking mode API integration...")
 
-    let interceptedRequest: ChatRequestBody | null = null
+    let interceptedRequest: any = null
 
     try {
       await page.route("**/api/chat", async (route) => {

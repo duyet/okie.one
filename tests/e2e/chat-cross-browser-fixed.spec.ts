@@ -253,7 +253,7 @@ test.describe("Cross-Browser Compatibility Tests", () => {
         console.log(`Testing with ${agent.name} user agent...`)
 
         // Set user agent
-        await page.setUserAgent(agent.ua)
+        await page.setExtraHTTPHeaders({ "User-Agent": agent.ua })
 
         // Navigate to app
         await page.goto("/")

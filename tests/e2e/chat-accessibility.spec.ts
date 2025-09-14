@@ -379,7 +379,10 @@ test.describe("Chat Accessibility Tests", () => {
           return {
             tagName: el?.tagName,
             className: el?.className?.split(" ")[0] || "",
-            isVisible: el ? el.offsetWidth > 0 && el.offsetHeight > 0 : false,
+            isVisible: el
+              ? (el as HTMLElement).offsetWidth > 0 &&
+                (el as HTMLElement).offsetHeight > 0
+              : false,
           }
         })
         focusedElements.push(focusedElement)
