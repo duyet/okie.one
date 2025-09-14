@@ -79,6 +79,7 @@ function ChatInner() {
       const aiMessage = {
         ...message,
         role: message.role as "system" | "user" | "assistant",
+        parts: message.parts || [{ type: "text", text: message.content }],
       }
       originalCacheAndAddMessage(aiMessage as any)
     },

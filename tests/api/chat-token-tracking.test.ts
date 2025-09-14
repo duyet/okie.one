@@ -26,7 +26,7 @@ import { recordTokenUsage } from "@/lib/token-tracking/api"
 import type { TokenUsageMetrics } from "@/lib/token-tracking/types"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
-// Test helper types for streamText callbacks - simplified for testing
+// AI SDK v5 - streamText onFinish callback type (for token tracking)
 type OnFinishCallback = (params: {
   response: {
     messages: Array<{
@@ -35,21 +35,24 @@ type OnFinishCallback = (params: {
     }>
   }
   usage: {
-    inputTokens: number
-    outputTokens: number
-    totalTokens: number
+    inputTokens?: number
+    outputTokens?: number
+    totalTokens?: number
     cachedTokens?: number
+    promptTokens?: number
+    completionTokens?: number
   }
   finishReason: string
 }) => void | Promise<void>
 
 type OnChunkCallback = () => void
 
-// Simplified config type removed - using any for mock implementations
-
-// Minimal mock return type for streamText
+// AI SDK v5 - Modern streamText mock return type
 interface MockStreamTextResult {
-  toUIMessageStreamResponse: () => Response
+  toUIMessageStreamResponse: (params: {
+    originalMessages: Array<any>
+    onFinish: OnFinishCallback
+  }) => Response
 }
 
 // Mock all external dependencies
@@ -81,6 +84,7 @@ vi.mock("ai", async () => {
   return {
     ...actual,
     streamText: vi.fn(),
+    convertToModelMessages: vi.fn((messages) => messages), // Pass-through for testing
   }
 })
 
@@ -165,21 +169,21 @@ describe("Chat API Token Tracking", () => {
     },
   ]
 
-  // Helper to set up streamText mock with callback capture
+  // AI SDK v5 - Updated helper to set up streamText mock with new pattern
   const setupStreamTextMock = () => {
     let onFinishCallback: OnFinishCallback | null = null
     let onChunkCallback: OnChunkCallback | null = null
 
     mockStreamText.mockImplementation((config: any) => {
-      if (config.onFinish) onFinishCallback = config.onFinish
+      // Store callbacks from streamText itself (AI SDK v5 pattern)
       if (config.onChunk) onChunkCallback = config.onChunk
+      if (config.onFinish) onFinishCallback = config.onFinish
+
       return {
-        toDataStreamResponse: vi
-          .fn()
-          .mockReturnValue(new Response("mock-stream")),
-        toUIMessageStreamResponse: vi
-          .fn()
-          .mockReturnValue(new Response("mock-stream")),
+        // AI SDK v5 - toUIMessageStreamResponse for streaming response
+        toUIMessageStreamResponse: vi.fn().mockImplementation((params: any) => {
+          return new Response("mock-stream")
+        }),
       } as MockStreamTextResult
     })
 
@@ -224,7 +228,7 @@ describe("Chat API Token Tracking", () => {
 
       await POST(request)
 
-      // Verify streamText was called
+      // Verify streamText was called with onFinish callback
       expect(mockStreamText).toHaveBeenCalledWith(
         expect.objectContaining({
           onFinish: expect.any(Function),
