@@ -75,10 +75,11 @@ test.describe("Chat API Integration Tests", () => {
       })
 
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
       const testMessage = "Testing API validation fix integration"
       await chatInput.fill(testMessage)
+
+      const sendButton = await waitForSendButton(page, { timeout: 15000 })
       await sendButton.click()
 
       // Wait for the request to be intercepted
@@ -292,9 +293,10 @@ test.describe("Chat API Integration Tests", () => {
 
       // Send first message
       const chatInput = await waitForChatInput(page, { timeout: 30000 })
-      const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
       await chatInput.fill("First message for context testing")
+
+      const sendButton = await waitForSendButton(page, { timeout: 15000 })
       await sendButton.click()
 
       // Wait for navigation and response
@@ -418,11 +420,14 @@ test.describe("Chat API Integration Tests", () => {
         await page.waitForLoadState("networkidle")
 
         const chatInput = await waitForChatInput(page, { timeout: 30000 })
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
 
         // Handle special case of whitespace-only message
         if (testCase.name === "Empty spaces message") {
           await chatInput.fill(testCase.content)
+          const sendButton = await waitForSendButton(page, {
+            timeout: 15000,
+            waitForEnabled: false, // Don't wait for enabled since we expect it to be disabled
+          })
 
           // Check if send button is disabled for whitespace-only content
           const isDisabled = await sendButton.getAttribute("disabled")
@@ -505,8 +510,8 @@ test.describe("Chat API Integration Tests", () => {
         await thinkButton.click()
         await page.waitForTimeout(1000)
 
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
         await chatInput.fill("Test thinking mode API integration")
+        const sendButton = await waitForSendButton(page, { timeout: 15000 })
         await sendButton.click()
 
         // Wait for API call
@@ -530,8 +535,8 @@ test.describe("Chat API Integration Tests", () => {
       } else {
         console.log("ℹ️ No thinking mode button found, testing standard mode...")
 
-        const sendButton = await waitForSendButton(page, { timeout: 15000 })
         await chatInput.fill("Test standard mode API integration")
+        const sendButton = await waitForSendButton(page, { timeout: 15000 })
         await sendButton.click()
 
         await page.waitForTimeout(3000)
