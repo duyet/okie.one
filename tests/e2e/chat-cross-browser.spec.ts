@@ -391,12 +391,14 @@ test.describe("Cross-Browser Tests", () => {
           // Wait for error handling
           await page.waitForTimeout(5000)
 
-          // Verify error doesn't break the interface
-          await expect(sendButton).toBeEnabled({ timeout: 10000 })
-
           // Verify message is preserved for retry
           const inputValue = await chatInput.inputValue()
           expect(inputValue).toBe(testMessage)
+
+          // Verify error doesn't break the interface - button should be enabled if message is preserved
+          if (inputValue.trim().length > 0) {
+            await expect(sendButton).toBeEnabled({ timeout: 10000 })
+          }
 
           // Verify no navigation occurred (error case)
           const currentUrl = page.url()

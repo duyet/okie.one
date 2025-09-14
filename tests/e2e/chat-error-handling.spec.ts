@@ -127,12 +127,14 @@ test.describe("Chat Error Handling Tests", () => {
       expect(currentUrl).not.toMatch(/\/c\/[a-f0-9-]+/)
       console.log("✅ No navigation occurred (expected for error case)")
 
-      // Verify send button becomes available again
-      await expect(sendButton).toBeEnabled({ timeout: 10000 })
-
       // Verify input still contains the message (not cleared on error)
       const inputValue = await chatInput.inputValue()
       expect(inputValue).toBe(testMessage)
+
+      // Verify send button becomes available again if message is preserved
+      if (inputValue.trim().length > 0) {
+        await expect(sendButton).toBeEnabled({ timeout: 10000 })
+      }
 
       console.log("✅ API validation error handling test completed")
     } catch (error) {
@@ -212,12 +214,14 @@ test.describe("Chat Error Handling Tests", () => {
           "⚠️ No explicit network error message, checking button state..."
         )
 
-        // Send button should become available again for retry
-        await expect(sendButton).toBeEnabled({ timeout: 15000 })
-
         // Message should still be in input for user to retry
         const inputValue = await chatInput.inputValue()
         expect(inputValue).toBe(testMessage)
+
+        // Send button should become available again for retry if message is preserved
+        if (inputValue.trim().length > 0) {
+          await expect(sendButton).toBeEnabled({ timeout: 15000 })
+        }
       }
 
       // Verify no navigation occurred
