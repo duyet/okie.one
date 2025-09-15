@@ -135,7 +135,7 @@ async function cleanupTestData(supabase: SupabaseClient): Promise<void> {
           }
         } catch (error) {
           // Ignore errors for users that don't exist
-          if (error?.status !== 404) {
+          if ((error as any)?.status !== 404) {
             console.log(`⚠️ Could not delete auth user ${userId}:`, error)
           }
         }
@@ -181,7 +181,7 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
     const { data: authUser, error: authCheckError } =
       await supabase.auth.admin.getUserById(actualUserId)
 
-    if (authCheckError && authCheckError.status !== 404) {
+    if (authCheckError && (authCheckError as any).status !== 404) {
       console.warn("⚠️ Error checking auth user:", authCheckError)
     }
 
@@ -338,7 +338,7 @@ export async function createTestUser(
       const { data: authUser, error: authCheckError } =
         await supabase.auth.admin.getUserById(userId)
 
-      if (authCheckError && authCheckError.status !== 404) {
+      if (authCheckError && (authCheckError as any).status !== 404) {
         console.warn(`⚠️ Error checking auth user ${userId}:`, authCheckError)
       }
 
