@@ -101,11 +101,64 @@ async function cleanupTestData(supabase: SupabaseClient): Promise<void> {
   try {
     // Delete messages first (foreign key constraints)
     await supabase.from("messages").delete().ilike("content", "%test%")
+    await supabase.from("messages").delete().eq("user_id", getDefaultTestUserId())
 
     // Delete chats
     await supabase.from("chats").delete().ilike("title", "%test%")
+    await supabase.from("chats").delete().eq("user_id", getDefaultTestUserId())
 
-    // Note: We don't delete users as they might be needed for auth
+    // Clean up test users from public.users table
+    const { data: testUsers } = await supabase
+      .from("users")
+      .select("id")
+      .or(`email.ilike.%test%,email.ilike.%example.com`)
+
+    if (testUsers && testUsers.length > 0) {
+      const userIds = testUsers.map(user => user.id)
+      await supabase.from("users").delete().in("id", userIds)
+      console.log(`🗑️ Deleted ${userIds.length} test users from public.users`)
+    }
+
+    // Clean up auth users (requires admin privileges)
+    try {
+      const testUserIds = [
+        getDefaultTestUserId(),
+        "00000000-0000-4000-8000-000000000001"
+      ]
+
+      for (const userId of testUserIds) {
+        try {
+          const { data: authUser } = await supabase.auth.admin.getUserById(userId)
+          if (authUser?.user?.email?.includes("test") || authUser?.user?.email?.includes("example.com")) {
+            await supabase.auth.admin.deleteUser(userId)
+            console.log(`🗑️ Deleted auth user: ${userId}`)
+          }
+        } catch (error) {
+          // Ignore errors for users that don't exist
+          if (error?.status !== 404) {
+            console.log(`⚠️ Could not delete auth user ${userId}:`, error)
+          }
+        }
+      }
+
+      // Clean up by email pattern for any other test users
+      const { data: allAuthUsers } = await supabase.auth.admin.listUsers()
+      if (allAuthUsers?.users) {
+        for (const user of allAuthUsers.users) {
+          if (user.email?.includes("test") || user.email?.includes("example.com")) {
+            try {
+              await supabase.auth.admin.deleteUser(user.id)
+              console.log(`🗑️ Deleted auth user by email: ${user.email}`)
+            } catch (error) {
+              console.log(`⚠️ Could not delete auth user ${user.id}:`, error)
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.log("⚠️ Auth user cleanup failed (non-critical):", error)
+    }
+
     console.log("✅ Test data cleanup completed")
   } catch (error) {
     console.warn("⚠️ Test data cleanup failed:", error)
@@ -119,13 +172,14 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
   console.log("🏗️ Creating test data...")
 
   try {
-    // Create test anonymous user with auth.users first
-    const testUserId = getDefaultTestUserId() // Use proper UUID format
-    let actualUserId = testUserId
+    // Generate a unique email for this test run to avoid conflicts
+    const timestamp = Date.now()
+    const testEmail = `test-anonymous-${timestamp}@example.com`
+    let actualUserId = getDefaultTestUserId()
 
     // First, check if user exists in auth.users
     const { data: authUser, error: authCheckError } =
-      await supabase.auth.admin.getUserById(testUserId)
+      await supabase.auth.admin.getUserById(actualUserId)
 
     if (authCheckError && authCheckError.status !== 404) {
       console.warn("⚠️ Error checking auth user:", authCheckError)
@@ -135,35 +189,68 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
       // Create auth user first (this creates the foreign key reference)
       const { data: newAuthUser, error: createAuthError } =
         await supabase.auth.admin.createUser({
-          email: "test-anonymous@example.com",
+          email: testEmail,
           email_confirm: true,
           user_metadata: {
             test_user: true,
             is_anonymous: true,
+            created_at: new Date().toISOString(),
           },
         })
 
       if (createAuthError) {
-        console.warn("⚠️ Failed to create auth user:", createAuthError)
-        // Continue with database user creation anyway
+        if (createAuthError.code === 'email_exists') {
+          console.log("🔄 Auth user with email already exists, generating new email...")
+          // Try with a new unique email
+          const newEmail = `test-anonymous-${timestamp}-${Math.random().toString(36).substr(2, 9)}@example.com`
+          const { data: retryAuthUser, error: retryError } =
+            await supabase.auth.admin.createUser({
+              email: newEmail,
+              email_confirm: true,
+              user_metadata: {
+                test_user: true,
+                is_anonymous: true,
+                created_at: new Date().toISOString(),
+              },
+            })
+
+          if (retryError) {
+            console.warn("⚠️ Failed to create auth user after retry:", retryError)
+            return // Skip user creation if auth fails
+          } else if (retryAuthUser.user?.id) {
+            actualUserId = retryAuthUser.user.id
+            console.log("✅ Created auth user with new email:", actualUserId)
+          }
+        } else {
+          console.warn("⚠️ Failed to create auth user:", createAuthError)
+          return // Skip user creation if auth fails
+        }
       } else if (newAuthUser.user?.id) {
         actualUserId = newAuthUser.user.id
         console.log("✅ Created auth user:", actualUserId)
       }
+    } else {
+      console.log("✅ Auth user already exists:", actualUserId)
     }
 
     // Now create/update the user record in public.users
-    const { error: userError } = await supabase.from("users").upsert({
-      id: actualUserId,
-      email: "test-anonymous@example.com",
-      created_at: new Date().toISOString(),
-    })
+    // Only proceed if we have a valid auth user
+    const { data: finalAuthUser } = await supabase.auth.admin.getUserById(actualUserId)
+    if (finalAuthUser?.user) {
+      const { error: userError } = await supabase.from("users").upsert({
+        id: actualUserId,
+        email: finalAuthUser.user.email || testEmail,
+        created_at: new Date().toISOString(),
+      })
 
-    if (userError && userError.code !== "23505") {
-      // Ignore duplicate key errors
-      console.warn("⚠️ Failed to create test user:", userError)
+      if (userError && userError.code !== "23505") {
+        // Ignore duplicate key errors
+        console.warn("⚠️ Failed to create test user:", userError)
+      } else {
+        console.log("✅ Created/updated test user in public.users")
+      }
     } else {
-      console.log("✅ Created/updated test user in public.users")
+      console.warn("⚠️ Cannot create public.users record without valid auth user")
     }
 
     console.log("✅ Test data creation completed")
@@ -227,15 +314,21 @@ export async function createTestUser(
   isAnonymous = true,
   email?: string
 ): Promise<TestUser> {
-  // Always use proper UUID format
+  // Generate unique userId for non-anonymous users to avoid conflicts
   const userId = isAnonymous
-    ? "00000000-0000-4000-8000-000000000001"
+    ? getDefaultTestUserId()
     : crypto.randomUUID()
   let actualUserId = userId
 
+  // Generate unique email to avoid conflicts
+  const timestamp = Date.now()
+  const baseEmail = isAnonymous
+    ? `test-anonymous-${timestamp}@example.com`
+    : email || `test-${timestamp}@example.com`
+
   const user: TestUser = {
     id: userId,
-    email: email || undefined,
+    email: baseEmail,
     isAnonymous,
   }
 
@@ -251,44 +344,71 @@ export async function createTestUser(
 
       if (!authUser?.user) {
         // Create auth user first if it doesn't exist
-        const testEmail = isAnonymous
-          ? `test-anonymous-${userId}@example.com`
-          : email || `test-${userId}@example.com`
-
         const { data: newAuthUser, error: createAuthError } =
           await supabase.auth.admin.createUser({
-            email: testEmail,
+            email: baseEmail,
             email_confirm: true,
             user_metadata: {
               test_user: true,
               is_anonymous: isAnonymous,
+              created_at: new Date().toISOString(),
             },
           })
 
         if (createAuthError) {
-          console.warn(
-            `⚠️ Failed to create auth user ${userId}:`,
-            createAuthError
-          )
+          if (createAuthError.code === 'email_exists') {
+            console.log(`🔄 Auth user with email already exists for ${userId}, generating new email...`)
+            // Try with a new unique email
+            const newEmail = `test-${isAnonymous ? 'anonymous' : 'user'}-${timestamp}-${Math.random().toString(36).substr(2, 9)}@example.com`
+            const { data: retryAuthUser, error: retryError } =
+              await supabase.auth.admin.createUser({
+                email: newEmail,
+                email_confirm: true,
+                user_metadata: {
+                  test_user: true,
+                  is_anonymous: isAnonymous,
+                  created_at: new Date().toISOString(),
+                },
+              })
+
+            if (retryError) {
+              console.warn(`⚠️ Failed to create auth user after retry ${userId}:`, retryError)
+              return user // Return user with original ID but no database record
+            } else if (retryAuthUser.user?.id) {
+              actualUserId = retryAuthUser.user.id
+              user.email = newEmail
+              console.log(`✅ Created auth user with new email: ${actualUserId}`)
+            }
+          } else {
+            console.warn(`⚠️ Failed to create auth user ${userId}:`, createAuthError)
+            return user // Return user with original ID but no database record
+          }
         } else if (newAuthUser.user?.id) {
           actualUserId = newAuthUser.user.id
           console.log(`✅ Created auth user: ${actualUserId}`)
         }
+      } else {
+        console.log(`✅ Auth user already exists: ${actualUserId}`)
+        user.email = authUser.user.email || baseEmail
       }
 
       // Now create/update the user in public.users
-      const { error } = await supabase.from("users").upsert({
-        id: actualUserId,
-        email: isAnonymous
-          ? `test-anonymous-${actualUserId}@example.com`
-          : email,
-        created_at: new Date().toISOString(),
-      })
+      // Only proceed if we have a valid auth user
+      const { data: finalAuthUser } = await supabase.auth.admin.getUserById(actualUserId)
+      if (finalAuthUser?.user) {
+        const { error } = await supabase.from("users").upsert({
+          id: actualUserId,
+          email: finalAuthUser.user.email || user.email,
+          created_at: new Date().toISOString(),
+        })
 
-      if (error && error.code !== "23505") {
-        console.warn("⚠️ Failed to create user in database:", error)
+        if (error && error.code !== "23505") {
+          console.warn("⚠️ Failed to create user in database:", error)
+        } else {
+          console.log(`✅ Created user in database: ${actualUserId}`)
+        }
       } else {
-        console.log(`✅ Created user in database: ${actualUserId}`)
+        console.warn(`⚠️ Cannot create public.users record without valid auth user for ${actualUserId}`)
       }
     } catch (error) {
       console.warn("⚠️ Database user creation failed:", error)
