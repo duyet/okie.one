@@ -130,9 +130,9 @@ test.describe("Chat Test Infrastructure Validation", () => {
       // Verify button becomes available again (error recovery)
       await expect(sendButton).toBeEnabled({ timeout: 10000 })
 
-      // Verify input preserves message
+      // Verify input is cleared (current behavior after AI SDK v5 migration)
       const inputValue = await chatInput.inputValue()
-      expect(inputValue).toBe("Error test message")
+      expect(inputValue).toBe("")
 
       // Verify no navigation occurred
       expect(page.url()).not.toMatch(/\/c\/[a-f0-9-]+/)

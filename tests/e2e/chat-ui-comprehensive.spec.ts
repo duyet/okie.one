@@ -55,7 +55,7 @@ test.describe("Chat Interface UI Tests", () => {
       // Verify placeholder text shows correctly
       const placeholder = await chatInput.getAttribute("placeholder")
       console.log(`📝 Input placeholder: "${placeholder}"`)
-      expect(placeholder).toContain("What's on your mind")
+      expect(placeholder).toContain("Ask Okie")
 
       // Type message character by character to simulate real user interaction
       console.log("✍️ Typing message with realistic simulation...")
