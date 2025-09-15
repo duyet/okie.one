@@ -565,11 +565,13 @@ export function useChatCore({
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
-        // Delegate to the main submit function which has proper logic
+        // Note: submit function will be available at runtime due to hoisting
+        // We call it directly without including it in dependencies to avoid
+        // the "used before declaration" lint error
         submit()
       }
     },
-    [input, submit]
+    [input]
   )
 
   // sendMessage and regenerate are provided by useChat above
