@@ -565,11 +565,36 @@ export function useChatCore({
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
-        sendMessage({ text: input })
+        // AI SDK v5: Include required body parameters
+        const options = {
+          body: {
+            chatId: currentChatId,
+            userId: uid,
+            model: selectedModel,
+            isAuthenticated,
+            systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+            tools: getToolsConfig(),
+            enableSearch,
+            enableThink: thinkingMode === "regular",
+            thinkingMode,
+          },
+        }
+        sendMessage({ text: input }, options)
         setInput("")
       }
     },
-    [input, sendMessage]
+    [
+      input,
+      sendMessage,
+      currentChatId,
+      uid,
+      selectedModel,
+      isAuthenticated,
+      systemPrompt,
+      getToolsConfig,
+      enableSearch,
+      thinkingMode,
+    ]
   )
 
   // sendMessage and regenerate are provided by useChat above
@@ -839,12 +864,13 @@ export function useChatCore({
         experimental_attachments: attachments || undefined,
       }
 
-      console.log("🔍 About to call handleSubmit with options:", options)
+      console.log("🔍 About to call sendMessage with options:", options)
       hasSentFirstMessageRef.current = true // Mark that we've sent a message
 
-      // Start streaming first
-      handleSubmit(undefined)
-      console.log("🔍 handleSubmit call completed")
+      // AI SDK v5: Send message with body options
+      sendMessage({ text: input }, options)
+      setInput("")
+      console.log("🔍 sendMessage call completed")
 
       // Update URL without reload (if we're not already there)
       if (!chatId) {
