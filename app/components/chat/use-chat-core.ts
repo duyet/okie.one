@@ -565,36 +565,11 @@ export function useChatCore({
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
-        // AI SDK v5: Include required body parameters
-        const options = {
-          body: {
-            chatId: currentChatId,
-            userId: uid,
-            model: selectedModel,
-            isAuthenticated,
-            systemPrompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
-            tools: getToolsConfig(),
-            enableSearch,
-            enableThink: thinkingMode === "regular",
-            thinkingMode,
-          },
-        }
-        sendMessage({ text: input }, options)
-        setInput("")
+        // Delegate to the main submit function which has proper logic
+        submit()
       }
     },
-    [
-      input,
-      sendMessage,
-      currentChatId,
-      uid,
-      selectedModel,
-      isAuthenticated,
-      systemPrompt,
-      getToolsConfig,
-      enableSearch,
-      thinkingMode,
-    ]
+    [input, submit]
   )
 
   // sendMessage and regenerate are provided by useChat above
