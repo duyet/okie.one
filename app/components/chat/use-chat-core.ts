@@ -508,6 +508,20 @@ export function useChatCore({
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages: effectiveInitialMessages,
+    body: ({ messages }: { messages: UIMessage[] }) => {
+      return {
+        messages,
+        chatId: chatId || "",
+        userId: user?.id || "",
+        model: selectedModel,
+        isAuthenticated: !!(user?.id && !user?.anonymous),
+        systemPrompt: user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
+        tools: toolsConfig,
+        enableSearch,
+        enableThink: thinkingMode === "regular",
+        thinkingMode,
+      }
+    },
     onFinish: (options: any) => {
       console.log("🔍 useChat onFinish:", options.message)
       // Message already processed by streaming, just cache it
