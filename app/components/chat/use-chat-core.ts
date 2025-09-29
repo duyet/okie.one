@@ -595,6 +595,7 @@ export function useChatCore({
         submit()
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [input]
   )
 
@@ -909,7 +910,7 @@ export function useChatCore({
     enableSearch,
     thinkingMode,
     getToolsConfig,
-    handleSubmit,
+    sendMessage,
     clearDraft,
     messages.length,
     bumpChat,
