@@ -28,7 +28,7 @@ interface ToolInvocationUIPart {
 }
 
 interface ToolInvocationProps {
-  toolInvocations: any[]
+  toolInvocations: ToolInvocationUIPart[]
   className?: string
   defaultOpen?: boolean
 }

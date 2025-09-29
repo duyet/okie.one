@@ -1,6 +1,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
+import type { UIMessage, Message } from "@/lib/ai-sdk-types"
 import { uiMessageToMessage } from "@/lib/ai-sdk-types"
 import { DefaultChatTransport } from "ai"
 import { ChatCircleIcon } from "@phosphor-icons/react"
@@ -203,7 +204,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const { handleDelete, handleEdit } = useChatOperations({
     isAuthenticated: true, // Always authenticated in project context
     chatId: null,
-    messages: messages.map((msg) => uiMessageToMessage(msg as any)),
+    messages: messages.map((msg) => uiMessageToMessage(msg as UIMessage)),
     selectedModel,
     systemPrompt: SYSTEM_PROMPT_DEFAULT,
     createNewChat,
@@ -379,7 +380,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   // Memoize the conversation props to prevent unnecessary rerenders
   const conversationProps = useMemo(
     () => ({
-      messages,
+      messages: messages.map(msg => uiMessageToMessage(msg as UIMessage)),
       status,
       onDelete: handleDelete,
       onEdit: handleEdit,
@@ -466,7 +467,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
             </div>
           </motion.div>
         ) : (
-          <Conversation key="conversation" {...conversationProps as any} />
+          <Conversation key="conversation" {...conversationProps} />
         )}
       </AnimatePresence>
 

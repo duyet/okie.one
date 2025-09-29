@@ -576,28 +576,21 @@ export function useChatCore({
         )
       }
 
+      // Convert toolCall to StreamingToolInvocation format
+      const streamingToolCall: StreamingToolInvocation = {
+        ...toolCall,
+        toolCall: toolCall.toolCall as StreamingToolInvocation["toolCall"],
+      }
+
       // Store tool invocation by message ID
       setStreamingToolInvocations((prev) => ({
         ...prev,
-        [messageId]: [...(prev[messageId] || []), toolCall],
+        [messageId]: [...(prev[messageId] || []), streamingToolCall],
       }))
     },
   })
 
-  // Create handleSubmit and append functions for v5 compatibility
-  const handleSubmit = useCallback(
-    (e?: { preventDefault?: () => void }) => {
-      e?.preventDefault?.()
-      if (input.trim()) {
-        // Note: submit function will be available at runtime due to hoisting
-        // We call it directly without including it in dependencies to avoid
-        // the "used before declaration" lint error
-        submit()
-      }
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [input]
-  )
+  // handleSubmit will be defined after submit function
 
   // sendMessage and regenerate are provided by useChat above
 
@@ -918,6 +911,17 @@ export function useChatCore({
     status,
     isSubmitting,
   ])
+
+  // Create handleSubmit function for v5 compatibility
+  const handleSubmit = useCallback(
+    (e?: { preventDefault?: () => void }) => {
+      e?.preventDefault?.()
+      if (input.trim()) {
+        submit()
+      }
+    },
+    [input, submit]
+  )
 
   // Handle suggestion
   const handleSuggestion = useCallback(
