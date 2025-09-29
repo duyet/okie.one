@@ -1,7 +1,7 @@
 import { useChat } from "@ai-sdk/react"
 import type { ChatRequestOptions } from "ai"
 import { DefaultChatTransport } from "ai"
-import type { Message } from "@/lib/ai-sdk-types"
+import type { Message, UIMessage } from "@/lib/ai-sdk-types"
 import { uiMessageToMessage } from "@/lib/ai-sdk-types"
 import { API_ROUTE_CHAT } from "@/lib/routes"
 import { useMemo } from "react"
@@ -134,7 +134,7 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
       return {
         model,
         messages: chatHook.messages.map((msg) =>
-          uiMessageToMessage(msg as any)
+          uiMessageToMessage(msg as UIMessage)
         ),
         isLoading: chatHook.status === "streaming",
         append: async (
@@ -149,9 +149,8 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
           const content = message.content || ""
           await chatHook.sendMessage({
             role: "user",
-            content,
             parts: [{ type: "text", text: content }],
-          } as any)
+          })
           return null
         },
         stop: chatHook.stop,

@@ -1,7 +1,8 @@
 "use client"
 
-import type { Message as MessageTypeBase } from "@/lib/ai-sdk-types"
+import type { Message as MessageTypeBase, UIMessage } from "@/lib/ai-sdk-types"
 import { uiMessageToMessage } from "@/lib/ai-sdk-types"
+import type { MessagePart } from "@/lib/type-guards/message-parts"
 
 // Extended message type with model property
 type MessageType = MessageTypeBase & {
@@ -63,9 +64,10 @@ export function MultiChat() {
   const modelsFromPersisted = useMemo(() => {
     return persistedMessages
       .filter((msg) =>
-        Boolean((msg as any).model)
+        Boolean((msg as MessageType).model) &&
+        ["system", "user", "assistant"].includes(msg.role)
       )
-      .map((msg) => (msg as any).model as string)
+      .map((msg) => (msg as MessageType).model as string)
   }, [persistedMessages])
 
   const modelsFromLastGroup = useMemo(() => {
@@ -123,12 +125,12 @@ export function MultiChat() {
       if (message.role === "user") {
         const groupKey =
           message.parts
-            ?.filter((p: any) => p.type === "text")
-            ?.map((p: any) => p.text)
+            ?.filter((p: MessagePart) => p.type === "text")
+            ?.map((p) => (p as { text?: string }).text)
             ?.join("") || ""
         if (!groups[groupKey]) {
           groups[groupKey] = {
-            userMessage: uiMessageToMessage(message as any),
+            userMessage: uiMessageToMessage(message as UIMessage),
             assistantMessages: [],
           }
         }
@@ -144,16 +146,16 @@ export function MultiChat() {
         if (associatedUserMessage) {
           const groupKey =
             associatedUserMessage.parts
-              ?.filter((p: any) => p.type === "text")
-              ?.map((p: any) => p.text)
+              ?.filter((p: MessagePart) => p.type === "text")
+              ?.map((p) => (p as { text?: string }).text)
               ?.join("") || ""
           if (!groups[groupKey]) {
             groups[groupKey] = {
-              userMessage: uiMessageToMessage(associatedUserMessage as any),
+              userMessage: uiMessageToMessage(associatedUserMessage as UIMessage),
               assistantMessages: [],
             }
           }
-          groups[groupKey].assistantMessages.push(uiMessageToMessage(message as any))
+          groups[groupKey].assistantMessages.push(uiMessageToMessage(message as UIMessage))
         }
       }
     }
@@ -199,8 +201,8 @@ export function MultiChat() {
         if (userMsg?.role === "user") {
           const groupKey =
             userMsg.parts
-              ?.filter((p: any) => p.type === "text")
-              ?.map((p: any) => p.text)
+              ?.filter((p: MessagePart) => p.type === "text")
+              ?.map((p) => (p as { text?: string }).text)
               ?.join("") || ""
 
           if (!liveGroups[groupKey]) {
@@ -229,8 +231,8 @@ export function MultiChat() {
           } else if (
             chat.isLoading &&
             (userMsg.parts
-              ?.filter((p: any) => p.type === "text")
-              ?.map((p: any) => p.text)
+              ?.filter((p: MessagePart) => p.type === "text")
+              ?.map((p) => (p as { text?: string }).text)
               ?.join("") || "") === prompt &&
             selectedModelIds.includes(chat.model.id)
           ) {
@@ -309,7 +311,11 @@ export function MultiChat() {
           }
 
           chat.append(
-            { role: "user", parts: [{ type: "text", text: prompt }] } as any,
+            {
+              role: "user",
+              content: prompt,
+              parts: [{ type: "text", text: prompt }]
+            },
             options
           )
         })

@@ -340,11 +340,22 @@ export function MessageAssistant({
               "addReasoningStep"
           ).length > 0 && (
             <ToolInvocation
-              toolInvocations={toolInvocationParts.filter(
-                (part) =>
-                  (part.toolInvocation as ToolInvocationData)?.toolName !==
-                  "addReasoningStep"
-              )}
+              toolInvocations={toolInvocationParts
+                .filter(
+                  (part) =>
+                    (part.toolInvocation as ToolInvocationData)?.toolName !==
+                    "addReasoningStep"
+                )
+                .map((part) => ({
+                  type: "tool-invocation" as const,
+                  toolInvocation: {
+                    state: part.toolInvocation?.state || "unknown",
+                    toolName: (part.toolInvocation as ToolInvocationData)?.toolName || "unknown",
+                    toolCallId: part.toolInvocation?.toolCallId || "unknown",
+                    args: part.toolInvocation?.args,
+                    result: part.toolInvocation?.result as Record<string, unknown> | undefined,
+                  },
+                }))}
             />
           )}
 
