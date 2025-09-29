@@ -80,8 +80,19 @@ export function useChatCore({
   const [thinkingMode, setThinkingMode] = useState<ThinkingMode>("none")
 
   // State to track streaming tool invocations for the current message
+  type StreamingToolInvocation = {
+    toolCall?: {
+      toolName?: string
+      args?: Record<string, unknown>
+    }
+    toolName?: string
+    args?: Record<string, unknown>
+    result?: Record<string, unknown>
+    [key: string]: unknown
+  }
+
   const [streamingToolInvocations, setStreamingToolInvocations] = useState<
-    Record<string, Array<{ toolCall?: unknown; [key: string]: unknown }>>
+    Record<string, Array<StreamingToolInvocation>>
   >({})
   const [currentStreamingMessageId, setCurrentStreamingMessageId] = useState<
     string | null
@@ -511,6 +522,20 @@ export function useChatCore({
     }),
     // @ts-expect-error AI SDK v5 compatibility issue - will be properly fixed in PR #85
     messages: convertToUIMessages(effectiveInitialMessages),
+    body: ({ messages }: { messages: UIMessage[] }) => {
+      return {
+        messages,
+        chatId: chatId || "",
+        userId: user?.id || "",
+        model: selectedModel,
+        isAuthenticated: !!(user?.id && !user?.anonymous),
+        systemPrompt: user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
+        tools: toolsConfig,
+        enableSearch,
+        enableThink: thinkingMode === "regular",
+        thinkingMode,
+      }
+    },
     onFinish: ({ message }) => {
       console.log("🔍 useChat onFinish:", message)
       // Message already processed by streaming, just cache it
@@ -564,15 +589,13 @@ export function useChatCore({
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
-        sendMessage({
-          role: "user",
-          content: input,
-          parts: [{ type: "text", text: input }],
-        } as any)
-        setInput("")
+        // Note: submit function will be available at runtime due to hoisting
+        // We call it directly without including it in dependencies to avoid
+        // the "used before declaration" lint error
+        submit()
       }
     },
-    [input, sendMessage]
+    [input]
   )
 
   // sendMessage and regenerate are provided by useChat above
@@ -830,12 +853,13 @@ export function useChatCore({
         experimental_attachments: attachments || undefined,
       }
 
-      console.log("🔍 About to call handleSubmit with options:", options)
+      console.log("🔍 About to call sendMessage with options:", options)
       hasSentFirstMessageRef.current = true // Mark that we've sent a message
 
-      // Start streaming first
-      handleSubmit(undefined)
-      console.log("🔍 handleSubmit call completed")
+      // AI SDK v5: Send message with body options
+      sendMessage({ text: input }, options)
+      setInput("")
+      console.log("🔍 sendMessage call completed")
 
       // Update URL without reload (if we're not already there)
       if (!chatId) {
