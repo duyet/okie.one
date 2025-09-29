@@ -43,6 +43,19 @@ type UseChatCoreProps = {
   setHasActiveChatSession: (active: boolean) => void
 }
 
+// Helper function to convert Messages to UIMessages for AI SDK v5 compatibility
+function convertToUIMessages(messages: Message[]): UIMessage[] {
+  const converted = messages
+    .filter(msg => msg.role !== "data") // Filter out unsupported roles
+    .map(msg => ({
+      ...msg,
+      role: msg.role as "system" | "user" | "assistant",
+      parts: msg.parts || [],
+    }))
+  // Strong type assertion for AI SDK v5 compatibility - will be properly fixed in PR #85
+  return converted as unknown as UIMessage[]
+}
+
 export function useChatCore({
   initialMessages,
   draftValue,
@@ -415,10 +428,7 @@ export function useChatCore({
     (message: Message) => {
       if (message.role === "assistant" && message.parts) {
         // Extract text content from parts
-        const textContent = message.parts
-          .filter((part) => (part as { type?: string }).type === "text")
-          .map((part) => (part as { text?: string }).text)
-          .join("")
+        const textContent = getTextContent(message.parts as MessagePart[])
 
         // Skip processing very short content
         if (textContent.length < 10) {
@@ -510,8 +520,8 @@ export function useChatCore({
     transport: new DefaultChatTransport({
       api: API_ROUTE_CHAT,
     }),
-    // @ts-expect-error AI SDK v5 compatibility issue - will be properly fixed in this PR
-    messages: effectiveInitialMessages,
+    // @ts-expect-error AI SDK v5 compatibility issue - will be properly fixed in PR #85
+    messages: convertToUIMessages(effectiveInitialMessages),
     body: ({ messages }: { messages: UIMessage[] }) => {
       return {
         messages,
@@ -526,18 +536,18 @@ export function useChatCore({
         thinkingMode,
       }
     },
-    onFinish: (options: any) => {
-      console.log("🔍 useChat onFinish:", options.message)
+    onFinish: ({ message }) => {
+      console.log("🔍 useChat onFinish:", message)
       // Message already processed by streaming, just cache it
       const messageWithContent: Message = {
-        ...options.message,
-        content: getTextContent(options.message.parts as MessagePart[]),
+        ...message,
+        content: getTextContent(message.parts as MessagePart[]),
       } as Message
       cacheAndAddMessage(messageWithContent)
     },
     onError: handleError,
     // Add tool invocation callbacks for streaming
-    onToolCall: (toolCall: StreamingToolInvocation) => {
+    onToolCall: (toolCall: { [key: string]: unknown; toolCall?: unknown }) => {
       console.log("🔧 Tool call during streaming:", toolCall)
 
       // Create a temporary message ID for streaming if no current message exists
@@ -616,11 +626,7 @@ export function useChatCore({
       // Convert UIMessage to Message with content field
       const messageWithContent: Message = {
         ...message,
-        content:
-          message.parts
-            ?.filter((p) => (p as { type?: string }).type === "text")
-            ?.map((p) => (p as { text?: string }).text)
-            ?.join("") || "",
+        content: getTextContent(message.parts as MessagePart[]),
       } as Message
       // Apply both processing functions in sequence
       const withToolInvocations =
@@ -635,11 +641,7 @@ export function useChatCore({
         id: m.id,
         role: m.role,
         content: (() => {
-          const textContent =
-            m.parts
-              ?.filter((p) => (p as { type?: string }).type === "text")
-              ?.map((p) => (p as { text?: string }).text)
-              ?.join("") || ""
+          const textContent = getTextContent(m.parts as MessagePart[])
           return `${textContent.substring(0, 50)}...`
         })(),
       })),
@@ -661,11 +663,7 @@ export function useChatCore({
       lastMessage: (() => {
         const lastMsg = messages?.[messages.length - 1]
         if (!lastMsg) return "none"
-        const textContent =
-          lastMsg.parts
-            ?.filter((p) => (p as { type?: string }).type === "text")
-            ?.map((p) => (p as { text?: string }).text)
-            ?.join("") || ""
+        const textContent = getTextContent(lastMsg.parts as MessagePart[])
         return `${textContent.substring(0, 50)}...`
       })(),
     })
@@ -959,7 +957,12 @@ export function useChatCore({
         setIsSubmitting(false)
       }
     },
-    [ensureChatExists, user, sendMessage, checkLimitsAndNotify]
+    [
+      ensureChatExists,
+      user,
+      sendMessage,
+      checkLimitsAndNotify,
+    ]
   )
 
   // Handle reload
@@ -971,7 +974,10 @@ export function useChatCore({
 
     // Options are now handled internally by the transport
     regenerate()
-  }, [user, regenerate])
+  }, [
+    user,
+    regenerate,
+  ])
 
   // Handle input change - now with access to the real setInput function!
   const { setDraftValue } = useChatDraft(chatId)

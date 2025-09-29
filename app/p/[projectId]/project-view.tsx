@@ -1,9 +1,8 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { generateId } from "ai"
-import type { UIMessage, Message } from "@/lib/ai-sdk-types"
-import { uiMessageToMessage, messageToUIMessage } from "@/lib/ai-sdk-types"
+import { uiMessageToMessage } from "@/lib/ai-sdk-types"
+import { DefaultChatTransport } from "ai"
 import { ChatCircleIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
 import { AnimatePresence, motion } from "motion/react"
@@ -112,11 +111,13 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   const { messages, sendMessage, regenerate, status, stop, setMessages } =
     useChat({
       id: `project-${projectId}-${currentChatId}`,
-      api: API_ROUTE_CHAT,
-      initialMessages: [],
-      onFinish: ({ message }: any) => cacheAndAddMessage(message),
+      transport: new DefaultChatTransport({
+        api: API_ROUTE_CHAT,
+      }),
+      messages: [],
+      onFinish: ({ message }) => cacheAndAddMessage(message),
       onError: handleError,
-    } as any)
+    })
 
   // Create v4 compatibility functions
   const handleSubmit = useCallback(
