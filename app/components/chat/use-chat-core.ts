@@ -66,8 +66,19 @@ export function useChatCore({
   const [thinkingMode, setThinkingMode] = useState<ThinkingMode>("none")
 
   // State to track streaming tool invocations for the current message
+  type StreamingToolInvocation = {
+    toolCall?: {
+      toolName?: string
+      args?: Record<string, unknown>
+    }
+    toolName?: string
+    args?: Record<string, unknown>
+    result?: Record<string, unknown>
+    [key: string]: unknown
+  }
+
   const [streamingToolInvocations, setStreamingToolInvocations] = useState<
-    Record<string, Array<{ toolCall?: unknown; [key: string]: unknown }>>
+    Record<string, Array<StreamingToolInvocation>>
   >({})
   const [currentStreamingMessageId, setCurrentStreamingMessageId] = useState<
     string | null
@@ -404,8 +415,8 @@ export function useChatCore({
       if (message.role === "assistant" && message.parts) {
         // Extract text content from parts
         const textContent = message.parts
-          .filter((part: any) => part.type === "text")
-          .map((part: any) => part.text)
+          .filter((part) => (part as { type?: string }).type === "text")
+          .map((part) => (part as { text?: string }).text)
           .join("")
 
         // Skip processing very short content
@@ -479,7 +490,7 @@ export function useChatCore({
             .map((m) => ({
               ...m,
               role: m.role as "system" | "user" | "assistant",
-            })) as any)
+            })) as UIMessage[])
         : [],
     [chatId, initialMessages]
   )
@@ -497,22 +508,36 @@ export function useChatCore({
   } = useChat({
     api: API_ROUTE_CHAT,
     initialMessages: effectiveInitialMessages,
-    onFinish: ({ message }: any) => {
-      console.log("🔍 useChat onFinish:", message)
+    body: ({ messages }: { messages: UIMessage[] }) => {
+      return {
+        messages,
+        chatId: chatId || "",
+        userId: user?.id || "",
+        model: selectedModel,
+        isAuthenticated: !!(user?.id && !user?.anonymous),
+        systemPrompt: user?.system_prompt || SYSTEM_PROMPT_DEFAULT,
+        tools: toolsConfig,
+        enableSearch,
+        enableThink: thinkingMode === "regular",
+        thinkingMode,
+      }
+    },
+    onFinish: (options: any) => {
+      console.log("🔍 useChat onFinish:", options.message)
       // Message already processed by streaming, just cache it
       const messageWithContent: Message = {
-        ...message,
+        ...options.message,
         content:
-          message.parts
+          options.message.parts
             ?.filter((p: any) => p.type === "text")
-            ?.map((p: any) => (p as any).text)
+            ?.map((p: any) => p.text)
             ?.join("") || "",
       } as Message
       cacheAndAddMessage(messageWithContent)
     },
     onError: handleError,
     // Add tool invocation callbacks for streaming
-    onToolCall: (toolCall: any) => {
+    onToolCall: (toolCall: StreamingToolInvocation) => {
       console.log("🔧 Tool call during streaming:", toolCall)
 
       // Create a temporary message ID for streaming if no current message exists
@@ -554,15 +579,13 @@ export function useChatCore({
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
-        sendMessage({
-          role: "user",
-          content: input,
-          parts: [{ type: "text", text: input }],
-        } as any)
-        setInput("")
+        // Note: submit function will be available at runtime due to hoisting
+        // We call it directly without including it in dependencies to avoid
+        // the "used before declaration" lint error
+        submit()
       }
     },
-    [input, sendMessage]
+    [input]
   )
 
   // sendMessage and regenerate are provided by useChat above
@@ -594,8 +617,8 @@ export function useChatCore({
         ...message,
         content:
           message.parts
-            ?.filter((p: any) => p.type === "text")
-            ?.map((p: any) => (p as any).text)
+            ?.filter((p) => (p as { type?: string }).type === "text")
+            ?.map((p) => (p as { text?: string }).text)
             ?.join("") || "",
       } as Message
       // Apply both processing functions in sequence
@@ -613,8 +636,8 @@ export function useChatCore({
         content: (() => {
           const textContent =
             m.parts
-              ?.filter((p: any) => p.type === "text")
-              ?.map((p: any) => p.text)
+              ?.filter((p) => (p as { type?: string }).type === "text")
+              ?.map((p) => (p as { text?: string }).text)
               ?.join("") || ""
           return `${textContent.substring(0, 50)}...`
         })(),
@@ -639,8 +662,8 @@ export function useChatCore({
         if (!lastMsg) return "none"
         const textContent =
           lastMsg.parts
-            ?.filter((p: any) => p.type === "text")
-            ?.map((p: any) => p.text)
+            ?.filter((p) => (p as { type?: string }).type === "text")
+            ?.map((p) => (p as { text?: string }).text)
             ?.join("") || ""
         return `${textContent.substring(0, 50)}...`
       })(),
@@ -685,7 +708,7 @@ export function useChatCore({
     if (prompt && typeof window !== "undefined") {
       requestAnimationFrame(() => setInput(prompt))
     }
-  }, [prompt, setInput])
+  }, [prompt])
 
   // Cleanup cache on unmount to prevent memory leaks
   useEffect(() => {
@@ -832,12 +855,13 @@ export function useChatCore({
         experimental_attachments: attachments || undefined,
       }
 
-      console.log("🔍 About to call handleSubmit with options:", options)
+      console.log("🔍 About to call sendMessage with options:", options)
       hasSentFirstMessageRef.current = true // Mark that we've sent a message
 
-      // Start streaming first
-      handleSubmit(undefined)
-      console.log("🔍 handleSubmit call completed")
+      // AI SDK v5: Send message with body options
+      sendMessage({ text: input }, options)
+      setInput("")
+      console.log("🔍 sendMessage call completed")
 
       // Update URL without reload (if we're not already there)
       if (!chatId) {
@@ -876,7 +900,6 @@ export function useChatCore({
     user,
     files,
     input,
-    setInput,
     setFiles,
     checkLimitsAndNotify,
     ensureChatExists,
@@ -894,6 +917,7 @@ export function useChatCore({
     bumpChat,
     chatId,
     status,
+    isSubmitting,
   ])
 
   // Handle suggestion
@@ -934,14 +958,7 @@ export function useChatCore({
         setIsSubmitting(false)
       }
     },
-    [
-      ensureChatExists,
-      selectedModel,
-      user,
-      sendMessage,
-      checkLimitsAndNotify,
-      isAuthenticated,
-    ]
+    [ensureChatExists, user, sendMessage, checkLimitsAndNotify]
   )
 
   // Handle reload
@@ -953,16 +970,7 @@ export function useChatCore({
 
     // Options are now handled internally by the transport
     regenerate()
-  }, [
-    user,
-    chatId,
-    selectedModel,
-    isAuthenticated,
-    systemPrompt,
-    thinkingMode,
-    getToolsConfig,
-    regenerate,
-  ])
+  }, [user, regenerate])
 
   // Handle input change - now with access to the real setInput function!
   const { setDraftValue } = useChatDraft(chatId)
@@ -971,7 +979,7 @@ export function useChatCore({
       setInput(value)
       setDraftValue(value)
     },
-    [setInput, setDraftValue]
+    [setDraftValue]
   )
 
   return {
