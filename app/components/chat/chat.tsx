@@ -81,7 +81,8 @@ function ChatInner() {
         role: message.role as "system" | "user" | "assistant",
         parts: message.parts || [{ type: "text", text: message.content }],
       }
-      originalCacheAndAddMessage(aiMessage as any)
+      // @ts-expect-error AI SDK v5 compatibility issue - will be properly fixed in this PR
+      originalCacheAndAddMessage(aiMessage)
     },
     [originalCacheAndAddMessage]
   )
