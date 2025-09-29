@@ -7,7 +7,6 @@ import type {
   DailyModelSummary,
   DailyTokenUsage,
   LeaderboardEntry,
-  SupabaseClient,
   TimingAnalytics,
   TokenUsage,
   TokenUsageMetrics,

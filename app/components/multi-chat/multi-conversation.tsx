@@ -1,6 +1,6 @@
 "use client"
 
-import type { UIMessage, Message as MessageType } from "@/lib/ai-sdk-types"
+import type { Message as MessageType, MessagePart } from "@/lib/ai-sdk-types"
 import { useEffect, useState } from "react"
 
 import {
@@ -66,8 +66,8 @@ function ResponseCard({ response, group }: ResponseCardProps) {
             parts={response.message.parts}
             attachments={
               response.message.parts
-                ?.filter((p: any) => p.type === "file")
-                ?.map((p: any) => ({
+                ?.filter((p: MessagePart) => p.type === "file")
+                ?.map((p: MessagePart) => ({
                   name: p.name,
                   contentType: p.mediaType,
                   url: p.url || p.data || "",
@@ -82,8 +82,8 @@ function ResponseCard({ response, group }: ResponseCardProps) {
             className="bg-transparent p-0 px-0"
           >
             {response.message.parts
-              ?.filter((p: any) => p.type === "text")
-              ?.map((p: any) => p.text)
+              ?.filter((p: MessagePart) => p.type === "text")
+              ?.map((p: MessagePart) => p.text)
               ?.join("") || ""}
           </Message>
         ) : response.isLoading ? (
@@ -151,8 +151,8 @@ export function MultiModelConversation({
                         parts={group.userMessage.parts}
                         attachments={
                           group.userMessage.parts
-                            ?.filter((p: any) => p.type === "file")
-                            ?.map((p: any) => ({
+                            ?.filter((p: MessagePart) => p.type === "file")
+                            ?.map((p: MessagePart) => ({
                               name: p.name,
                               contentType: p.mediaType,
                               url: p.url || p.data || "",
@@ -164,8 +164,8 @@ export function MultiModelConversation({
                         status="ready"
                       >
                         {group.userMessage.parts
-                          ?.filter((p: any) => p.type === "text")
-                          ?.map((p: any) => p.text)
+                          ?.filter((p: MessagePart) => p.type === "text")
+                          ?.map((p: MessagePart) => p.text)
                           ?.join("") || ""}
                       </Message>
                     </div>

@@ -1,4 +1,4 @@
-import type { UIMessage, Message as MessageAISDK } from "@/lib/ai-sdk-types"
+import type { Message as MessageAISDK } from "@/lib/ai-sdk-types"
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
 import type React from "react"
 import { useCallback, useMemo } from "react"

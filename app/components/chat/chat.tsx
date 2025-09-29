@@ -7,6 +7,20 @@ import { useCallback, useMemo, useState } from "react"
 
 import type { Message, UIMessage } from "@/lib/ai-sdk-types"
 import { uiMessageToMessage } from "@/lib/ai-sdk-types"
+
+// Helper function to convert Message to UIMessage for AI SDK v5 compatibility
+function convertToUIMessage(message: Message): UIMessage | null {
+  // Filter out unsupported roles for AI SDK v5
+  if (message.role === "data") {
+    console.warn("Skipping data message - not supported in AI SDK v5", message)
+    return null
+  }
+  return {
+    ...message,
+    role: message.role as "system" | "user" | "assistant",
+    parts: message.parts || [],
+  } as UIMessage
+}
 import { Conversation } from "@/app/components/chat/conversation"
 import { useModel } from "@/app/components/chat/use-model"
 import { ChatInput } from "@/app/components/chat-input/chat-input"
@@ -75,12 +89,11 @@ function ChatInner() {
   // Wrap cacheAndAddMessage to handle type conversion
   const cacheAndAddMessage = useCallback(
     (message: Message) => {
-      // Convert Message back to MessageAISDK format
-      const aiMessage = {
-        ...message,
-        role: message.role as "system" | "user" | "assistant",
+      const uiMessage = convertToUIMessage(message)
+      if (uiMessage) {
+        // @ts-expect-error AI SDK v5 compatibility issue - will be properly fixed in PR #85
+        originalCacheAndAddMessage(uiMessage)
       }
-      originalCacheAndAddMessage(aiMessage as any)
     },
     [originalCacheAndAddMessage]
   )

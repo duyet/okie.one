@@ -1,7 +1,9 @@
 import { useChat } from "@ai-sdk/react"
 import type { ChatRequestOptions } from "ai"
-import type { UIMessage, Message } from "@/lib/ai-sdk-types"
+import { DefaultChatTransport } from "ai"
+import type { Message } from "@/lib/ai-sdk-types"
 import { uiMessageToMessage } from "@/lib/ai-sdk-types"
+import { API_ROUTE_CHAT } from "@/lib/routes"
 import { useMemo } from "react"
 
 import { toast } from "@/components/ui/toast"
@@ -45,45 +47,65 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
 
   // Create a fixed number of useChat hooks to avoid conditional hook calls
   const chat0 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[0]),
-  } as any)
+  })
   const chat1 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[1]),
-  } as any)
+  })
   const chat2 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[2]),
-  } as any)
+  })
   const chat3 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[3]),
-  } as any)
+  })
   const chat4 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[4]),
-  } as any)
+  })
   const chat5 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[5]),
-  } as any)
+  })
   const chat6 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[6]),
-  } as any)
+  })
   const chat7 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[7]),
-  } as any)
+  })
   const chat8 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[8]),
-  } as any)
+  })
   const chat9 = useChat({
-    api: "/api/chat",
+    transport: new DefaultChatTransport({
+      api: API_ROUTE_CHAT,
+    }),
     onError: (error: Error) => handleError(error, models[9]),
-  } as any)
+  })
 
   const chatHooks = useMemo(
     () => [
@@ -128,6 +150,7 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
           await chatHook.sendMessage({
             role: "user",
             content,
+            parts: [{ type: "text", text: content }],
           } as any)
           return null
         },
