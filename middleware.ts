@@ -1,11 +1,11 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server";
 
-import { updateSession } from "@/utils/supabase/middleware"
+import { updateSession } from "@/utils/supabase/middleware";
 
-import { validateCsrfToken } from "./lib/csrf"
+import { validateCsrfToken } from "./lib/csrf";
 
 export async function middleware(request: NextRequest) {
-  const response = await updateSession(request)
+  const response = await updateSession(request);
 
   // Bypass CSRF protection for E2E tests
   const isTestMode =
@@ -36,19 +36,19 @@ export async function middleware(request: NextRequest) {
   }
 
   // CSP for development and production
-  const isDev = process.env.NODE_ENV === "development"
+  const isDev = process.env.NODE_ENV === "development";
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).origin : ""
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).origin : "";
 
   response.headers.set(
     "Content-Security-Policy",
     isDev
       ? `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: https://api.openai.com https://api.mistral.ai https://api.supabase.com ${supabaseDomain} https://api.github.com;`
-      : `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://analytics.umami.is https://vercel.live; frame-src 'self' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: https://api.openai.com https://api.mistral.ai https://api.supabase.com ${supabaseDomain} https://api-gateway.umami.dev https://api.github.com;`
-  )
+      : `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com https://analytics.umami.is https://vercel.live; frame-src 'self' https://vercel.live; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' wss: https://api.openai.com https://api.mistral.ai https://api.supabase.com ${supabaseDomain} https://api-gateway.umami.dev https://api.github.com;`,
+  );
 
-  return response
+  return response;
 }
 
 export const config = {
@@ -59,4 +59,4 @@ export const config = {
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
   runtime: "nodejs",
-}
+};
