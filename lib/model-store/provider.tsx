@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react"
 
@@ -155,23 +156,33 @@ export function ModelProvider({ children }: { children: React.ReactNode }) {
     refreshAll()
   }, [refreshAll]) // Only run once on mount
 
-  return (
-    <ModelContext.Provider
-      value={{
-        models,
-        userKeyStatus,
-        favoriteModels,
-        isLoading,
-        refreshModels,
-        refreshUserKeyStatus,
-        refreshFavoriteModels,
-        refreshFavoriteModelsSilent,
-        refreshAll,
-      }}
-    >
-      {children}
-    </ModelContext.Provider>
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(
+    () => ({
+      models,
+      userKeyStatus,
+      favoriteModels,
+      isLoading,
+      refreshModels,
+      refreshUserKeyStatus,
+      refreshFavoriteModels,
+      refreshFavoriteModelsSilent,
+      refreshAll,
+    }),
+    [
+      models,
+      userKeyStatus,
+      favoriteModels,
+      isLoading,
+      refreshModels,
+      refreshUserKeyStatus,
+      refreshFavoriteModels,
+      refreshFavoriteModelsSilent,
+      refreshAll,
+    ]
   )
+
+  return <ModelContext.Provider value={value}>{children}</ModelContext.Provider>
 }
 
 // Custom hook to use the model context

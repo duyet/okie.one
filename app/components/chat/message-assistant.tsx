@@ -72,7 +72,7 @@ type ToolInvocationData = {
   }
 }
 
-export function MessageAssistant({
+function MessageAssistantComponent({
   children,
   id,
   isLast,
@@ -312,6 +312,42 @@ export function MessageAssistant({
     </Message>
   )
 }
+
+/**
+ * Memoized MessageAssistant component with optimized comparison
+ *
+ * Only re-renders when essential props change:
+ * - Content (children)
+ * - Status (streaming, ready, error)
+ * - Parts (artifacts, reasoning, tool invocations)
+ * - Actions (copy, reload functions)
+ *
+ * Prevents cascading re-renders when parent chat state updates
+ */
+export const MessageAssistant = React.memo(
+  MessageAssistantComponent,
+  (prevProps, nextProps) => {
+    // Re-render if content changed
+    if (prevProps.children !== nextProps.children) return false
+
+    // Re-render if status changed (streaming → ready, etc.)
+    if (prevProps.status !== nextProps.status) return false
+
+    // Re-render if parts array changed (new artifacts, tool calls, etc.)
+    if (prevProps.parts !== nextProps.parts) return false
+
+    // Re-render if it became/stopped being the last message
+    if (prevProps.isLast !== nextProps.isLast) return false
+
+    // Re-render if copy state changed
+    if (prevProps.copied !== nextProps.copied) return false
+
+    // All other prop changes don't require re-render
+    return true
+  }
+)
+
+MessageAssistant.displayName = "MessageAssistant"
 
 /**
  * Render content with artifact preview cards replacing [ARTIFACT_PREVIEW:id] markers

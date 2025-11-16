@@ -1,6 +1,12 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 
 import { toast } from "@/components/ui/toast"
 import { useUser } from "@/lib/user-store/provider"
@@ -191,23 +197,35 @@ export function ChatsProvider({ children }: { children: React.ReactNode }) {
     setChats(sorted)
   }
 
-  return (
-    <ChatsContext.Provider
-      value={{
-        chats,
-        refresh,
-        updateTitle,
-        deleteChat,
-        setChats,
-        createNewChat,
-        resetChats,
-        getChatById,
-        updateChatModel,
-        bumpChat,
-        isLoading,
-      }}
-    >
-      {children}
-    </ChatsContext.Provider>
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(
+    () => ({
+      chats,
+      refresh,
+      updateTitle,
+      deleteChat,
+      setChats,
+      createNewChat,
+      resetChats,
+      getChatById,
+      updateChatModel,
+      bumpChat,
+      isLoading,
+    }),
+    [
+      chats,
+      refresh,
+      updateTitle,
+      deleteChat,
+      setChats,
+      createNewChat,
+      resetChats,
+      getChatById,
+      updateChatModel,
+      bumpChat,
+      isLoading,
+    ]
   )
+
+  return <ChatsContext.Provider value={value}>{children}</ChatsContext.Provider>
 }
