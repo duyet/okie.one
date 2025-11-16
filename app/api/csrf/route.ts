@@ -7,8 +7,9 @@ export async function GET() {
   const token = generateCsrfToken()
   const cookieStore = await cookies()
   cookieStore.set("csrf_token", token, {
-    httpOnly: false,
-    secure: true,
+    httpOnly: false, // Must be accessible to JavaScript for headers
+    secure: true, // HTTPS only
+    sameSite: "lax", // CSRF protection while allowing normal navigation
     path: "/",
   })
 
