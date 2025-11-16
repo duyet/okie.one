@@ -1,6 +1,5 @@
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
-import type React from "react"
-import { useCallback, useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 
 import { ReasoningDisplay as Reasoning } from "@/app/components/mcp/reasoning/reasoning-display"
 import { ToolInvocation } from "@/app/components/mcp/tools/tool-invocation"
