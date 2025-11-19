@@ -89,18 +89,6 @@ function MessageAssistantComponent({
   const { chatId } = useChatSession()
   const { user } = useUser()
 
-  console.log("🔍 MessageAssistant received:", {
-    children: `"${children}"`,
-    childrenType: typeof children,
-    partsCount: parts?.length || 0,
-    partsTypes: parts?.map((p) => p.type) || [],
-    parts: parts,
-    toolInvocationsCount: toolInvocations?.length || 0,
-    toolInvocations: toolInvocations,
-    status: status,
-    isLast: isLast,
-  })
-
   // Memoize the openArtifact handler to prevent unnecessary renders
   const handleOpenArtifact = useCallback(
     (artifact: NonNullable<ContentPart["artifact"]>) => {
@@ -121,18 +109,6 @@ function MessageAssistantComponent({
     [parts]
   )
 
-  // Debug logging (only when markers present for reduced noise)
-  if (children.includes("[ARTIFACT_PREVIEW:") || artifactParts.length > 0) {
-    console.log("🔍 MessageAssistant debug:", {
-      hasArtifactMarkers: children.includes("[ARTIFACT_PREVIEW:"),
-      artifactPartsCount: artifactParts.length,
-      children: `${children.substring(0, 200)}...`,
-      artifactParts: artifactParts.map(
-        (p) => (p as ContentPart).artifact?.title
-      ),
-    })
-  }
-
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
 
@@ -152,14 +128,6 @@ function MessageAssistantComponent({
     !contentNullOrEmpty ||
     (isLastStreaming && (reasoningParts || toolInvocationParts.length > 0))
 
-  console.log("🔍 MessageAssistant render decision:", {
-    children: `"${children}"`,
-    contentNullOrEmpty,
-    isLastStreaming,
-    reasoningPartsExists: !!reasoningParts,
-    toolInvocationPartsCount: toolInvocationParts.length,
-    shouldShowContent,
-  })
   const searchImageResults =
     parts
       ?.filter((part) => {
@@ -319,9 +287,10 @@ function MessageAssistantComponent({
  * - Content (children)
  * - Status (streaming, ready, error)
  * - Parts (artifacts, reasoning, tool invocations)
- * - Actions (copy, reload functions)
+ * - isLast, copied state
  *
- * Prevents cascading re-renders when parent chat state updates
+ * Action handlers (copy, reload) are assumed stable (wrapped in useCallback).
+ * Prevents cascading re-renders when parent chat state updates.
  */
 export const MessageAssistant = React.memo(
   MessageAssistantComponent,
@@ -387,35 +356,15 @@ function renderContentWithArtifacts(
     )
   }
 
-  console.log("🔧 Processing content with artifact markers:", {
-    contentLength: content.length,
-    markersFound: content.match(/\[ARTIFACT_PREVIEW:([^\]]+)\]/g) || [],
-    artifactCount: artifactParts.length,
-  })
-
   // Split content by artifact preview markers and process
   const parts = content.split(/\[ARTIFACT_PREVIEW:([^\]]+)\]/)
   const elements: React.ReactNode[] = []
-
-  console.log(
-    "🔧 Split content into parts:",
-    parts.length,
-    parts.map((p, i) => ({
-      index: i,
-      isText: i % 2 === 0,
-      content: `${p.substring(0, 50)}...`,
-    }))
-  )
 
   for (let i = 0; i < parts.length; i++) {
     if (i % 2 === 0) {
       // Regular text content
       const textContent = parts[i]
       if (textContent?.trim()) {
-        console.log(
-          `🔧 Adding text content at index ${i}:`,
-          `${textContent.substring(0, 100)}...`
-        )
         elements.push(
           <MessageContent
             key={`text-${i}`}
@@ -433,13 +382,7 @@ function renderContentWithArtifacts(
       // Artifact ID - replace with ArtifactPreview
       const artifactId = parts[i]
       const artifact = artifactMap.get(artifactId)
-      console.log(`🔧 Processing artifact at index ${i}:`, {
-        artifactId,
-        hasArtifact: !!artifact,
-        artifactTitle: artifact?.title,
-      })
       if (artifact) {
-        console.log(`🎨 Adding ArtifactPreview for: ${artifact.title}`)
         elements.push(
           <div key={`artifact-${artifactId}`} className="my-4">
             <ArtifactPreview
@@ -454,6 +397,5 @@ function renderContentWithArtifacts(
     }
   }
 
-  console.log("🔧 Final elements count:", elements.length)
   return <div className="space-y-2">{elements}</div>
 }
