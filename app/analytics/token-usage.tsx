@@ -12,9 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 // Saves ~250KB from initial bundle
 const DailyTokenUsageChart = dynamic(
   () =>
-    import("./daily-token-usage-chart").then((mod) => ({
-      default: mod.DailyTokenUsageChart,
-    })),
+    import("./daily-token-usage-chart").then((mod) => mod.DailyTokenUsageChart),
   {
     loading: () => (
       <Card>
