@@ -1,6 +1,5 @@
 import { ArrowClockwise, Check, Copy } from "@phosphor-icons/react"
-import type React from "react"
-import { useCallback, useMemo } from "react"
+import React, { useCallback, useMemo } from "react"
 
 import { ReasoningDisplay as Reasoning } from "@/app/components/mcp/reasoning/reasoning-display"
 import { ToolInvocation } from "@/app/components/mcp/tools/tool-invocation"
@@ -72,7 +71,7 @@ type ToolInvocationData = {
   }
 }
 
-export function MessageAssistant({
+function MessageAssistantComponent({
   children,
   id,
   isLast,
@@ -89,18 +88,6 @@ export function MessageAssistant({
   const { openArtifact } = useArtifact()
   const { chatId } = useChatSession()
   const { user } = useUser()
-
-  console.log("🔍 MessageAssistant received:", {
-    children: `"${children}"`,
-    childrenType: typeof children,
-    partsCount: parts?.length || 0,
-    partsTypes: parts?.map((p) => p.type) || [],
-    parts: parts,
-    toolInvocationsCount: toolInvocations?.length || 0,
-    toolInvocations: toolInvocations,
-    status: status,
-    isLast: isLast,
-  })
 
   // Memoize the openArtifact handler to prevent unnecessary renders
   const handleOpenArtifact = useCallback(
@@ -122,18 +109,6 @@ export function MessageAssistant({
     [parts]
   )
 
-  // Debug logging (only when markers present for reduced noise)
-  if (children.includes("[ARTIFACT_PREVIEW:") || artifactParts.length > 0) {
-    console.log("🔍 MessageAssistant debug:", {
-      hasArtifactMarkers: children.includes("[ARTIFACT_PREVIEW:"),
-      artifactPartsCount: artifactParts.length,
-      children: `${children.substring(0, 200)}...`,
-      artifactParts: artifactParts.map(
-        (p) => (p as ContentPart).artifact?.title
-      ),
-    })
-  }
-
   const contentNullOrEmpty = children === null || children === ""
   const isLastStreaming = status === "streaming" && isLast
 
@@ -153,14 +128,6 @@ export function MessageAssistant({
     !contentNullOrEmpty ||
     (isLastStreaming && (reasoningParts || toolInvocationParts.length > 0))
 
-  console.log("🔍 MessageAssistant render decision:", {
-    children: `"${children}"`,
-    contentNullOrEmpty,
-    isLastStreaming,
-    reasoningPartsExists: !!reasoningParts,
-    toolInvocationPartsCount: toolInvocationParts.length,
-    shouldShowContent,
-  })
   const searchImageResults =
     parts
       ?.filter((part) => {
@@ -314,6 +281,43 @@ export function MessageAssistant({
 }
 
 /**
+ * Memoized MessageAssistant component with optimized comparison
+ *
+ * Only re-renders when essential props change:
+ * - Content (children)
+ * - Status (streaming, ready, error)
+ * - Parts (artifacts, reasoning, tool invocations)
+ * - isLast, copied state
+ *
+ * Action handlers (copy, reload) are assumed stable (wrapped in useCallback).
+ * Prevents cascading re-renders when parent chat state updates.
+ */
+export const MessageAssistant = React.memo(
+  MessageAssistantComponent,
+  (prevProps, nextProps) => {
+    // Re-render if content changed
+    if (prevProps.children !== nextProps.children) return false
+
+    // Re-render if status changed (streaming → ready, etc.)
+    if (prevProps.status !== nextProps.status) return false
+
+    // Re-render if parts array changed (new artifacts, tool calls, etc.)
+    if (prevProps.parts !== nextProps.parts) return false
+
+    // Re-render if it became/stopped being the last message
+    if (prevProps.isLast !== nextProps.isLast) return false
+
+    // Re-render if copy state changed
+    if (prevProps.copied !== nextProps.copied) return false
+
+    // All other prop changes don't require re-render
+    return true
+  }
+)
+
+MessageAssistant.displayName = "MessageAssistant"
+
+/**
  * Render content with artifact preview cards replacing [ARTIFACT_PREVIEW:id] markers
  */
 function renderContentWithArtifacts(
@@ -352,35 +356,15 @@ function renderContentWithArtifacts(
     )
   }
 
-  console.log("🔧 Processing content with artifact markers:", {
-    contentLength: content.length,
-    markersFound: content.match(/\[ARTIFACT_PREVIEW:([^\]]+)\]/g) || [],
-    artifactCount: artifactParts.length,
-  })
-
   // Split content by artifact preview markers and process
   const parts = content.split(/\[ARTIFACT_PREVIEW:([^\]]+)\]/)
   const elements: React.ReactNode[] = []
-
-  console.log(
-    "🔧 Split content into parts:",
-    parts.length,
-    parts.map((p, i) => ({
-      index: i,
-      isText: i % 2 === 0,
-      content: `${p.substring(0, 50)}...`,
-    }))
-  )
 
   for (let i = 0; i < parts.length; i++) {
     if (i % 2 === 0) {
       // Regular text content
       const textContent = parts[i]
       if (textContent?.trim()) {
-        console.log(
-          `🔧 Adding text content at index ${i}:`,
-          `${textContent.substring(0, 100)}...`
-        )
         elements.push(
           <MessageContent
             key={`text-${i}`}
@@ -398,13 +382,7 @@ function renderContentWithArtifacts(
       // Artifact ID - replace with ArtifactPreview
       const artifactId = parts[i]
       const artifact = artifactMap.get(artifactId)
-      console.log(`🔧 Processing artifact at index ${i}:`, {
-        artifactId,
-        hasArtifact: !!artifact,
-        artifactTitle: artifact?.title,
-      })
       if (artifact) {
-        console.log(`🎨 Adding ArtifactPreview for: ${artifact.title}`)
         elements.push(
           <div key={`artifact-${artifactId}`} className="my-4">
             <ArtifactPreview
@@ -419,6 +397,5 @@ function renderContentWithArtifacts(
     }
   }
 
-  console.log("🔧 Final elements count:", elements.length)
   return <div className="space-y-2">{elements}</div>
 }

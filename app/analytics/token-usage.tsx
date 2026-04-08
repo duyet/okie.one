@@ -1,12 +1,32 @@
 "use client"
 
 import { Clock, DollarSign, Loader2, TrendingUp, Trophy } from "lucide-react"
+import dynamic from "next/dynamic"
 import { useEffect, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
-import { DailyTokenUsageChart } from "./daily-token-usage-chart"
+// Dynamic import: only load Recharts when analytics page is accessed
+// Saves ~250KB from initial bundle
+const DailyTokenUsageChart = dynamic(
+  () =>
+    import("./daily-token-usage-chart").then((mod) => mod.DailyTokenUsageChart),
+  {
+    loading: () => (
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-64 w-full" />
+        </CardContent>
+      </Card>
+    ),
+    ssr: false,
+  }
+)
 
 interface TokenStats {
   totalTokens: number

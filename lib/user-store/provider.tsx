@@ -1,7 +1,14 @@
 // app/providers/user-provider.tsx
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 
 import type { UserProfile } from "@/lib/user/types"
 import {
@@ -31,7 +38,7 @@ export function UserProvider({
   const [user, setUser] = useState<UserProfile | null>(initialUser)
   const [isLoading, setIsLoading] = useState(false)
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     if (!user?.id) return
 
     setIsLoading(true)
@@ -41,29 +48,32 @@ export function UserProvider({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [user?.id])
 
-  const updateUser = async (updates: Partial<UserProfile>) => {
-    // For guest users being initialized, set the full profile
-    if (!user?.id && updates.id && updates.anonymous) {
-      setUser(updates as UserProfile)
-      return
-    }
-
-    if (!user?.id) return
-
-    setIsLoading(true)
-    try {
-      const success = await updateUserProfile(user.id, updates)
-      if (success) {
-        setUser((prev) => (prev ? { ...prev, ...updates } : null))
+  const updateUser = useCallback(
+    async (updates: Partial<UserProfile>) => {
+      // For guest users being initialized, set the full profile
+      if (!user?.id && updates.id && updates.anonymous) {
+        setUser(updates as UserProfile)
+        return
       }
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
-  const signOut = async () => {
+      if (!user?.id) return
+
+      setIsLoading(true)
+      try {
+        const success = await updateUserProfile(user.id, updates)
+        if (success) {
+          setUser((prev) => (prev ? { ...prev, ...updates } : null))
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [user?.id]
+  )
+
+  const signOut = useCallback(async () => {
     setIsLoading(true)
     try {
       const success = await signOutUser()
@@ -71,7 +81,7 @@ export function UserProvider({
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [])
 
   // Set up realtime subscription for user data changes
   useEffect(() => {
@@ -86,13 +96,13 @@ export function UserProvider({
     }
   }, [user?.id])
 
-  return (
-    <UserContext.Provider
-      value={{ user, isLoading, updateUser, refreshUser, signOut }}
-    >
-      {children}
-    </UserContext.Provider>
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(
+    () => ({ user, isLoading, updateUser, refreshUser, signOut }),
+    [user, isLoading, updateUser, refreshUser, signOut]
   )
+
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>
 }
 
 // Custom hook to use the user context

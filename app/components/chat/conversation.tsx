@@ -1,4 +1,4 @@
-import { useRef } from "react"
+import React, { useRef } from "react"
 
 import {
   ChatContainerContent,
@@ -27,7 +27,7 @@ type ConversationProps = {
   onReload: () => void
 }
 
-export function Conversation({
+function ConversationComponent({
   messages,
   status = "ready",
   onDelete,
@@ -58,34 +58,6 @@ export function Conversation({
               index === messages.length - 1 && status !== "submitted"
             const hasScrollAnchor =
               isLast && messages.length > initialMessageCount.current
-
-            console.log("Rendering message:", message.id, "Role:", message.role)
-
-            // Debug log for assistant messages with tool invocations
-            if (message.role === "assistant") {
-              console.log("🔍 Conversation - full message object:", {
-                id: message.id,
-                role: message.role,
-                content:
-                  `${message.parts
-                    ?.filter((p) => (p as { type?: string }).type === "text")
-                    ?.map((p) => (p as { text?: string }).text)
-                    ?.join(" ")
-                    ?.substring(0, 200)}...` || "",
-                parts: message.parts,
-                toolInvocations: (
-                  message as MessageType & {
-                    toolInvocations?: Array<{
-                      toolCall?: unknown
-                      [key: string]: unknown
-                    }>
-                  }
-                ).toolInvocations,
-                // Log all keys on the message object to see what's available
-                messageKeys: Object.keys(message),
-                fullMessage: message,
-              })
-            }
 
             return (
               <Message
@@ -141,3 +113,25 @@ export function Conversation({
     </div>
   )
 }
+
+/**
+ * Memoized Conversation component
+ *
+ * Only re-renders when messages array or status changes
+ * Prevents unnecessary re-renders of the entire message list
+ */
+export const Conversation = React.memo(
+  ConversationComponent,
+  (prevProps, nextProps) => {
+    // Re-render if messages changed (reference equality check)
+    if (prevProps.messages !== nextProps.messages) return false
+
+    // Re-render if status changed
+    if (prevProps.status !== nextProps.status) return false
+
+    // Functions are assumed stable (from useCallback)
+    return true
+  }
+)
+
+Conversation.displayName = "Conversation"
