@@ -15,7 +15,7 @@ import { useModel } from "@/app/components/chat/use-model"
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { ProjectChatItem } from "@/app/components/layout/sidebar/project-chat-item"
 import { toast } from "@/components/ui/toast"
-import type { UIMessage } from "@/lib/ai-sdk-types"
+import type { Message, UIMessage } from "@/lib/ai-sdk-types"
 import { uiMessageToMessage } from "@/lib/ai-sdk-types"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
@@ -203,7 +203,10 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     systemPrompt: SYSTEM_PROMPT_DEFAULT,
     createNewChat,
     setHasDialogAuth: () => {}, // Not used in project context
-    setMessages: (msgs: UIMessage[]) => setMessages(msgs),
+    // Type incompatibility between AI SDK v4 (Message) and v5 (UIMessage) types
+    // The "data" role exists in v4 Message but not in v5 UIMessage
+    // Runtime behavior is correct as messages are converted via uiMessageToMessage
+    setMessages: (msgs) => setMessages(msgs as any),
     setInput,
   })
 
