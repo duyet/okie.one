@@ -200,7 +200,6 @@ export function ChatInput({
                 <ButtonThink
                   thinkingMode={thinkingMode}
                   onModeChange={setThinkingMode}
-                  isAuthenticated={isUserAuthenticated}
                   hasNativeReasoning={hasNativeReasoning}
                 />
               )}

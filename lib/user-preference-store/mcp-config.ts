@@ -1,4 +1,3 @@
-import { BrainIcon } from "@phosphor-icons/react"
 import type { ComponentType } from "react"
 
 export type McpServerConfig = {
@@ -13,20 +12,11 @@ export type McpServerConfig = {
 
 // Centralized MCP server configurations
 export const MCP_SERVER_CONFIGS: Record<string, McpServerConfig> = {
-  "sequential-thinking": {
-    id: "sequential-thinking",
-    name: "Sequential Thinking MCP",
-    description: "Advanced step-by-step reasoning for non-reasoning models",
-    icon: BrainIcon,
-    requiresAuth: true,
-    defaultEnabled: true,
-    category: "reasoning",
-  },
   // Future servers can be easily added here
   // 'context7': {
-  //   id: "context7",
-  //   name: "Context7 MCP",
-  //   description: "Official library documentation and code examples",
+  //   id: 'context7',
+  //   name: 'Context7 MCP',
+  //   description: 'Official library documentation and code examples',
   //   icon: BookIcon,
   //   requiresAuth: false,
   //   defaultEnabled: false,
@@ -60,7 +50,4 @@ export const getMcpServersByCategory = (
   )
 
 // Constants for type safety
-export const MCP_SERVER_IDS = {
-  SEQUENTIAL_THINKING: "sequential-thinking" as const,
-  // Add future server IDs here
-} as const
+export const MCP_SERVER_IDS = {} as const

@@ -4,44 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest"
 import { ButtonThink } from "@/app/components/chat-input/button-think"
 import { TooltipProvider } from "@/components/ui/tooltip"
 
-// Mock the UserPreferencesProvider hook
-vi.mock("@/lib/user-preference-store/provider", () => ({
-  useUserPreferences: () => ({
-    preferences: {
-      mcpSettings: {
-        "sequential-thinking": true,
-      },
-    },
-    updatePreferences: vi.fn(),
-    isLoading: false,
-    isMcpServerEnabled: vi.fn((serverId: string) => {
-      return serverId === "sequential-thinking"
-    }),
-  }),
-}))
-
-// Mock the Popover components
-vi.mock("@/components/ui/popover", () => ({
-  Popover: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-  PopoverTrigger: ({
-    asChild,
-    children,
-  }: {
-    asChild?: boolean
-    children: React.ReactNode
-  }) => (asChild ? children : <div>{children}</div>),
-  PopoverContent: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-}))
-
-// Mock the PopoverContentAuth component
-vi.mock("@/app/components/chat-input/popover-content-auth", () => ({
-  PopoverContentAuth: () => <div>Sign in required</div>,
-}))
-
 // Mock the dropdown menu components
 vi.mock("@/components/ui/dropdown-menu", () => ({
   DropdownMenu: ({ children }: { children: React.ReactNode }) => (
@@ -87,7 +49,6 @@ describe("ButtonThink", () => {
     render(
       <ButtonThink
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       {
@@ -100,11 +61,10 @@ describe("ButtonThink", () => {
     expect(screen.getByText("Thinking")).toBeDefined()
   })
 
-  it("should render the sequential thinking button for non-reasoning models", () => {
+  it("should not render for non-reasoning models", () => {
     render(
       <ButtonThink
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={false}
       />,
       {
@@ -112,16 +72,13 @@ describe("ButtonThink", () => {
       }
     )
 
-    const button = screen.getByTestId("think-button")
-    expect(button).toBeDefined()
-    expect(screen.getByText("Sequential Thinking MCP")).toBeDefined()
+    expect(screen.queryByTestId("think-button")).toBeNull()
   })
 
   it("should show brain icon", () => {
     render(
       <ButtonThink
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       {
@@ -138,7 +95,6 @@ describe("ButtonThink", () => {
     render(
       <ButtonThink
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       {
@@ -148,23 +104,6 @@ describe("ButtonThink", () => {
 
     expect(screen.getByText("Disable Thinking")).toBeDefined()
     expect(screen.getByText("Thinking (Native)")).toBeDefined()
-    expect(screen.getByText("Sequential Thinking MCP")).toBeDefined()
-  })
-
-  it("should not show dropdown for non-reasoning models", () => {
-    render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        isAuthenticated={true}
-        hasNativeReasoning={false}
-      />,
-      {
-        wrapper: createWrapper(),
-      }
-    )
-
-    expect(screen.queryByTestId("dropdown-menu")).toBeNull()
-    expect(screen.getByText("Sequential Thinking MCP")).toBeDefined()
   })
 
   it("should call onModeChange with 'none' when Disable Thinking is clicked", () => {
@@ -172,7 +111,6 @@ describe("ButtonThink", () => {
       <ButtonThink
         thinkingMode="regular"
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       {
@@ -192,7 +130,6 @@ describe("ButtonThink", () => {
       <ButtonThink
         thinkingMode="none"
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       {
@@ -207,52 +144,11 @@ describe("ButtonThink", () => {
     expect(mockOnModeChange).toHaveBeenCalledWith("regular")
   })
 
-  it("should call onModeChange with 'sequential' when Sequential Thinking MCP is clicked", () => {
-    render(
-      <ButtonThink
-        thinkingMode="none"
-        onModeChange={mockOnModeChange}
-        isAuthenticated={true}
-        hasNativeReasoning={true}
-      />,
-      {
-        wrapper: createWrapper(),
-      }
-    )
-
-    const sequentialButton = screen.getByText("Sequential Thinking MCP")
-    fireEvent.click(sequentialButton)
-
-    expect(mockOnModeChange).toHaveBeenCalledTimes(1)
-    expect(mockOnModeChange).toHaveBeenCalledWith("sequential")
-  })
-
-  it("should toggle sequential mode for non-reasoning models", () => {
-    render(
-      <ButtonThink
-        thinkingMode="none"
-        onModeChange={mockOnModeChange}
-        isAuthenticated={true}
-        hasNativeReasoning={false}
-      />,
-      {
-        wrapper: createWrapper(),
-      }
-    )
-
-    const button = screen.getByTestId("think-button")
-    fireEvent.click(button)
-
-    expect(mockOnModeChange).toHaveBeenCalledTimes(1)
-    expect(mockOnModeChange).toHaveBeenCalledWith("sequential")
-  })
-
   it("should apply selected styles when thinkingMode is not 'none'", () => {
     render(
       <ButtonThink
         thinkingMode="regular"
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       { wrapper: createWrapper() }
@@ -269,7 +165,6 @@ describe("ButtonThink", () => {
       <ButtonThink
         thinkingMode="none"
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       { wrapper: createWrapper() }
@@ -281,96 +176,27 @@ describe("ButtonThink", () => {
     expect(button.className).not.toContain("text-[#0091FF]")
   })
 
-  it("should show 'Sequential Thinking MCP' text when thinkingMode is 'sequential'", () => {
+  it("should show 'Thinking (Native)' text when thinkingMode is 'regular'", () => {
     render(
       <ButtonThink
-        thinkingMode="sequential"
+        thinkingMode="regular"
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       { wrapper: createWrapper() }
     )
 
-    // Check that the button shows the Sequential Thinking MCP text
+    // Check that the button shows the Thinking (Native) text
     const button = screen.getByTestId("think-button")
     // Use more specific check to avoid matching dropdown items
     const buttonText = button.querySelector(".hidden.md\\:block")
-    expect(buttonText?.textContent).toBe("Sequential Thinking MCP")
-  })
-
-  it("should show authentication required for unauthenticated users (reasoning model)", () => {
-    // Mock NODE_ENV via vi.stubEnv to force authentication flow
-    vi.stubEnv("NODE_ENV", "production")
-
-    // Mock window location to not be localhost
-    Object.defineProperty(window, "location", {
-      value: { hostname: "example.com" },
-      writable: true,
-    })
-
-    render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        isAuthenticated={false}
-        hasNativeReasoning={true}
-      />,
-      {
-        wrapper: createWrapper(),
-      }
-    )
-
-    expect(screen.getByText("Thinking")).toBeDefined()
-    expect(screen.getByText("Sign in required")).toBeDefined()
-
-    // Restore environment
-    vi.unstubAllEnvs()
-  })
-
-  it("should show authentication required for unauthenticated users (non-reasoning model)", () => {
-    // Mock NODE_ENV via vi.stubEnv to force authentication flow
-    vi.stubEnv("NODE_ENV", "production")
-
-    // Mock window location to not be localhost
-    Object.defineProperty(window, "location", {
-      value: { hostname: "example.com" },
-      writable: true,
-    })
-
-    render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        isAuthenticated={false}
-        hasNativeReasoning={false}
-      />,
-      {
-        wrapper: createWrapper(),
-      }
-    )
-
-    expect(screen.getByText("Sequential Thinking MCP")).toBeDefined()
-    expect(screen.getByText("Sign in required")).toBeDefined()
-
-    // Restore environment
-    vi.unstubAllEnvs()
-  })
-
-  it("should not show dropdown for unauthenticated users", () => {
-    render(
-      <ButtonThink onModeChange={mockOnModeChange} isAuthenticated={false} />,
-      {
-        wrapper: createWrapper(),
-      }
-    )
-
-    expect(screen.queryByTestId("dropdown-menu")).toBeNull()
+    expect(buttonText?.textContent).toBe("Thinking (Native)")
   })
 
   it("should have responsive text visibility", () => {
     render(
       <ButtonThink
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       {
@@ -384,7 +210,7 @@ describe("ButtonThink", () => {
   })
 
   it("should handle undefined onModeChange gracefully", () => {
-    render(<ButtonThink isAuthenticated={true} hasNativeReasoning={true} />, {
+    render(<ButtonThink hasNativeReasoning={true} />, {
       wrapper: createWrapper(),
     })
 
@@ -398,7 +224,6 @@ describe("ButtonThink", () => {
     render(
       <ButtonThink
         onModeChange={mockOnModeChange}
-        isAuthenticated={true}
         hasNativeReasoning={true}
       />,
       {

@@ -30,7 +30,10 @@ export const ALLOWED_FILE_TYPES = [
   "text/markdown",
 ]
 
-export const NON_AUTH_ALLOWED_MODELS = ["gpt-4.1-nano"]
+export const NON_AUTH_ALLOWED_MODELS = [
+  "openrouter:google/gemma-4-31b-it:free",
+  "gpt-4.1-nano",
+]
 
 export const FREE_MODELS_IDS = [
   "openrouter:moonshotai/kimi-k2:free",
@@ -58,7 +61,7 @@ export const FREE_MODELS_IDS = [
   "gemini-2.0-flash-thinking-exp-01-21",
 ]
 
-export const MODEL_DEFAULT = "gpt-4.1-nano"
+export const MODEL_DEFAULT = "openrouter:google/gemma-4-31b-it:free"
 
 export const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "Okie"
 export const APP_DOMAIN = process.env.NEXT_PUBLIC_VERCEL_URL

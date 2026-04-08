@@ -106,12 +106,8 @@ export function useChatCore({
       tools.push({ type: "web_search" })
     }
 
-    if (thinkingMode === "sequential") {
-      tools.push({ type: "mcp", name: "server-sequential-thinking" })
-    }
-
     return tools
-  }, [enableSearch, thinkingMode])
+  }, [enableSearch])
 
   const getToolsConfig = useCallback(() => toolsConfig, [toolsConfig])
 
@@ -228,70 +224,6 @@ export function useChatCore({
             toolInvocationsCount: allToolInvocations.length,
             toolInvocations: allToolInvocations,
           })
-
-          // Extract reasoning steps from tool invocations
-          const reasoningSteps = allToolInvocations
-            .filter((ti) => {
-              // Handle both direct tool invocations and tool call callbacks
-              const toolName =
-                (ti as { toolName?: string })?.toolName ||
-                (ti.toolCall as { toolName?: string })?.toolName
-              const args =
-                (ti as { args?: Record<string, unknown> })?.args ||
-                (ti.toolCall as { args?: Record<string, unknown> })?.args
-              const result =
-                (ti as { result?: Record<string, unknown> })?.result || args // Use args as result for streaming calls
-
-              return (
-                toolName === "addReasoningStep" &&
-                result &&
-                typeof result === "object" &&
-                "title" in result &&
-                "content" in result
-              )
-            })
-            .map((ti) => {
-              const args =
-                (ti as { args?: Record<string, unknown> })?.args ||
-                (ti.toolCall as { args?: Record<string, unknown> })?.args
-              const result =
-                (ti as { result?: Record<string, unknown> })?.result || args // Use args as result for streaming calls
-
-              return {
-                title: (result as { title?: string })?.title || "",
-                content: (result as { content?: string })?.content || "",
-                nextStep: (result as { nextStep?: string })?.nextStep,
-              }
-            })
-
-          if (reasoningSteps.length > 0) {
-            console.log(
-              "🧠 Found reasoning steps from streaming tool invocations:",
-              reasoningSteps
-            )
-
-            // Add reasoning steps to the message parts array for UI rendering
-            const existingParts = message.parts || []
-            const reasoningParts = reasoningSteps.map((step) => ({
-              type: "sequential-reasoning-step" as const,
-              step: step,
-            }))
-
-            // Create a new message with the reasoning parts added
-            const updatedMessage = {
-              ...message,
-              parts: [
-                ...existingParts.filter(
-                  (p) =>
-                    (p as { type?: string }).type !==
-                    "sequential-reasoning-step"
-                ),
-                ...reasoningParts,
-              ],
-            }
-
-            return updatedMessage as Message
-          }
         }
       }
       return message

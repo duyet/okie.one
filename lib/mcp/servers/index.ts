@@ -2,21 +2,15 @@
  * MCP Servers Registry
  *
  * Central registry for all MCP servers in the application.
+ * Add more MCP servers here as they are implemented.
  */
 
-import {
-  SequentialThinkingServer,
-  sequentialThinkingServer,
-} from "./sequential-thinking"
-
 export interface MCPServerRegistry {
-  "server-sequential-thinking": SequentialThinkingServer
   // Add more MCP servers here as they are implemented
+  // Example: "server-custom": CustomServer
 }
 
-export const mcpServers: MCPServerRegistry = {
-  "server-sequential-thinking": sequentialThinkingServer,
-}
+export const mcpServers: MCPServerRegistry = {}
 
 /**
  * Get an MCP server by name
@@ -40,8 +34,3 @@ export function hasMCPServer(name: string): name is keyof MCPServerRegistry {
 export function getMCPServerNames(): Array<keyof MCPServerRegistry> {
   return Object.keys(mcpServers) as Array<keyof MCPServerRegistry>
 }
-
-// Re-export specific servers for convenience
-export { sequentialThinkingServer, SequentialThinkingServer }
-
-export * from "./sequential-thinking"

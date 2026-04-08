@@ -18,15 +18,6 @@ export interface ReasoningPart {
   text: string
 }
 
-export interface SequentialReasoningStepPart {
-  type: "sequential-reasoning-step"
-  step: {
-    title: string
-    content: string
-    nextStep?: "continue" | "finalAnswer"
-  }
-}
-
 export interface SourcePart {
   type: "source"
   source: {
@@ -41,7 +32,6 @@ export type MessagePart =
   | ContentPart
   | ToolInvocationPart
   | ReasoningPart
-  | SequentialReasoningStepPart
   | SourcePart
   | { type: "text"; text?: string }
   | { type: "file"; [key: string]: unknown }
@@ -61,12 +51,6 @@ export function isToolInvocationPart(
 
 export function isReasoningPart(part: MessagePart): part is ReasoningPart {
   return part.type === "reasoning" && "text" in part
-}
-
-export function isSequentialReasoningStepPart(
-  part: MessagePart
-): part is SequentialReasoningStepPart {
-  return part.type === "sequential-reasoning-step" && "step" in part
 }
 
 export function isSourcePart(part: MessagePart): part is SourcePart {

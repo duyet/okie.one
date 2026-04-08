@@ -9,20 +9,6 @@ import {
 
 describe("MCP Server Registry", () => {
   describe("MCP_SERVER_CONFIGS", () => {
-    test("contains Sequential Thinking MCP server", () => {
-      const sequentialServer = MCP_SERVER_CONFIGS["sequential-thinking"]
-
-      expect(sequentialServer).toBeDefined()
-      expect(sequentialServer).toMatchObject({
-        id: "sequential-thinking",
-        name: "Sequential Thinking MCP",
-        description: expect.stringContaining("reasoning"),
-        requiresAuth: true,
-        defaultEnabled: true,
-        category: "reasoning",
-      })
-    })
-
     test("all servers have required fields", () => {
       const servers = Object.values(MCP_SERVER_CONFIGS)
 
@@ -64,14 +50,6 @@ describe("MCP Server Registry", () => {
   })
 
   describe("getMcpServerConfig", () => {
-    test("returns server when ID exists", () => {
-      const server = getMcpServerConfig("sequential-thinking")
-
-      expect(server).toBeDefined()
-      expect(server?.id).toBe("sequential-thinking")
-      expect(server?.name).toBe("Sequential Thinking MCP")
-    })
-
     test("returns undefined when ID does not exist", () => {
       const server = getMcpServerConfig("non-existent-server")
 
@@ -86,57 +64,24 @@ describe("MCP Server Registry", () => {
   })
 
   describe("getAllMcpServerConfigs", () => {
-    test("returns all server configurations", () => {
+    test("returns empty array when no servers configured", () => {
       const servers = getAllMcpServerConfigs()
 
-      expect(servers).toHaveLength(Object.keys(MCP_SERVER_CONFIGS).length)
-      expect(servers).toContainEqual(
-        expect.objectContaining({
-          id: "sequential-thinking",
-          name: "Sequential Thinking MCP",
-        })
-      )
+      expect(servers).toHaveLength(0)
     })
 
     test("returns array of server configs", () => {
       const servers = getAllMcpServerConfigs()
 
-      servers.forEach((server) => {
-        expect(server).toMatchObject({
-          id: expect.any(String),
-          name: expect.any(String),
-          description: expect.any(String),
-          icon: expect.anything(),
-          defaultEnabled: expect.any(Boolean),
-        })
-      })
+      expect(Array.isArray(servers)).toBe(true)
     })
   })
 
   describe("getDefaultMcpSettings", () => {
-    test("returns correct default settings for all servers", () => {
+    test("returns empty object when no servers configured", () => {
       const defaults = getDefaultMcpSettings()
 
-      expect(defaults).toMatchObject({
-        "sequential-thinking": true,
-      })
-    })
-
-    test("includes all servers from registry", () => {
-      const defaults = getDefaultMcpSettings()
-      const serverIds = Object.keys(MCP_SERVER_CONFIGS)
-
-      serverIds.forEach((id) => {
-        expect(defaults).toHaveProperty(id)
-      })
-    })
-
-    test("uses server defaultEnabled property", () => {
-      const defaults = getDefaultMcpSettings()
-
-      Object.values(MCP_SERVER_CONFIGS).forEach((server) => {
-        expect(defaults[server.id]).toBe(server.defaultEnabled)
-      })
+      expect(defaults).toEqual({})
     })
 
     test("returns object with correct type", () => {
@@ -153,24 +98,6 @@ describe("MCP Server Registry", () => {
   })
 
   describe("server configuration validation", () => {
-    test("Sequential Thinking server has correct authentication requirements", () => {
-      const server = getMcpServerConfig("sequential-thinking")
-
-      expect(server?.requiresAuth).toBe(true)
-    })
-
-    test("Sequential Thinking server is enabled by default", () => {
-      const server = getMcpServerConfig("sequential-thinking")
-
-      expect(server?.defaultEnabled).toBe(true)
-    })
-
-    test("Sequential Thinking server has correct category", () => {
-      const server = getMcpServerConfig("sequential-thinking")
-
-      expect(server?.category).toBe("reasoning")
-    })
-
     test("server icons are valid React components", () => {
       Object.values(MCP_SERVER_CONFIGS).forEach((server) => {
         expect(server.icon).toBeTruthy()
