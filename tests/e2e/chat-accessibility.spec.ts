@@ -47,8 +47,8 @@ test.describe("Chat Accessibility Tests", () => {
 
       const inputAriaLabel = await chatInput.getAttribute("aria-label")
       const inputPlaceholder = await chatInput.getAttribute("placeholder")
-      const inputRole = await chatInput.getAttribute("role")
-      const inputAriaDescribedBy =
+      const _inputRole = await chatInput.getAttribute("role")
+      const _inputAriaDescribedBy =
         await chatInput.getAttribute("aria-describedby")
 
       // Input should have either aria-label or meaningful placeholder
@@ -71,8 +71,8 @@ test.describe("Chat Accessibility Tests", () => {
 
       const buttonAriaLabel = await sendButton.getAttribute("aria-label")
       const buttonText = await sendButton.textContent()
-      const buttonRole = await sendButton.getAttribute("role")
-      const buttonAriaDisabled = await sendButton.getAttribute("aria-disabled")
+      const _buttonRole = await sendButton.getAttribute("role")
+      const _buttonAriaDisabled = await sendButton.getAttribute("aria-disabled")
 
       // Button should have proper labeling
       const hasButtonLabeling =
@@ -260,7 +260,7 @@ test.describe("Chat Accessibility Tests", () => {
         const text = await heading.textContent()
         const ariaLabel = await heading.getAttribute("aria-label")
         headingStructure.push({
-          level: parseInt(tagName[1]),
+          level: parseInt(tagName[1], 10),
           tag: tagName,
           text: text?.trim(),
           ariaLabel,
@@ -352,7 +352,7 @@ test.describe("Chat Accessibility Tests", () => {
       await expect(page).toHaveURL(/\/c\/[a-f0-9-]+/, { timeout: 20000 })
 
       // Focus should be on the chat input for next message
-      const newChatInput = await waitForChatInput(page, { timeout: 15000 })
+      const _newChatInput = await waitForChatInput(page, { timeout: 15000 })
 
       // Give focus a moment to settle
       await page.waitForTimeout(2000)

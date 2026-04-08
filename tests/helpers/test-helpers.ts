@@ -415,7 +415,7 @@ export async function sendMessage(
           waitUntil: "commit", // Don't wait for load event in SPA navigation
         })
         console.log("✅ Navigation successful via URL pattern match")
-      } catch (navigationError) {
+      } catch (_navigationError) {
         console.log(
           "⚠️ URL pattern match timeout, trying alternative approach..."
         )
@@ -434,7 +434,7 @@ export async function sendMessage(
           } else {
             console.log(`⚠️ URL changed but not to chat page: ${newUrl}`)
           }
-        } catch (altNavigationError) {
+        } catch (_altNavigationError) {
           console.log("⚠️ No navigation detected - checking for SPA behavior...")
 
           // For SPA behavior, the message might appear without navigation
@@ -1002,7 +1002,7 @@ export async function prepareTestEnvironment(
     // Navigate to homepage with enhanced error handling
     try {
       await page.goto("/", { waitUntil: "networkidle", timeout: 15000 })
-    } catch (gotoError) {
+    } catch (_gotoError) {
       console.log("⚠️ Initial navigation failed, retrying with load state...")
       await page.goto("/", { waitUntil: "load", timeout: 10000 })
     }

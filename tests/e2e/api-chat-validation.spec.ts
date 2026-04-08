@@ -1,5 +1,6 @@
 import type { APIResponse } from "@playwright/test"
 import { expect, test } from "@playwright/test"
+import type { Page } from "playwright"
 
 /**
  * Comprehensive E2E tests for Chat API validation
@@ -34,7 +35,7 @@ test.describe("Chat API Validation E2E Tests", () => {
 
   // Helper function to make API request
   const makeApiRequest = async (
-    request: any,
+    request: Page,
     payload: Record<string, unknown>
   ): Promise<APIResponse> => {
     return await request.post(`${baseUrl}/api/chat`, {
@@ -53,8 +54,10 @@ test.describe("Chat API Validation E2E Tests", () => {
     }) => {
       console.log("🧪 Testing missing chatId validation")
 
-      const payload = createChatRequest({ chatId: undefined })
-      delete (payload as any).chatId
+      const { chatId, ...payloadWithoutChatId } = createChatRequest({
+        chatId: undefined,
+      })
+      const payload = payloadWithoutChatId
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()
@@ -79,8 +82,10 @@ test.describe("Chat API Validation E2E Tests", () => {
     }) => {
       console.log("🧪 Testing missing userId validation")
 
-      const payload = createChatRequest({ userId: undefined })
-      delete (payload as any).userId
+      const { userId, ...payloadWithoutUserId } = createChatRequest({
+        userId: undefined,
+      })
+      const payload = payloadWithoutUserId
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()
@@ -105,8 +110,10 @@ test.describe("Chat API Validation E2E Tests", () => {
     }) => {
       console.log("🧪 Testing missing model validation")
 
-      const payload = createChatRequest({ model: undefined })
-      delete (payload as any).model
+      const { model, ...payloadWithoutModel } = createChatRequest({
+        model: undefined,
+      })
+      const payload = payloadWithoutModel
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()
@@ -131,8 +138,10 @@ test.describe("Chat API Validation E2E Tests", () => {
     }) => {
       console.log("🧪 Testing missing messages validation")
 
-      const payload = createChatRequest({ messages: undefined })
-      delete (payload as any).messages
+      const { messages, ...payloadWithoutMessages } = createChatRequest({
+        messages: undefined,
+      })
+      const payload = payloadWithoutMessages
 
       const response = await makeApiRequest(request, payload)
       const responseBody = await response.json()

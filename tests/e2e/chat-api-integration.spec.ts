@@ -47,14 +47,14 @@ test.describe("Chat API Integration Tests", () => {
     console.log("🔧 Testing API request structure and validation fix...")
 
     const capture = setupNetworkCapture(page)
-    let interceptedRequest: any = null
+    let interceptedRequest: Record<string, unknown> | null = null
 
     try {
       // Intercept and analyze the actual request being sent
       await page.route("**/api/chat", async (route) => {
         const request = route.request()
-        const requestBody = request.postDataJSON() as any
-        interceptedRequest = requestBody
+        const requestBody = request.postDataJSON() as Record<string, unknown>
+        interceptedRequest = requestBody as ChatRequestBody
 
         console.log("📤 Intercepted API request:", {
           method: request.method(),
@@ -105,7 +105,7 @@ test.describe("Chat API Integration Tests", () => {
 
         // Verify message structure
         const userMessage = interceptedRequest.messages?.find(
-          (msg: any) => msg.role === "user"
+          (msg: Record<string, unknown>) => msg.role === "user"
         )
         expect(userMessage).toBeTruthy()
         expect(userMessage?.content).toBe(testMessage)
@@ -201,11 +201,11 @@ test.describe("Chat API Integration Tests", () => {
     for (const testCase of testCases) {
       console.log(`🧪 Testing: ${testCase.name}`)
 
-      let interceptedRequest: any = null
+      let interceptedRequest: ChatRequestBody | null = null
 
       await page.route("**/api/chat", async (route) => {
         const requestBody = route.request().postDataJSON()
-        interceptedRequest = requestBody
+        interceptedRequest = requestBody as ChatRequestBody
 
         await route.fulfill({
           status: 200,
@@ -236,7 +236,7 @@ test.describe("Chat API Integration Tests", () => {
           expect(interceptedRequest.messages.length).toBeGreaterThan(0)
 
           const userMessage = interceptedRequest.messages.find(
-            (msg: any) => msg.role === "user"
+            (msg: { role: string; content: string }) => msg.role === "user"
           )
           expect(userMessage?.content).toBe(testCase.content)
 
@@ -263,8 +263,8 @@ test.describe("Chat API Integration Tests", () => {
   }) => {
     console.log("👤 Testing session context in API requests...")
 
-    let firstRequest: any = null
-    let secondRequest: any = null
+    let firstRequest: ChatRequestBody | null = null
+    let secondRequest: ChatRequestBody | null = null
     let requestCount = 0
 
     try {
@@ -337,7 +337,7 @@ test.describe("Chat API Integration Tests", () => {
         )
 
         // Verify conversation flow
-        const firstUserMessage = firstRequest.messages.find(
+        const _firstUserMessage = firstRequest.messages.find(
           (msg: any) => msg.role === "user"
         )
         const secondRequestMessages = secondRequest.messages
@@ -379,12 +379,12 @@ test.describe("Chat API Integration Tests", () => {
     for (const testCase of edgeCases) {
       console.log(`🔬 Edge case: ${testCase.name}`)
 
-      let interceptedRequest: any = null
+      let interceptedRequest: ChatRequestBody | null = null
       let responseStatus = 0
 
       await page.route("**/api/chat", async (route) => {
         const requestBody = route.request().postDataJSON()
-        interceptedRequest = requestBody
+        interceptedRequest = requestBody as ChatRequestBody
 
         // Simulate the API validation logic
         const hasValidModel =
@@ -454,7 +454,7 @@ test.describe("Chat API Integration Tests", () => {
           expect(interceptedRequest.messages.length).toBeGreaterThan(0)
 
           const userMessage = interceptedRequest.messages.find(
-            (msg: any) => msg.role === "user"
+            (msg: { role: string; content: string }) => msg.role === "user"
           )
           expect(userMessage).toBeTruthy()
 
@@ -478,12 +478,12 @@ test.describe("Chat API Integration Tests", () => {
   }) => {
     console.log("🧠 Testing thinking mode API integration...")
 
-    let interceptedRequest: any = null
+    let interceptedRequest: ChatRequestBody | null = null
 
     try {
       await page.route("**/api/chat", async (route) => {
         const requestBody = route.request().postDataJSON()
-        interceptedRequest = requestBody
+        interceptedRequest = requestBody as ChatRequestBody
 
         console.log("🔍 Thinking mode request:", {
           thinkingMode: requestBody.thinkingMode,

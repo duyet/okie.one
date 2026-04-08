@@ -72,8 +72,7 @@ export function useChatPreview(): UseChatPreviewReturn {
                 content: msg.parts?.find((p) => p.type === "text")?.text || "",
                 role: msg.role as "user" | "assistant",
                 created_at:
-                  (msg as any).createdAt?.toISOString() ||
-                  new Date().toISOString(),
+                  msg.createdAt?.toISOString() || new Date().toISOString(),
               }))
             setMessages(cachedMessages)
           }
@@ -97,8 +96,7 @@ export function useChatPreview(): UseChatPreviewReturn {
                 content: msg.parts?.find((p) => p.type === "text")?.text || "",
                 role: msg.role as "user" | "assistant",
                 created_at:
-                  (msg as any).createdAt?.toISOString() ||
-                  new Date().toISOString(),
+                  msg.createdAt?.toISOString() || new Date().toISOString(),
               }))
             setMessages(freshMessages)
           }

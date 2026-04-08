@@ -34,11 +34,19 @@ export async function trackEvent(
 
     // Insert event into user_events table
     // Use type assertion since table doesn't exist in types until migration is deployed
-    const { error } = await (supabase as any).from("user_events").insert({
-      user_id: userId,
-      event_type: eventType,
-      event_metadata: metadata || null,
-    })
+    const { error } = await (
+      supabase as unknown as {
+        from: (table: string) => {
+          insert: (data: unknown) => Promise<{ error?: { message: string } }>
+        }
+      }
+    )
+      .from("user_events")
+      .insert({
+        user_id: userId,
+        event_type: eventType,
+        event_metadata: metadata || null,
+      })
 
     if (error) {
       // Log but don't throw - event tracking shouldn't block the app

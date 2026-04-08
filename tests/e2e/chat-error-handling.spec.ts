@@ -39,7 +39,7 @@ test.describe("Chat Error Handling Tests", () => {
         console.log("🎭 Intercepting chat API to simulate validation error...")
 
         const request = route.request()
-        const requestBody = request.postDataJSON()
+        const _requestBody = request.postDataJSON()
 
         // Simulate a validation error response
         const validationError = {
@@ -291,7 +291,7 @@ test.describe("Chat Error Handling Tests", () => {
   test("should handle server error responses", async ({ page }) => {
     console.log("🚨 Testing server error response handling...")
 
-    const capture = setupNetworkCapture(page)
+    const _capture = setupNetworkCapture(page)
 
     try {
       // Intercept chat API to return server error
@@ -328,12 +328,12 @@ test.describe("Chat Error Handling Tests", () => {
         '[role="alert"]',
       ]
 
-      let errorFound = false
+      let _errorFound = false
       for (const selector of serverErrorSelectors) {
         try {
           await page.locator(selector).first().waitFor({ timeout: 10000 })
           console.log(`✅ Server error feedback found: ${selector}`)
-          errorFound = true
+          _errorFound = true
           break
         } catch {
           // Continue
@@ -550,12 +550,12 @@ test.describe("Chat Error Handling Tests", () => {
         'text*="make sure"',
       ]
 
-      let friendlyErrorFound = false
+      let _friendlyErrorFound = false
       for (const selector of friendlyErrorSelectors) {
         try {
           await page.locator(selector).first().waitFor({ timeout: 10000 })
           console.log(`✅ User-friendly error message found: ${selector}`)
-          friendlyErrorFound = true
+          _friendlyErrorFound = true
           break
         } catch {
           // Continue

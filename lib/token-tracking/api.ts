@@ -20,6 +20,24 @@ import {
   TokenTrackingError as TokenError,
 } from "./types"
 
+// Type-safe RPC call helper for custom Supabase functions
+async function callRPC<T = unknown>(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  functionName: string,
+  params: Record<string, unknown>
+): Promise<{ data: T | null; error: { message: string } | null }> {
+  const client = supabase as unknown as {
+    rpc: (
+      name: string,
+      args: Record<string, unknown>
+    ) => Promise<{
+      data: T | null
+      error: { message: string } | null
+    }>
+  }
+  return client.rpc(functionName, params)
+}
+
 /**
  * Records token usage for a specific message
  */
@@ -112,13 +130,10 @@ export async function getDailyLeaderboard(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as any).rpc(
-      "get_daily_token_leaderboard",
-      {
-        target_date: date,
-        limit_count: limit,
-      }
-    )
+    const { data, error } = await callRPC(supabase,"get_daily_token_leaderboard", {
+      target_date: date,
+      limit_count: limit,
+    })
 
     if (error) {
       throw new TokenError(
@@ -155,13 +170,10 @@ export async function getUserTokenAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as any).rpc(
-      "get_user_token_analytics",
-      {
-        target_user_id: userId,
-        days_back: daysBack,
-      }
-    )
+    const { data, error } = await callRPC(supabase,"get_user_token_analytics", {
+      target_user_id: userId,
+      days_back: daysBack,
+    })
 
     if (error) {
       throw new TokenError(
@@ -391,13 +403,10 @@ export async function getTimingAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as any).rpc(
-      "get_timing_analytics",
-      {
-        target_user_id: userId,
-        days_back: daysBack,
-      }
-    )
+    const { data, error } = await callRPC(supabase,"get_timing_analytics", {
+      target_user_id: userId,
+      days_back: daysBack,
+    })
 
     if (error) {
       throw new TokenError(
@@ -434,13 +443,10 @@ export async function getDailyTokenUsageByModel(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await (supabase as any).rpc(
-      "get_daily_model_token_summary",
-      {
-        days_back: daysBack,
-        target_user_id: userId || null,
-      }
-    )
+    const { data, error } = await callRPC(supabase,"get_daily_model_token_summary", {
+      days_back: daysBack,
+      target_user_id: userId || null,
+    })
 
     if (error) {
       throw new TokenError(

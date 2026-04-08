@@ -70,7 +70,7 @@ const createOllamaProvider = () => {
 
 export function openproviders<T extends SupportedModel>(
   modelId: T,
-  settings?: OpenProvidersOptions<T>,
+  _settings?: OpenProvidersOptions<T>,
   apiKey?: string
 ): LanguageModel {
   const provider = getProviderForModel(modelId)

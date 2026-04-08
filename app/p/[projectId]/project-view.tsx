@@ -203,10 +203,16 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     systemPrompt: SYSTEM_PROMPT_DEFAULT,
     createNewChat,
     setHasDialogAuth: () => {}, // Not used in project context
-    // Type incompatibility between AI SDK v4 (Message) and v5 (UIMessage) types
-    // The "data" role exists in v4 Message but not in v5 UIMessage
-    // Runtime behavior is correct as messages are converted via uiMessageToMessage
-    setMessages: (msgs) => setMessages(msgs as any),
+    // Convert Message[] back to UIMessage[] for setMessages
+    setMessages: (msgs) =>
+      setMessages(
+        msgs.map((msg) => ({
+          id: msg.id,
+          role: msg.role === "data" ? "system" : msg.role,
+          parts: msg.parts || [{ type: "text", text: msg.content || "" }],
+          createdAt: msg.createdAt,
+        }))
+      ),
     setInput,
   })
 

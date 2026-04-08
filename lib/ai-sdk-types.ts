@@ -4,6 +4,7 @@
  */
 
 import type { Message as UIUtilsMessage } from "@ai-sdk/ui-utils"
+import type { MessagePart as TypeGuardsMessagePart } from "./type-guards/message-parts"
 
 // Re-export the Message type from ui-utils as UIMessage for compatibility
 export type UIMessage = UIUtilsMessage
@@ -19,15 +20,22 @@ export type Message = Omit<UIUtilsMessage, "role"> & {
 // Re-export for convenience
 export type { UIUtilsMessage }
 
-// Helper type for message parts
+// Re-export type-guards MessagePart for use in type-aware code
+export type { MessagePart as TypeGuardsMessagePart }
+
+// Helper type for message parts - compatible with both AI SDK and type-guards
+// This is the type used in most of the codebase for general message handling
 export interface MessagePart {
   type: string
   text?: string
   name?: string
+  filename?: string
   mediaType?: string
+  contentType?: string
   url?: string
   data?: string
-  [key: string]: any
+  // Allow other properties for extensibility
+  [key: string]: string | undefined
 }
 
 // Helper to convert parts to the expected format
@@ -65,10 +73,8 @@ export function uiMessageToMessage(uiMessage: UIMessage): Message {
     id: uiMessage.id,
     role: uiMessage.role as "system" | "user" | "assistant" | "data",
     content: getTextContent(uiMessage.parts as MessagePart[]),
-    parts: uiMessage.parts,
+    parts: uiMessage.parts as MessagePart[],
     createdAt: uiMessage.createdAt,
-    // Preserve additional fields
-    ...(uiMessage as any),
   }
 }
 

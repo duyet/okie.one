@@ -58,11 +58,11 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     const load = async () => {
       setIsLoading(true)
       const cached = await getCachedMessages(chatId)
-      setMessages(cached as any)
+      setMessages(cached)
 
       try {
         const fresh = await getMessagesFromDb(chatId)
-        setMessages(fresh as any)
+        setMessages(fresh)
         cacheMessages(chatId, fresh)
       } catch (error) {
         console.error("Failed to fetch messages:", error)
@@ -79,7 +79,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const fresh = await getMessagesFromDb(chatId)
-      setMessages(fresh as any)
+      setMessages(fresh)
     } catch {
       toast({ title: "Failed to refresh messages", status: "error" })
     }
@@ -101,7 +101,7 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
       setTimeout(async () => {
         try {
           const fresh = await getMessagesFromDb(chatId)
-          setMessages(fresh as any)
+          setMessages(fresh)
           cacheMessages(chatId, fresh)
         } catch (error) {
           console.error("Failed to refresh messages after caching:", error)
@@ -118,10 +118,10 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const convertedMessages = newMessages.map((msg) =>
-        uiMessageToMessage(msg as any)
+        uiMessageToMessage(msg)
       )
       await saveMessages(chatId, convertedMessages)
-      setMessages(newMessages as any)
+      setMessages(newMessages)
     } catch {
       toast({ title: "Failed to save messages", status: "error" })
     }

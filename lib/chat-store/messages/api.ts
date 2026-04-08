@@ -1,4 +1,4 @@
-import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
+import type { UIMessage as MessageAISDK, MessagePart } from "@/lib/ai-sdk-types"
 import { messageToUIMessage } from "@/lib/ai-sdk-types"
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
@@ -38,7 +38,7 @@ export async function getMessagesFromDb(
         id: String(message.id),
         role: message.role as "system" | "user" | "assistant",
         content: message.content || "",
-        parts: (message?.parts as any) || undefined,
+        parts: message?.parts as MessagePart[] | undefined,
         model: message.model || undefined,
         message_group_id: message.message_group_id || undefined,
       })
@@ -58,14 +58,15 @@ async function insertMessageToDb(chatId: string, message: MessageAISDK) {
   const attachments =
     message.parts
       ?.filter((p) => p.type === "file")
-      ?.map((p) => ({
-        name: (p as any).filename || (p as any).name || "file",
-        contentType:
-          (p as any).mediaType ||
-          (p as any).contentType ||
-          "application/octet-stream",
-        url: (p as any).url || "",
-      })) || []
+      ?.map((p) => {
+        const part = p as MessagePart
+        return {
+          name: part.filename || part.name || "file",
+          contentType:
+            part.mediaType || part.contentType || "application/octet-stream",
+          url: part.url || "",
+        }
+      }) || []
 
   await supabase.from("messages").insert({
     chat_id: chatId,
@@ -94,14 +95,15 @@ async function insertMessagesToDb(chatId: string, messages: MessageAISDK[]) {
     const attachments =
       message.parts
         ?.filter((p) => p.type === "file")
-        ?.map((p) => ({
-          name: (p as any).filename || (p as any).name || "file",
-          contentType:
-            (p as any).mediaType ||
-            (p as any).contentType ||
-            "application/octet-stream",
-          url: (p as any).url || "",
-        })) || []
+        ?.map((p) => {
+          const part = p as MessagePart
+          return {
+            name: part.filename || part.name || "file",
+            contentType:
+              part.mediaType || part.contentType || "application/octet-stream",
+            url: part.url || "",
+          }
+        }) || []
 
     return {
       chat_id: chatId,
@@ -147,9 +149,7 @@ export async function getCachedMessages(
   if (!entry || Array.isArray(entry)) return []
 
   return (entry.messages || []).sort(
-    (a, b) =>
-      +new Date((a as any).createdAt || 0) -
-      +new Date((b as any).createdAt || 0)
+    (a, b) => +new Date(a.createdAt || 0) - +new Date(b.createdAt || 0)
   )
 }
 

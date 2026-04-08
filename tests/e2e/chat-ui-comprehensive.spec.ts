@@ -158,7 +158,7 @@ test.describe("Chat Interface UI Tests", () => {
 
   test("should handle form submission with Enter key", async ({ page }) => {
     const testMessage = "Testing Enter key submission"
-    const capture = setupNetworkCapture(page)
+    const _capture = setupNetworkCapture(page)
 
     console.log("⌨️ Testing Enter key submission...")
 
@@ -205,7 +205,7 @@ test.describe("Chat Interface UI Tests", () => {
 
     console.log("⚡ Testing rapid message submission handling...")
 
-    const capture = setupNetworkCapture(page)
+    const _capture = setupNetworkCapture(page)
 
     try {
       // Setup mock responses
@@ -509,7 +509,7 @@ test.describe("Chat Interface Accessibility Tests", () => {
     try {
       await setupMockAIResponse(page, "Screen reader test response")
 
-      const chatInput = await waitForChatInput(page, { timeout: 30000 })
+      const _chatInput = await waitForChatInput(page, { timeout: 30000 })
 
       // Check for live regions that would announce new messages
       const liveRegions = page.locator(

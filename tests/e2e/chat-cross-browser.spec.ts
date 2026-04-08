@@ -131,7 +131,7 @@ test.describe("Cross-Browser Tests", () => {
       }) => {
         console.log(`⌨️ Testing input interactions on ${config.name}...`)
 
-        const capture = setupNetworkCapture(page)
+        const _capture = setupNetworkCapture(page)
 
         try {
           await setupMockAIResponse(page, "Input interaction test successful!")
@@ -256,7 +256,7 @@ test.describe("Cross-Browser Tests", () => {
 
         try {
           const chatInput = await waitForChatInput(page, { timeout: 30000 })
-          const sendButton = await waitForSendButton(page, {
+          const _sendButton = await waitForSendButton(page, {
             timeout: 15000,
             waitForEnabled: false,
           })

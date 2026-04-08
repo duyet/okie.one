@@ -5,7 +5,7 @@
  * Add more MCP servers here as they are implemented.
  */
 
-export type MCPServerRegistry = {}
+export type MCPServerRegistry = Record<string, never>
 
 export const mcpServers: MCPServerRegistry = {}
 

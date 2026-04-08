@@ -242,7 +242,7 @@ test.describe("First Message from Home Page", () => {
               console.log("✅ Message appeared (in-place chat)")
             }),
         ])
-      } catch (raceError) {
+      } catch (_raceError) {
         console.log(
           "⚠️ Neither navigation nor message appearance detected within timeout"
         )
@@ -262,7 +262,7 @@ test.describe("First Message from Home Page", () => {
           })
           messageVisible = true
           console.log("✅ Message is visible")
-        } catch (messageError) {
+        } catch (_messageError) {
           console.log("⚠️ Message still not visible after final check")
         }
       }
@@ -287,7 +287,7 @@ test.describe("First Message from Home Page", () => {
             timeout: 10000,
           })
           console.log("✅ AI response visible")
-        } catch (aiResponseError) {
+        } catch (_aiResponseError) {
           console.log(
             "ℹ️ AI response not visible (may be expected with mocking)"
           )

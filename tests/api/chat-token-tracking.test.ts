@@ -50,7 +50,7 @@ type OnChunkCallback = () => void
 // AI SDK v5 - Modern streamText mock return type
 interface MockStreamTextResult {
   toUIMessageStreamResponse: (params: {
-    originalMessages: Array<any>
+    originalMessages: Array<Record<string, unknown>>
     onFinish: OnFinishCallback
   }) => Response
 }
@@ -182,18 +182,27 @@ describe("Chat API Token Tracking", () => {
 
     // Clear previous mock implementation and instances
     mockStreamText.mockClear()
-    mockStreamText.mockImplementation((config: any) => {
-      // Store callbacks from streamText itself (AI SDK v5 pattern)
-      if (config.onChunk) onChunkCallback = config.onChunk
-      if (config.onFinish) onFinishCallback = config.onFinish
+    mockStreamText.mockImplementation(
+      (config: { onChunk?: OnChunkCallback; onFinish?: OnFinishCallback }) => {
+        // Store callbacks from streamText itself (AI SDK v5 pattern)
+        if (config.onChunk) onChunkCallback = config.onChunk
+        if (config.onFinish) onFinishCallback = config.onFinish
 
-      return {
-        // AI SDK v5 - toUIMessageStreamResponse for streaming response
-        toUIMessageStreamResponse: vi.fn().mockImplementation((params: any) => {
-          return new Response("mock-stream")
-        }),
-      } as MockStreamTextResult
-    })
+        return {
+          // AI SDK v5 - toUIMessageStreamResponse for streaming response
+          toUIMessageStreamResponse: vi
+            .fn()
+            .mockImplementation(
+              (_params: {
+                originalMessages: Array<Record<string, unknown>>
+                onFinish: OnFinishCallback
+              }) => {
+                return new Response("mock-stream")
+              }
+            ),
+        } as MockStreamTextResult
+      }
+    )
 
     return {
       getOnFinishCallback: () => onFinishCallback as OnFinishCallback,
@@ -234,7 +243,7 @@ describe("Chat API Token Tracking", () => {
         body: JSON.stringify(sampleRequest),
       })
 
-      const response = await POST(request)
+      await POST(request)
 
       // Verify streamText was called with onFinish callback
       expect(mockStreamText).toHaveBeenCalledWith(
@@ -278,7 +287,6 @@ describe("Chat API Token Tracking", () => {
     })
 
     it("should handle timing metrics when chunks are received", async () => {
-      // biome-ignore lint/suspicious/noExplicitAny: Callback initialization requires any
       const { getOnFinishCallback, getOnChunkCallback } = setupStreamTextMock()
 
       const request = new Request("http://localhost:3000/api/chat", {
@@ -515,8 +523,7 @@ describe("Chat API Token Tracking", () => {
       const onFinishCallback = getOnFinishCallback()
       await onFinishCallback({
         response: mockResponse,
-        // biome-ignore lint/suspicious/noExplicitAny: Null usage requires any
-        usage: null as any,
+        usage: null as unknown as { totalTokens?: number },
         finishReason: "stop",
       })
 
