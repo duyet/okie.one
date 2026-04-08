@@ -4,7 +4,6 @@
  */
 
 import type { Message as UIUtilsMessage } from "@ai-sdk/ui-utils"
-import type { MessagePart as TypeGuardsMessagePart } from "./type-guards/message-parts"
 
 // Re-export the Message type from ui-utils as UIMessage for compatibility
 export type UIMessage = UIUtilsMessage

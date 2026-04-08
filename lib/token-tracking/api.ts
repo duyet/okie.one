@@ -130,10 +130,14 @@ export async function getDailyLeaderboard(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await callRPC(supabase,"get_daily_token_leaderboard", {
-      target_date: date,
-      limit_count: limit,
-    })
+    const { data, error } = await callRPC(
+      supabase,
+      "get_daily_token_leaderboard",
+      {
+        target_date: date,
+        limit_count: limit,
+      }
+    )
 
     if (error) {
       throw new TokenError(
@@ -170,10 +174,14 @@ export async function getUserTokenAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await callRPC(supabase,"get_user_token_analytics", {
-      target_user_id: userId,
-      days_back: daysBack,
-    })
+    const { data, error } = await callRPC(
+      supabase,
+      "get_user_token_analytics",
+      {
+        target_user_id: userId,
+        days_back: daysBack,
+      }
+    )
 
     if (error) {
       throw new TokenError(
@@ -403,7 +411,7 @@ export async function getTimingAnalytics(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await callRPC(supabase,"get_timing_analytics", {
+    const { data, error } = await callRPC(supabase, "get_timing_analytics", {
       target_user_id: userId,
       days_back: daysBack,
     })
@@ -443,10 +451,14 @@ export async function getDailyTokenUsageByModel(
       throw new TokenError("Database connection failed", "DB_CONNECTION_ERROR")
     }
 
-    const { data, error } = await callRPC(supabase,"get_daily_model_token_summary", {
-      days_back: daysBack,
-      target_user_id: userId || null,
-    })
+    const { data, error } = await callRPC(
+      supabase,
+      "get_daily_model_token_summary",
+      {
+        days_back: daysBack,
+        target_user_id: userId || null,
+      }
+    )
 
     if (error) {
       throw new TokenError(
