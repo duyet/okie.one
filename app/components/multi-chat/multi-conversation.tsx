@@ -68,7 +68,12 @@ function ResponseCard({ response, group }: ResponseCardProps) {
               response.message.parts
                 ?.filter((p) => p.type === "file")
                 ?.map((p) => {
-                  const part = p as MessagePart & { name?: string; mediaType?: string; url?: string; data?: string }
+                  const part = p as MessagePart & {
+                    name?: string
+                    mediaType?: string
+                    url?: string
+                    data?: string
+                  }
                   return {
                     name: part.name || "file",
                     contentType: part.mediaType,
@@ -156,7 +161,12 @@ export function MultiModelConversation({
                           group.userMessage.parts
                             ?.filter((p) => p.type === "file")
                             ?.map((p) => {
-                              const part = p as MessagePart & { name?: string; mediaType?: string; url?: string; data?: string }
+                              const part = p as MessagePart & {
+                                name?: string
+                                mediaType?: string
+                                url?: string
+                                data?: string
+                              }
                               return {
                                 name: part.name || "file",
                                 contentType: part.mediaType,
@@ -171,7 +181,9 @@ export function MultiModelConversation({
                       >
                         {group.userMessage.parts
                           ?.filter((p) => p.type === "text")
-                          ?.map((p) => (p as MessagePart & { text?: string }).text)
+                          ?.map(
+                            (p) => (p as MessagePart & { text?: string }).text
+                          )
                           ?.join("") || ""}
                       </Message>
                     </div>

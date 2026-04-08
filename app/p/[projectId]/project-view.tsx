@@ -206,8 +206,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     // Convert Message[] back to UIMessage[] for setMessages
     // Type incompatibility: Message has 'data' role, UIMessage doesn't
     // Runtime behavior is correct as conversions happen via uiMessageToMessage
-    setMessages: (msgs) =>
-      setMessages(msgs as unknown as typeof msgs),
+    setMessages: (msgs) => setMessages(msgs as unknown as typeof msgs),
     setInput,
   })
 
