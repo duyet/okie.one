@@ -1,6 +1,7 @@
 // AI SDK v5 - State-of-the-art streaming chat implementation
 import { convertToModelMessages, streamText, type ToolSet } from "ai"
 
+import { type ChatRequest, ChatRequestSchema } from "@/lib/api-validation"
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import {
   ALLOWED_FILE_TYPES,
@@ -14,12 +15,11 @@ import {
   validateModelSupportsFiles,
 } from "@/lib/file-handling"
 import { apiLogger } from "@/lib/logger"
-import type { MessagePart } from "@/lib/type-guards/message-parts"
 import { getAllModels } from "@/lib/models"
-import { checkRateLimit, rateLimitResponse } from "@/lib/ratelimit"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
+import { checkRateLimit, rateLimitResponse } from "@/lib/ratelimit"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
-import { ChatRequestSchema, type ChatRequest } from "@/lib/api-validation"
+import type { MessagePart } from "@/lib/type-guards/message-parts"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
 // Extended usage type to handle different provider formats

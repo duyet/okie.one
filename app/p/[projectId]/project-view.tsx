@@ -208,12 +208,9 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   })
 
   // Simple input change handler for project context (no draft saving needed)
-  const handleInputChange = useCallback(
-    (value: string) => {
-      setInput(value)
-    },
-    []
-  )
+  const handleInputChange = useCallback((value: string) => {
+    setInput(value)
+  }, [])
 
   const submit = useCallback(async () => {
     setIsSubmitting(true)

@@ -9,6 +9,7 @@ import {
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
+import { checkIsAdmin } from "@/app/api/lib/admin-auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -22,7 +23,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { checkIsAdmin } from "@/app/api/lib/admin-auth"
 import { useSettings } from "@/lib/settings-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 
