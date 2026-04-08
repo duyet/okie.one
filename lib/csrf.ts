@@ -4,6 +4,11 @@ import { cookies } from "next/headers"
 function getCsrfSecret(): string {
   const secret = process.env.CSRF_SECRET
   if (!secret) {
+    // Generate a deterministic secret for development if not set
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[SECURITY] CSRF_SECRET not set, using development-only secret")
+      return "dev-csrf-secret-do-not-use-in-production"
+    }
     throw new Error("CSRF_SECRET environment variable is required")
   }
   return secret
