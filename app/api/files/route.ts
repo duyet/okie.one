@@ -12,16 +12,12 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get("userId")
+    // Use only the authenticated user's ID from session
+    const userId = userProfile.id
     const sortBy = searchParams.get("sortBy") || "newest"
     const filterBy = searchParams.get("filterBy") || "all"
     const limit = parseInt(searchParams.get("limit") || "100")
     const offset = parseInt(searchParams.get("offset") || "0")
-
-    // Ensure user can only access their own files
-    if (userId !== userProfile.id) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-    }
 
     const supabase = await createClient()
     if (!supabase) {
