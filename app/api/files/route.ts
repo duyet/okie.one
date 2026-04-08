@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
     const userId = userProfile.id
     const sortBy = searchParams.get("sortBy") || "newest"
     const filterBy = searchParams.get("filterBy") || "all"
-    const limit = parseInt(searchParams.get("limit") || "100")
-    const offset = parseInt(searchParams.get("offset") || "0")
+    const limit = parseInt(searchParams.get("limit") || "100", 10)
+    const offset = parseInt(searchParams.get("offset") || "0", 10)
 
     const supabase = await createClient()
     if (!supabase) {

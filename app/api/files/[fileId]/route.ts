@@ -59,9 +59,7 @@ export async function DELETE(
     if (file.file_url?.includes("supabase")) {
       try {
         const urlParts = file.file_url.split("/")
-        const bucketIndex = urlParts.findIndex(
-          (part) => part === "chat-attachments"
-        )
+        const bucketIndex = urlParts.indexOf("chat-attachments")
         if (bucketIndex !== -1 && bucketIndex < urlParts.length - 1) {
           const filePath = urlParts.slice(bucketIndex + 1).join("/")
 

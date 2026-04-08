@@ -11,7 +11,7 @@ export async function POST(request: Request) {
   const { allowed, resetIn } = checkRateLimit(`create-guest:${ip}`)
 
   if (!allowed) {
-    return rateLimitResponse(resetIn!)
+    return rateLimitResponse(resetIn ?? 10)
   }
 
   try {

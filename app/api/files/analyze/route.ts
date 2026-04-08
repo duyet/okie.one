@@ -46,7 +46,7 @@ export async function POST(req: Request) {
   const { allowed, resetIn } = checkRateLimit(`file-analyze:${ip}`)
 
   if (!allowed) {
-    return rateLimitResponse(resetIn!)
+    return rateLimitResponse(resetIn ?? 10)
   }
 
   try {

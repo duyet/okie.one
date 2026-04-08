@@ -3,7 +3,6 @@ import {
   convertToModelMessages,
   streamText,
   type ToolSet,
-  type UIMessage,
 } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
@@ -61,7 +60,7 @@ export async function POST(req: Request) {
 
   if (!allowed) {
     apiLogger.warn("Rate limit exceeded for chat endpoint", { ip, resetIn })
-    return rateLimitResponse(resetIn!)
+    return rateLimitResponse(resetIn ?? 10)
   }
 
   const requestStartTime = Date.now()

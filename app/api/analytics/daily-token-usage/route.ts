@@ -141,7 +141,9 @@ export async function GET(req: NextRequest) {
     const allModels = new Set<string>()
     dailyData.forEach((day) => {
       if (day.model_data) {
-        Object.keys(day.model_data).forEach((model) => allModels.add(model))
+        Object.keys(day.model_data).forEach((model) => {
+          void allModels.add(model)
+        })
       }
     })
 

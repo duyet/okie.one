@@ -148,7 +148,8 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      const usage = modelUsageMap.get(modelKey)!
+      const usage = modelUsageMap.get(modelKey)
+      if (!usage) continue
       const tokens = (t.input_tokens || 0) + (t.output_tokens || 0)
 
       usage.totalTokens += tokens
@@ -182,7 +183,8 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      const daily = dailyUsageMap.get(dateKey)!
+      const daily = dailyUsageMap.get(dateKey)
+      if (!daily) continue
       const tokens = (t.input_tokens || 0) + (t.output_tokens || 0)
 
       daily.totalTokens += tokens

@@ -11,6 +11,19 @@ import { adminCheck } from "@/app/api/lib/admin-auth"
 import { analyticsLogger } from "@/lib/logger"
 import { createClient } from "@/lib/supabase/server"
 
+interface DAUDataPoint {
+  date: string
+  total_users: number
+  new_users: number
+}
+
+type SupabaseRpc = {
+  rpc: (name: string, params: { days_back: number }) => Promise<{
+    data: DAUDataPoint[] | null
+    error: unknown
+  }>
+}
+
 export async function GET(request: NextRequest) {
   // Check admin authorization
   const authError = await adminCheck()
@@ -35,9 +48,12 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient()
 
     // Call the get_dau_trend function from our migration
-    const { data, error } = await (supabase as any).rpc("get_dau_trend", {
-      days_back: daysBack,
-    })
+    const { data, error } = await (supabase as unknown as SupabaseRpc).rpc(
+      "get_dau_trend",
+      {
+        days_back: daysBack,
+      }
+    )
 
     if (error) {
       analyticsLogger.error("Failed to get DAU data", { error })
@@ -51,17 +67,17 @@ export async function GET(request: NextRequest) {
 
     // Calculate summary statistics
     const totalActiveUsers = dauData.reduce(
-      (sum: number, day: any) => sum + (day.total_users || 0),
+      (sum: number, day: DAUDataPoint) => sum + (day.total_users || 0),
       0
     )
     const averageActiveUsers =
       dauData.length > 0 ? totalActiveUsers / dauData.length : 0
     const peakActiveUsers =
       dauData.length > 0
-        ? Math.max(...dauData.map((d: any) => d.total_users || 0))
+        ? Math.max(...dauData.map((d: DAUDataPoint) => d.total_users || 0))
         : 0
     const totalNewUsers = dauData.reduce(
-      (sum: number, day: any) => sum + (day.new_users || 0),
+      (sum: number, day: DAUDataPoint) => sum + (day.new_users || 0),
       0
     )
 
@@ -74,7 +90,7 @@ export async function GET(request: NextRequest) {
     }
 
     analyticsLogger.info("DAU analytics retrieved", {
-      days: data.length,
+      days: data?.length ?? 0,
       averageActiveUsers: summary.averageActiveUsers,
       peakActiveUsers,
     })

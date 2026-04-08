@@ -29,7 +29,22 @@ interface UserActivity {
   tokenUsage: number
 }
 
-export async function GET(request: NextRequest) {
+interface MessageUserId {
+  user_id: string | null | undefined
+}
+
+interface UserWithActivity {
+  id: string
+  email: string | null
+  created_at: string | null
+  messages: { count: number }[] | null
+  token_usage: Array<{
+    input_tokens: number
+    output_tokens: number
+  }> | null
+}
+
+export async function GET(_request: NextRequest) {
   // Check admin authorization
   const authError = await adminCheck()
   if (authError) {
@@ -134,7 +149,7 @@ export async function GET(request: NextRequest) {
     }
 
     const activeUsersSet = new Set(
-      activeUsersData?.map((e: any) => e.user_id) || []
+      activeUsersData?.map((e: MessageUserId) => e.user_id).filter((id): id is string => id !== null && id !== undefined) || []
     )
     const activeUsers = activeUsersSet.size
 
@@ -157,11 +172,11 @@ export async function GET(request: NextRequest) {
 
     // Transform user activity data
     const recentUsers: UserActivity[] = (usersWithActivity || []).map(
-      (user: any) => {
+      (user: UserWithActivity) => {
         const messageCount = user.messages?.[0]?.count || 0
         const tokenUsageData = user.token_usage || []
         const totalTokens = tokenUsageData.reduce(
-          (sum: number, t: any) =>
+          (sum: number, t: { input_tokens?: number; output_tokens?: number }) =>
             sum + (t.input_tokens || 0) + (t.output_tokens || 0),
           0
         )
@@ -170,7 +185,7 @@ export async function GET(request: NextRequest) {
           userId: user.id,
           userEmail: user.email,
           lastActiveAt: null, // Would need to join with event_tracking or messages
-          createdAt: user.created_at,
+          createdAt: user.created_at || "",
           messageCount,
           tokenUsage: totalTokens,
         }
