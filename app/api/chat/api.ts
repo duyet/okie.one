@@ -7,7 +7,6 @@ import type {
 } from "@/app/types/api.types"
 import { FREE_MODELS_IDS, NON_AUTH_ALLOWED_MODELS } from "@/lib/config"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
-import { sanitizeUserInput } from "@/lib/sanitize"
 import { validateUserIdentity } from "@/lib/server/api"
 import { checkUsageByModel, incrementUsage } from "@/lib/usage"
 import { getUserKey, type ProviderWithoutOllama } from "@/lib/user-keys"
@@ -86,7 +85,7 @@ export async function logUserMessage({
   const { error } = await supabase.from("messages").insert({
     chat_id: chatId,
     role: "user",
-    content: sanitizeUserInput(content),
+    content,
     experimental_attachments: attachments,
     user_id: userId,
     message_group_id,

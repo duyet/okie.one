@@ -6,7 +6,6 @@ import { useEffect, useState } from "react"
 import { codeToHtml } from "shiki"
 
 import { cn } from "@/lib/utils"
-import { sanitizeUserInput } from "@/lib/sanitize"
 
 export type CodeBlockProps = {
   children?: React.ReactNode
@@ -73,14 +72,13 @@ function CodeBlockCode({
 
   // SSR fallback: render plain code if not hydrated yet
   // Note: highlightedHtml comes from Shiki's codeToHtml which is generally trusted
-  // However, we sanitize all innerHTML usage as defense-in-depth
-  // This prevents XSS if malicious input bypasses Shiki's parsing
+  // Shiki properly escapes code content, so we use it directly without additional sanitization
   return highlightedHtml ? (
     <div
       className={classNames}
-      // Security: Shiki output is sanitized via DOMPurify before rendering
-      // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is sanitized
-      dangerouslySetInnerHTML={{ __html: sanitizeUserInput(highlightedHtml) }}
+      // Security: Shiki output is properly escaped by the library
+      // biome-ignore lint/security/noDangerouslySetInnerHtml: Content is from trusted Shiki library
+      dangerouslySetInnerHTML={{ __html: highlightedHtml }}
       {...props}
     />
   ) : (
