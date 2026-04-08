@@ -1,4 +1,3 @@
-import type { Message as MessageAISDK } from "@/lib/ai-sdk-types"
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr"
 import Link from "next/link"
 
@@ -7,6 +6,7 @@ import { SourcesList } from "@/app/components/chat/sources-list"
 import type { Tables } from "@/app/types/database.types"
 import { Message, MessageContent } from "@/components/prompt-kit/message"
 import { Button } from "@/components/ui/button"
+import type { Message as MessageAISDK } from "@/lib/ai-sdk-types"
 import { APP_NAME } from "@/lib/config"
 import { cn } from "@/lib/utils"
 

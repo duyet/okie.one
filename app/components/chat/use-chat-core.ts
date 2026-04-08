@@ -1,13 +1,13 @@
-import type { UIMessage, Message } from "@/lib/ai-sdk-types"
-import { getTextContent } from "@/lib/ai-sdk-types"
 import { useChat } from "@ai-sdk/react"
-import { generateId, DefaultChatTransport } from "ai"
+import { DefaultChatTransport, generateId } from "ai"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { useChatDraft } from "@/app/hooks/use-chat-draft"
 import type { ContentPart } from "@/app/types/api.types"
 import { toast } from "@/components/ui/toast"
+import type { Message, UIMessage } from "@/lib/ai-sdk-types"
+import { getTextContent } from "@/lib/ai-sdk-types"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import {
   parseArtifacts,
@@ -46,8 +46,8 @@ type UseChatCoreProps = {
 // Helper function to convert Messages to UIMessages for AI SDK v5 compatibility
 function convertToUIMessages(messages: Message[]): UIMessage[] {
   const converted = messages
-    .filter(msg => msg.role !== "data") // Filter out unsupported roles
-    .map(msg => ({
+    .filter((msg) => msg.role !== "data") // Filter out unsupported roles
+    .map((msg) => ({
       ...msg,
       role: msg.role as "system" | "user" | "assistant",
       parts: msg.parts || [],
@@ -893,12 +893,7 @@ export function useChatCore({
         setIsSubmitting(false)
       }
     },
-    [
-      ensureChatExists,
-      user,
-      sendMessage,
-      checkLimitsAndNotify,
-    ]
+    [ensureChatExists, user, sendMessage, checkLimitsAndNotify]
   )
 
   // Handle reload
@@ -910,10 +905,7 @@ export function useChatCore({
 
     // Options are now handled internally by the transport
     regenerate()
-  }, [
-    user,
-    regenerate,
-  ])
+  }, [user, regenerate])
 
   // Handle input change - now with access to the real setInput function!
   const { setDraftValue } = useChatDraft(chatId)

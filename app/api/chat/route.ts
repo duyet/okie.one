@@ -1,23 +1,22 @@
 // AI SDK v5 - State-of-the-art streaming chat implementation
 import {
-  streamText,
   convertToModelMessages,
+  streamText,
   type ToolSet,
   type UIMessage,
 } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
 import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import { trackMessageSent } from "@/lib/event-tracking/api"
 import {
   getModelFileCapabilities,
   validateModelSupportsFiles,
 } from "@/lib/file-handling"
 import { apiLogger } from "@/lib/logger"
-import { getMCPServer, hasMCPServer } from "@/lib/mcp/servers"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
-import { trackMessageSent } from "@/lib/event-tracking/api"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
 // Extended usage type to handle different provider formats
@@ -251,15 +250,10 @@ export async function POST(req: Request) {
 
     // Configure tools based on unified tools configuration
     const apiTools: ToolSet = {}
-    let enhancedSystemPrompt = effectiveSystemPrompt
+    const enhancedSystemPrompt = effectiveSystemPrompt
     const enabledCapabilities = {
       webSearch: false,
-      mcpSequentialThinking: false,
     }
-    let _sequentialThinkingServer: {
-      getTools: () => ToolSet
-      getMaxSteps: () => number
-    } | null = null
 
     apiLogger.info("Configuring tools", { tools: effectiveTools })
 
@@ -270,36 +264,6 @@ export async function POST(req: Request) {
           enabledCapabilities.webSearch = true
           apiLogger.info("Web search enabled")
           break
-
-        case "mcp": {
-          const serverName = tool.name as string
-          if (hasMCPServer(serverName)) {
-            const mcpServer = getMCPServer(serverName)
-            if (mcpServer) {
-              if (serverName === "server-sequential-thinking") {
-                enabledCapabilities.mcpSequentialThinking = true
-                _sequentialThinkingServer = mcpServer
-                apiLogger.info(
-                  "MCP Sequential thinking enabled, adding tools from server"
-                )
-
-                // Add tools from the MCP server
-                const serverTools = mcpServer.getTools()
-                Object.assign(apiTools, serverTools)
-
-                // Enhance system prompt with server's enhancement
-                enhancedSystemPrompt = `${effectiveSystemPrompt}
-
-${mcpServer.getSystemPromptEnhancement()}`
-              }
-            }
-          } else {
-            apiLogger.warn("MCP server requested but not implemented", {
-              serverName: tool.name,
-            })
-          }
-          break
-        }
 
         default:
           apiLogger.warn("Unknown tool type encountered", {
@@ -319,11 +283,10 @@ ${mcpServer.getSystemPromptEnhancement()}`
     const result = streamText({
       model: modelConfig.apiSdk(apiKey, {
         enableSearch: enabledCapabilities.webSearch,
-        enableThink:
-          effectiveEnableThink || enabledCapabilities.mcpSequentialThinking,
+        enableThink: effectiveEnableThink,
       }),
       system: enhancedSystemPrompt,
-      messages: convertToModelMessages(messages),
+      messages: await convertToModelMessages(messages),
       tools: apiTools,
       maxOutputTokens: 8192, // Modern token limit for better responses
       onError: (err: unknown) => {
@@ -342,8 +305,6 @@ ${mcpServer.getSystemPromptEnhancement()}`
           ) {
             apiLogger.error("Tool call error detected", {
               toolsEnabled: Object.keys(apiTools),
-              mcpSequentialThinkingEnabled:
-                enabledCapabilities.mcpSequentialThinking,
               messagesCount: messages?.length,
               lastFewMessages: messages?.slice(-3),
             })

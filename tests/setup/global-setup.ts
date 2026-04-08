@@ -1,4 +1,5 @@
 import { chromium, type FullConfig } from "@playwright/test"
+
 import { initializeTestDatabase } from "./database-setup"
 
 /**

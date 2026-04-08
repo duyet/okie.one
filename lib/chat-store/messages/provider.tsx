@@ -2,9 +2,9 @@
 
 import type { UIMessage as MessageAISDK } from "ai"
 import { createContext, useContext, useEffect, useState } from "react"
-import { uiMessageToMessage } from "@/lib/ai-sdk-types"
 
 import { toast } from "@/components/ui/toast"
+import { uiMessageToMessage } from "@/lib/ai-sdk-types"
 import { useChatSession } from "@/lib/chat-store/session/provider"
 
 import { writeToIndexedDB } from "../persist"
@@ -117,7 +117,9 @@ export function MessagesProvider({ children }: { children: React.ReactNode }) {
     if (!chatId) return
 
     try {
-      const convertedMessages = newMessages.map(msg => uiMessageToMessage(msg as any))
+      const convertedMessages = newMessages.map((msg) =>
+        uiMessageToMessage(msg as any)
+      )
       await saveMessages(chatId, convertedMessages)
       setMessages(newMessages as any)
     } catch {

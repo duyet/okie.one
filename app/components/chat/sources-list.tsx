@@ -7,6 +7,7 @@ type SourceUrlUIPart = {
   url: string
   description?: string
 }
+
 import { CaretDown, Link } from "@phosphor-icons/react"
 import { AnimatePresence, motion, type Transition } from "motion/react"
 import Image from "next/image"

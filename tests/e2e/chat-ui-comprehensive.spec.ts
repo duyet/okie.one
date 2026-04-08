@@ -3,8 +3,8 @@ import { expect, test } from "@playwright/test"
 import {
   prepareTestEnvironment,
   sendMessage,
-  setupNetworkCapture,
   setupMockAIResponse,
+  setupNetworkCapture,
   takeDebugScreenshot,
   waitForAIResponse,
   waitForChatInput,

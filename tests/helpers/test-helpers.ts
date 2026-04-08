@@ -1,15 +1,15 @@
 import { expect, type Locator, type Page } from "@playwright/test"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
-import { getChatPlaceholder } from "./app-config"
 import {
-  initializeTestDatabase,
   createTestChat,
   createTestUser,
-  resetTestData,
   getDefaultTestUserId,
+  initializeTestDatabase,
+  resetTestData,
   type TestChat,
 } from "../setup/database-setup"
+import { getChatPlaceholder } from "./app-config"
 
 /**
  * Enhanced test helpers for Okie E2E tests

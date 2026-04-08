@@ -5,10 +5,11 @@
  * Returns token usage statistics, trends, and model usage patterns
  */
 
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
+
 import { adminCheck } from "@/app/api/lib/admin-auth"
-import { createClient } from "@/lib/supabase/server"
 import { analyticsLogger } from "@/lib/logger"
+import { createClient } from "@/lib/supabase/server"
 
 interface TokenMetrics {
   totalTokens: number
@@ -91,28 +92,35 @@ export async function GET(request: NextRequest) {
     )
 
     const totalMessages = tokenUsage?.length || 0
-    const averageTokensPerMessage = totalMessages > 0 ? totalTokens / totalMessages : 0
+    const averageTokensPerMessage =
+      totalMessages > 0 ? totalTokens / totalMessages : 0
 
     // Calculate top provider and model
     const providerMap = new Map<string, number>()
     const modelMap = new Map<string, number>()
 
     for (const t of tokenUsage || []) {
-      const providerTokens = (providerMap.get(t.provider_id) || 0) +
-        (t.input_tokens || 0) + (t.output_tokens || 0)
+      const providerTokens =
+        (providerMap.get(t.provider_id) || 0) +
+        (t.input_tokens || 0) +
+        (t.output_tokens || 0)
       providerMap.set(t.provider_id, providerTokens)
 
       const modelKey = `${t.provider_id}/${t.model_id}`
-      const modelTokens = (modelMap.get(modelKey) || 0) +
-        (t.input_tokens || 0) + (t.output_tokens || 0)
+      const modelTokens =
+        (modelMap.get(modelKey) || 0) +
+        (t.input_tokens || 0) +
+        (t.output_tokens || 0)
       modelMap.set(modelKey, modelTokens)
     }
 
-    const topProvider = Array.from(providerMap.entries())
-      .sort(([, a], [, b]) => b - a)[0]?.[0] || "none"
+    const topProvider =
+      Array.from(providerMap.entries()).sort(([, a], [, b]) => b - a)[0]?.[0] ||
+      "none"
 
-    const topModel = Array.from(modelMap.entries())
-      .sort(([, a], [, b]) => b - a)[0]?.[0] || "none"
+    const topModel =
+      Array.from(modelMap.entries()).sort(([, a], [, b]) => b - a)[0]?.[0] ||
+      "none"
 
     const metrics: TokenMetrics = {
       totalTokens,
@@ -155,7 +163,8 @@ export async function GET(request: NextRequest) {
       .map((usage) => ({
         ...usage,
         totalCost: Math.round(usage.totalCost * 10000) / 10000,
-        averageTokensPerMessage: Math.round(usage.averageTokensPerMessage * 100) / 100,
+        averageTokensPerMessage:
+          Math.round(usage.averageTokensPerMessage * 100) / 100,
       }))
 
     // Calculate daily token usage
@@ -189,20 +198,21 @@ export async function GET(request: NextRequest) {
       }))
 
     // Calculate summary statistics
-    const averageDailyTokens = dailyUsage.length > 0
-      ? totalTokens / dailyUsage.length
-      : 0
+    const averageDailyTokens =
+      dailyUsage.length > 0 ? totalTokens / dailyUsage.length : 0
 
-    const peakDailyTokens = dailyUsage.length > 0
-      ? Math.max(...dailyUsage.map((d) => d.totalTokens))
-      : 0
+    const peakDailyTokens =
+      dailyUsage.length > 0
+        ? Math.max(...dailyUsage.map((d) => d.totalTokens))
+        : 0
 
     const summary = {
       averageDailyTokens: Math.round(averageDailyTokens),
       peakDailyTokens,
-      averageDailyCost: dailyUsage.length > 0
-        ? Math.round((totalCost / dailyUsage.length) * 10000) / 10000
-        : 0,
+      averageDailyCost:
+        dailyUsage.length > 0
+          ? Math.round((totalCost / dailyUsage.length) * 10000) / 10000
+          : 0,
     }
 
     analyticsLogger.info("Token analytics retrieved", {

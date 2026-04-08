@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 
 import { MODEL_DEFAULT } from "@/lib/config"
+import { trackLogin, trackSignup } from "@/lib/event-tracking/api"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { createClient } from "@/lib/supabase/server"
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
-import { trackLogin, trackSignup } from "@/lib/event-tracking/api"
 
 export async function GET(request: Request) {
   const { searchParams, origin, hash } = new URL(request.url)

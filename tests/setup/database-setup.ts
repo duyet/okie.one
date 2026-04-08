@@ -101,7 +101,10 @@ async function cleanupTestData(supabase: SupabaseClient): Promise<void> {
   try {
     // Delete messages first (foreign key constraints)
     await supabase.from("messages").delete().ilike("content", "%test%")
-    await supabase.from("messages").delete().eq("user_id", getDefaultTestUserId())
+    await supabase
+      .from("messages")
+      .delete()
+      .eq("user_id", getDefaultTestUserId())
 
     // Delete chats
     await supabase.from("chats").delete().ilike("title", "%test%")
@@ -114,7 +117,7 @@ async function cleanupTestData(supabase: SupabaseClient): Promise<void> {
       .or(`email.ilike.%test%,email.ilike.%example.com`)
 
     if (testUsers && testUsers.length > 0) {
-      const userIds = testUsers.map(user => user.id)
+      const userIds = testUsers.map((user) => user.id)
       await supabase.from("users").delete().in("id", userIds)
       console.log(`🗑️ Deleted ${userIds.length} test users from public.users`)
     }
@@ -123,13 +126,17 @@ async function cleanupTestData(supabase: SupabaseClient): Promise<void> {
     try {
       const testUserIds = [
         getDefaultTestUserId(),
-        "00000000-0000-4000-8000-000000000001"
+        "00000000-0000-4000-8000-000000000001",
       ]
 
       for (const userId of testUserIds) {
         try {
-          const { data: authUser } = await supabase.auth.admin.getUserById(userId)
-          if (authUser?.user?.email?.includes("test") || authUser?.user?.email?.includes("example.com")) {
+          const { data: authUser } =
+            await supabase.auth.admin.getUserById(userId)
+          if (
+            authUser?.user?.email?.includes("test") ||
+            authUser?.user?.email?.includes("example.com")
+          ) {
             await supabase.auth.admin.deleteUser(userId)
             console.log(`🗑️ Deleted auth user: ${userId}`)
           }
@@ -145,7 +152,10 @@ async function cleanupTestData(supabase: SupabaseClient): Promise<void> {
       const { data: allAuthUsers } = await supabase.auth.admin.listUsers()
       if (allAuthUsers?.users) {
         for (const user of allAuthUsers.users) {
-          if (user.email?.includes("test") || user.email?.includes("example.com")) {
+          if (
+            user.email?.includes("test") ||
+            user.email?.includes("example.com")
+          ) {
             try {
               await supabase.auth.admin.deleteUser(user.id)
               console.log(`🗑️ Deleted auth user by email: ${user.email}`)
@@ -199,8 +209,10 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
         })
 
       if (createAuthError) {
-        if (createAuthError.code === 'email_exists') {
-          console.log("🔄 Auth user with email already exists, generating new email...")
+        if (createAuthError.code === "email_exists") {
+          console.log(
+            "🔄 Auth user with email already exists, generating new email..."
+          )
           // Try with a new unique email
           const newEmail = `test-anonymous-${timestamp}-${Math.random().toString(36).substr(2, 9)}@example.com`
           const { data: retryAuthUser, error: retryError } =
@@ -215,7 +227,10 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
             })
 
           if (retryError) {
-            console.warn("⚠️ Failed to create auth user after retry:", retryError)
+            console.warn(
+              "⚠️ Failed to create auth user after retry:",
+              retryError
+            )
             return // Skip user creation if auth fails
           } else if (retryAuthUser.user?.id) {
             actualUserId = retryAuthUser.user.id
@@ -235,7 +250,8 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
 
     // Now create/update the user record in public.users
     // Only proceed if we have a valid auth user
-    const { data: finalAuthUser } = await supabase.auth.admin.getUserById(actualUserId)
+    const { data: finalAuthUser } =
+      await supabase.auth.admin.getUserById(actualUserId)
     if (finalAuthUser?.user) {
       const { error: userError } = await supabase.from("users").upsert({
         id: actualUserId,
@@ -250,7 +266,9 @@ async function createTestData(supabase: SupabaseClient): Promise<void> {
         console.log("✅ Created/updated test user in public.users")
       }
     } else {
-      console.warn("⚠️ Cannot create public.users record without valid auth user")
+      console.warn(
+        "⚠️ Cannot create public.users record without valid auth user"
+      )
     }
 
     console.log("✅ Test data creation completed")
@@ -315,9 +333,7 @@ export async function createTestUser(
   email?: string
 ): Promise<TestUser> {
   // Generate unique userId for non-anonymous users to avoid conflicts
-  const userId = isAnonymous
-    ? getDefaultTestUserId()
-    : crypto.randomUUID()
+  const userId = isAnonymous ? getDefaultTestUserId() : crypto.randomUUID()
   let actualUserId = userId
 
   // Generate unique email to avoid conflicts
@@ -356,10 +372,12 @@ export async function createTestUser(
           })
 
         if (createAuthError) {
-          if (createAuthError.code === 'email_exists') {
-            console.log(`🔄 Auth user with email already exists for ${userId}, generating new email...`)
+          if (createAuthError.code === "email_exists") {
+            console.log(
+              `🔄 Auth user with email already exists for ${userId}, generating new email...`
+            )
             // Try with a new unique email
-            const newEmail = `test-${isAnonymous ? 'anonymous' : 'user'}-${timestamp}-${Math.random().toString(36).substr(2, 9)}@example.com`
+            const newEmail = `test-${isAnonymous ? "anonymous" : "user"}-${timestamp}-${Math.random().toString(36).substr(2, 9)}@example.com`
             const { data: retryAuthUser, error: retryError } =
               await supabase.auth.admin.createUser({
                 email: newEmail,
@@ -372,15 +390,23 @@ export async function createTestUser(
               })
 
             if (retryError) {
-              console.warn(`⚠️ Failed to create auth user after retry ${userId}:`, retryError)
+              console.warn(
+                `⚠️ Failed to create auth user after retry ${userId}:`,
+                retryError
+              )
               return user // Return user with original ID but no database record
             } else if (retryAuthUser.user?.id) {
               actualUserId = retryAuthUser.user.id
               user.email = newEmail
-              console.log(`✅ Created auth user with new email: ${actualUserId}`)
+              console.log(
+                `✅ Created auth user with new email: ${actualUserId}`
+              )
             }
           } else {
-            console.warn(`⚠️ Failed to create auth user ${userId}:`, createAuthError)
+            console.warn(
+              `⚠️ Failed to create auth user ${userId}:`,
+              createAuthError
+            )
             return user // Return user with original ID but no database record
           }
         } else if (newAuthUser.user?.id) {
@@ -394,7 +420,8 @@ export async function createTestUser(
 
       // Now create/update the user in public.users
       // Only proceed if we have a valid auth user
-      const { data: finalAuthUser } = await supabase.auth.admin.getUserById(actualUserId)
+      const { data: finalAuthUser } =
+        await supabase.auth.admin.getUserById(actualUserId)
       if (finalAuthUser?.user) {
         const { error } = await supabase.from("users").upsert({
           id: actualUserId,
@@ -408,7 +435,9 @@ export async function createTestUser(
           console.log(`✅ Created user in database: ${actualUserId}`)
         }
       } else {
-        console.warn(`⚠️ Cannot create public.users record without valid auth user for ${actualUserId}`)
+        console.warn(
+          `⚠️ Cannot create public.users record without valid auth user for ${actualUserId}`
+        )
       }
     } catch (error) {
       console.warn("⚠️ Database user creation failed:", error)

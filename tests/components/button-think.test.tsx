@@ -47,10 +47,7 @@ describe("ButtonThink", () => {
 
   it("should render the think button for reasoning models", () => {
     render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        hasNativeReasoning={true}
-      />,
+      <ButtonThink onModeChange={mockOnModeChange} hasNativeReasoning={true} />,
       {
         wrapper: createWrapper(),
       }
@@ -77,10 +74,7 @@ describe("ButtonThink", () => {
 
   it("should show brain icon", () => {
     render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        hasNativeReasoning={true}
-      />,
+      <ButtonThink onModeChange={mockOnModeChange} hasNativeReasoning={true} />,
       {
         wrapper: createWrapper(),
       }
@@ -93,10 +87,7 @@ describe("ButtonThink", () => {
 
   it("should show dropdown menu items for reasoning models", () => {
     render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        hasNativeReasoning={true}
-      />,
+      <ButtonThink onModeChange={mockOnModeChange} hasNativeReasoning={true} />,
       {
         wrapper: createWrapper(),
       }
@@ -195,10 +186,7 @@ describe("ButtonThink", () => {
 
   it("should have responsive text visibility", () => {
     render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        hasNativeReasoning={true}
-      />,
+      <ButtonThink onModeChange={mockOnModeChange} hasNativeReasoning={true} />,
       {
         wrapper: createWrapper(),
       }
@@ -222,10 +210,7 @@ describe("ButtonThink", () => {
 
   it("should default thinkingMode to 'none' when not provided", () => {
     render(
-      <ButtonThink
-        onModeChange={mockOnModeChange}
-        hasNativeReasoning={true}
-      />,
+      <ButtonThink onModeChange={mockOnModeChange} hasNativeReasoning={true} />,
       {
         wrapper: createWrapper(),
       }

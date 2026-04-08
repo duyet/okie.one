@@ -86,23 +86,7 @@ export async function POST(req: Request) {
     const result = await generateText({
       model: modelConfig.apiSdk(apiKey),
       system: SYSTEM_PROMPT_DEFAULT,
-      prompt: ANALYSIS_PROMPT,
-      messages: [
-        {
-          role: "user",
-
-          content: [
-            {
-              type: "text",
-              text: `Please analyze this file: ${fileName}`,
-            },
-            {
-              type: "image",
-              image: fileUrl,
-            },
-          ],
-        },
-      ],
+      prompt: `${ANALYSIS_PROMPT}\n\nPlease analyze this file: ${fileName}`,
     })
 
     // Parse the AI response

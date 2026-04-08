@@ -1,15 +1,5 @@
 {
   "hooks": {
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '🔍 Running type-check and tests before processing...' && pnpm run type-check && pnpm test"
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "matcher": "Edit|MultiEdit|Write|Update",

@@ -1,5 +1,5 @@
-import { createGuestServerClient } from "@/lib/supabase/server-guest"
 import { trackSignup } from "@/lib/event-tracking/api"
+import { createGuestServerClient } from "@/lib/supabase/server-guest"
 
 export async function POST(request: Request) {
   try {

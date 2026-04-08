@@ -5,10 +5,11 @@
  * Returns daily active user trends for the specified time period
  */
 
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
+
 import { adminCheck } from "@/app/api/lib/admin-auth"
-import { createClient } from "@/lib/supabase/server"
 import { analyticsLogger } from "@/lib/logger"
+import { createClient } from "@/lib/supabase/server"
 
 export async function GET(request: NextRequest) {
   // Check admin authorization
@@ -49,10 +50,20 @@ export async function GET(request: NextRequest) {
     const dauData = data || []
 
     // Calculate summary statistics
-    const totalActiveUsers = dauData.reduce((sum: number, day: any) => sum + (day.total_users || 0), 0)
-    const averageActiveUsers = dauData.length > 0 ? totalActiveUsers / dauData.length : 0
-    const peakActiveUsers = dauData.length > 0 ? Math.max(...dauData.map((d: any) => d.total_users || 0)) : 0
-    const totalNewUsers = dauData.reduce((sum: number, day: any) => sum + (day.new_users || 0), 0)
+    const totalActiveUsers = dauData.reduce(
+      (sum: number, day: any) => sum + (day.total_users || 0),
+      0
+    )
+    const averageActiveUsers =
+      dauData.length > 0 ? totalActiveUsers / dauData.length : 0
+    const peakActiveUsers =
+      dauData.length > 0
+        ? Math.max(...dauData.map((d: any) => d.total_users || 0))
+        : 0
+    const totalNewUsers = dauData.reduce(
+      (sum: number, day: any) => sum + (day.new_users || 0),
+      0
+    )
 
     const summary = {
       totalActiveUsers,

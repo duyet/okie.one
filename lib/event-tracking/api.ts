@@ -53,7 +53,10 @@ export async function trackEvent(
 /**
  * Tracks user signup event
  */
-export async function trackSignup(userId: string, method: "google" | "email" | "anonymous"): Promise<void> {
+export async function trackSignup(
+  userId: string,
+  method: "google" | "email" | "anonymous"
+): Promise<void> {
   return trackEvent(userId, "signup", { method })
 }
 
@@ -67,7 +70,11 @@ export async function trackLogin(userId: string): Promise<void> {
 /**
  * Tracks chat creation event
  */
-export async function trackChatCreated(userId: string, chatId: string, model: string): Promise<void> {
+export async function trackChatCreated(
+  userId: string,
+  chatId: string,
+  model: string
+): Promise<void> {
   return trackEvent(userId, "chat_created", { chatId, model })
 }
 

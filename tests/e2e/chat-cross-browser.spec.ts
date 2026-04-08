@@ -1,4 +1,4 @@
-import { expect, test, devices } from "@playwright/test"
+import { devices, expect, test } from "@playwright/test"
 
 import {
   prepareTestEnvironment,

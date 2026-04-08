@@ -5,10 +5,7 @@
  * Add more MCP servers here as they are implemented.
  */
 
-export interface MCPServerRegistry {
-  // Add more MCP servers here as they are implemented
-  // Example: "server-custom": CustomServer
-}
+export type MCPServerRegistry = {}
 
 export const mcpServers: MCPServerRegistry = {}
 

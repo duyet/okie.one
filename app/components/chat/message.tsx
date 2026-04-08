@@ -1,5 +1,6 @@
-import type { Message as MessageType } from "@/lib/ai-sdk-types"
 import { useState } from "react"
+
+import type { Message as MessageType } from "@/lib/ai-sdk-types"
 
 import { MessageAssistant } from "./message-assistant"
 import { MessageUser } from "./message-user"

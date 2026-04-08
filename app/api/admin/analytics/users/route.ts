@@ -5,10 +5,11 @@
  * Returns user metrics including growth, activity, and engagement statistics
  */
 
-import { NextRequest, NextResponse } from "next/server"
+import { type NextRequest, NextResponse } from "next/server"
+
 import { adminCheck } from "@/app/api/lib/admin-auth"
-import { createClient } from "@/lib/supabase/server"
 import { analyticsLogger } from "@/lib/logger"
+import { createClient } from "@/lib/supabase/server"
 
 interface UserMetrics {
   totalUsers: number
@@ -96,7 +97,9 @@ export async function GET(request: NextRequest) {
       .gte("created_at", monthAgoStr)
 
     if (monthError) {
-      throw new Error(`Failed to get new users this month: ${monthError.message}`)
+      throw new Error(
+        `Failed to get new users this month: ${monthError.message}`
+      )
     }
 
     // Get users from previous month for growth rate calculation
@@ -107,15 +110,18 @@ export async function GET(request: NextRequest) {
       .lt("created_at", monthAgoStr)
 
     if (prevMonthError) {
-      throw new Error(`Failed to get users from previous month: ${prevMonthError.message}`)
+      throw new Error(
+        `Failed to get users from previous month: ${prevMonthError.message}`
+      )
     }
 
     // Calculate growth rate (month-over-month)
-    const previousMonthUsers = (usersTwoMonthsAgo || 0)
-    const currentMonthUsers = (newUsersThisMonth || 0)
-    const userGrowthRate = previousMonthUsers > 0
-      ? ((currentMonthUsers - previousMonthUsers) / previousMonthUsers) * 100
-      : 0
+    const previousMonthUsers = usersTwoMonthsAgo || 0
+    const currentMonthUsers = newUsersThisMonth || 0
+    const userGrowthRate =
+      previousMonthUsers > 0
+        ? ((currentMonthUsers - previousMonthUsers) / previousMonthUsers) * 100
+        : 0
 
     // Get active users (users with messages in the last 7 days)
     const { data: activeUsersData, error: activeError } = await supabase
@@ -127,7 +133,9 @@ export async function GET(request: NextRequest) {
       throw new Error(`Failed to get active users: ${activeError.message}`)
     }
 
-    const activeUsersSet = new Set(activeUsersData?.map((e: any) => e.user_id) || [])
+    const activeUsersSet = new Set(
+      activeUsersData?.map((e: any) => e.user_id) || []
+    )
     const activeUsers = activeUsersSet.size
 
     // Get recent user activity with message counts and token usage
@@ -148,23 +156,26 @@ export async function GET(request: NextRequest) {
     }
 
     // Transform user activity data
-    const recentUsers: UserActivity[] = (usersWithActivity || []).map((user: any) => {
-      const messageCount = user.messages?.[0]?.count || 0
-      const tokenUsageData = user.token_usage || []
-      const totalTokens = tokenUsageData.reduce(
-        (sum: number, t: any) => sum + (t.input_tokens || 0) + (t.output_tokens || 0),
-        0
-      )
+    const recentUsers: UserActivity[] = (usersWithActivity || []).map(
+      (user: any) => {
+        const messageCount = user.messages?.[0]?.count || 0
+        const tokenUsageData = user.token_usage || []
+        const totalTokens = tokenUsageData.reduce(
+          (sum: number, t: any) =>
+            sum + (t.input_tokens || 0) + (t.output_tokens || 0),
+          0
+        )
 
-      return {
-        userId: user.id,
-        userEmail: user.email,
-        lastActiveAt: null, // Would need to join with event_tracking or messages
-        createdAt: user.created_at,
-        messageCount,
-        tokenUsage: totalTokens,
+        return {
+          userId: user.id,
+          userEmail: user.email,
+          lastActiveAt: null, // Would need to join with event_tracking or messages
+          createdAt: user.created_at,
+          messageCount,
+          tokenUsage: totalTokens,
+        }
       }
-    })
+    )
 
     const metrics: UserMetrics = {
       totalUsers: totalUsers || 0,

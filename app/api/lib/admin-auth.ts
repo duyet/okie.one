@@ -5,11 +5,13 @@
  * Uses ADMIN_EMAILS environment variable for access control
  */
 
-import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
-import { analyticsLogger } from "@/lib/logger"
 
-const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || []
+import { analyticsLogger } from "@/lib/logger"
+import { createClient } from "@/lib/supabase/server"
+
+const ADMIN_EMAILS =
+  process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().toLowerCase()) || []
 
 /**
  * Checks if the current user is an admin
@@ -20,40 +22,61 @@ const ADMIN_EMAILS = process.env.ADMIN_EMAILS?.split(",").map((e) => e.trim().to
 export async function adminCheck(): Promise<NextResponse | null> {
   // Allow in development if no admin emails configured
   if (process.env.NODE_ENV === "development" && ADMIN_EMAILS.length === 0) {
-    analyticsLogger.warn("Admin check bypassed in development (no ADMIN_EMAILS configured)")
+    analyticsLogger.warn(
+      "Admin check bypassed in development (no ADMIN_EMAILS configured)"
+    )
     return null
   }
 
   // Check if admin emails are configured in production
   if (ADMIN_EMAILS.length === 0) {
     analyticsLogger.error("Admin access denied: No admin emails configured")
-    return NextResponse.json({ error: "Admin access not configured" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Admin access not configured" },
+      { status: 500 }
+    )
   }
 
   const supabase = await createClient()
 
   if (!supabase) {
     analyticsLogger.error("Admin check failed: Database connection failed")
-    return NextResponse.json({ error: "Database connection failed" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Database connection failed" },
+      { status: 500 }
+    )
   }
 
-  const { data: { user }, error } = await supabase.auth.getUser()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
   if (error) {
-    analyticsLogger.error("Admin check failed: Auth error", { error: error.message })
-    return NextResponse.json({ error: "Authentication failed" }, { status: 401 })
+    analyticsLogger.error("Admin check failed: Auth error", {
+      error: error.message,
+    })
+    return NextResponse.json(
+      { error: "Authentication failed" },
+      { status: 401 }
+    )
   }
 
   if (!user || !user.email) {
     analyticsLogger.warn("Admin access denied: No authenticated user")
-    return NextResponse.json({ error: "Authentication required" }, { status: 401 })
+    return NextResponse.json(
+      { error: "Authentication required" },
+      { status: 401 }
+    )
   }
 
   const userEmail = user.email.toLowerCase()
   const isAdmin = ADMIN_EMAILS.includes(userEmail)
 
   if (!isAdmin) {
-    analyticsLogger.warn("Admin access denied: Unauthorized user", { email: userEmail })
+    analyticsLogger.warn("Admin access denied: Unauthorized user", {
+      email: userEmail,
+    })
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 
@@ -86,7 +109,9 @@ export async function getAdminEmail(): Promise<string | null> {
   const supabase = await createClient()
   if (!supabase) return null
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   if (!user || !user.email) return null
 

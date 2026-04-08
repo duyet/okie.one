@@ -63,9 +63,10 @@ export function MultiChat() {
 
   const modelsFromPersisted = useMemo(() => {
     return persistedMessages
-      .filter((msg) =>
-        Boolean((msg as MessageType).model) &&
-        ["system", "user", "assistant"].includes(msg.role)
+      .filter(
+        (msg) =>
+          Boolean((msg as MessageType).model) &&
+          ["system", "user", "assistant"].includes(msg.role)
       )
       .map((msg) => (msg as MessageType).model as string)
   }, [persistedMessages])
@@ -151,11 +152,15 @@ export function MultiChat() {
               ?.join("") || ""
           if (!groups[groupKey]) {
             groups[groupKey] = {
-              userMessage: uiMessageToMessage(associatedUserMessage as UIMessage),
+              userMessage: uiMessageToMessage(
+                associatedUserMessage as UIMessage
+              ),
               assistantMessages: [],
             }
           }
-          groups[groupKey].assistantMessages.push(uiMessageToMessage(message as UIMessage))
+          groups[groupKey].assistantMessages.push(
+            uiMessageToMessage(message as UIMessage)
+          )
         }
       }
     }
@@ -314,7 +319,7 @@ export function MultiChat() {
             {
               role: "user",
               content: prompt,
-              parts: [{ type: "text", text: prompt }]
+              parts: [{ type: "text", text: prompt }],
             },
             options
           )

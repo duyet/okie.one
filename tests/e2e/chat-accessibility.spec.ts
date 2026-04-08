@@ -112,7 +112,7 @@ test.describe("Chat Accessibility Tests", () => {
       await expect(chatInput).toBeFocused()
 
       // Get initial focused element
-      let focusedElement = await page.evaluate(
+      const focusedElement = await page.evaluate(
         () => document.activeElement?.tagName
       )
       console.log(`Initial focus: ${focusedElement}`)

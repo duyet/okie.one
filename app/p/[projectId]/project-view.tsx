@@ -1,11 +1,9 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import type { UIMessage, Message } from "@/lib/ai-sdk-types"
-import { uiMessageToMessage } from "@/lib/ai-sdk-types"
-import { DefaultChatTransport } from "ai"
 import { ChatCircleIcon } from "@phosphor-icons/react"
 import { useQuery } from "@tanstack/react-query"
+import { DefaultChatTransport } from "ai"
 import { AnimatePresence, motion } from "motion/react"
 import { usePathname } from "next/navigation"
 import { useCallback, useMemo, useState } from "react"
@@ -17,6 +15,8 @@ import { useModel } from "@/app/components/chat/use-model"
 import { ChatInput } from "@/app/components/chat-input/chat-input"
 import { ProjectChatItem } from "@/app/components/layout/sidebar/project-chat-item"
 import { toast } from "@/components/ui/toast"
+import type { UIMessage } from "@/lib/ai-sdk-types"
+import { uiMessageToMessage } from "@/lib/ai-sdk-types"
 import { useChats } from "@/lib/chat-store/chats/provider"
 import { useMessages } from "@/lib/chat-store/messages/provider"
 import { MESSAGE_MAX_LENGTH, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
@@ -39,9 +39,7 @@ type ProjectViewProps = {
 export function ProjectView({ projectId }: ProjectViewProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [enableSearch, setEnableSearch] = useState(false)
-  const [thinkingMode, setThinkingMode] = useState<
-    "none" | "regular" | "sequential"
-  >("none")
+  const [thinkingMode, setThinkingMode] = useState<"none" | "regular">("none")
 
   // Convert current state to unified tools format
   const getToolsConfig = useCallback(() => {
@@ -51,12 +49,8 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       tools.push({ type: "web_search" })
     }
 
-    if (thinkingMode === "sequential") {
-      tools.push({ type: "mcp", name: "server-sequential-thinking" })
-    }
-
     return tools
-  }, [enableSearch, thinkingMode])
+  }, [enableSearch])
   const [currentChatId, setCurrentChatId] = useState<string | null>(null)
   const { user } = useUser()
   const { createNewChat, bumpChat } = useChats()
@@ -380,7 +374,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
   // Memoize the conversation props to prevent unnecessary rerenders
   const conversationProps = useMemo(
     () => ({
-      messages: messages.map(msg => uiMessageToMessage(msg as UIMessage)),
+      messages: messages.map((msg) => uiMessageToMessage(msg as UIMessage)),
       status,
       onDelete: handleDelete,
       onEdit: handleEdit,

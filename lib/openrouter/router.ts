@@ -95,7 +95,9 @@ export const OPENROUTER_ROUTER_CONFIG: Record<string, RouterConfig> = {
  * @param strategy - Routing strategy type
  * @returns Router configuration
  */
-export function getRouterConfig(strategy: RoutingStrategy["type"] = "balanced"): RouterConfig {
+export function getRouterConfig(
+  strategy: RoutingStrategy["type"] = "balanced"
+): RouterConfig {
   return OPENROUTER_ROUTER_CONFIG[strategy] || OPENROUTER_ROUTER_CONFIG.balanced
 }
 
@@ -105,7 +107,9 @@ export function getRouterConfig(strategy: RoutingStrategy["type"] = "balanced"):
  * @param strategy - Routing strategy type
  * @returns Array of fallback model IDs
  */
-export function getFallbackModels(strategy: RoutingStrategy["type"] = "balanced"): string[] {
+export function getFallbackModels(
+  strategy: RoutingStrategy["type"] = "balanced"
+): string[] {
   const config = getRouterConfig(strategy)
   return config.strategy.fallbackModels || [config.primaryModel]
 }

@@ -1,6 +1,5 @@
 import type { UIMessage as MessageAISDK } from "@/lib/ai-sdk-types"
 import { messageToUIMessage } from "@/lib/ai-sdk-types"
-
 import { createClient } from "@/lib/supabase/client"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 

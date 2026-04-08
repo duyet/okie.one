@@ -21,6 +21,7 @@ function convertToUIMessage(message: Message): UIMessage | null {
     parts: message.parts || [],
   } as UIMessage
 }
+
 import { Conversation } from "@/app/components/chat/conversation"
 import { useModel } from "@/app/components/chat/use-model"
 import { ChatInput } from "@/app/components/chat-input/chat-input"
@@ -79,13 +80,13 @@ function ChatInner() {
     cacheAndAddMessage: originalCacheAndAddMessage,
     setHasActiveChatSession,
   } = useMessages()
-  
+
   // Convert MessageAISDK[] to Message[] to ensure content property exists
   const initialMessages = useMemo(
-    () => rawMessages.map(msg => uiMessageToMessage(msg as UIMessage)),
+    () => rawMessages.map((msg) => uiMessageToMessage(msg as UIMessage)),
     [rawMessages]
   )
-  
+
   // Wrap cacheAndAddMessage to handle type conversion
   const cacheAndAddMessage = useCallback(
     (message: Message) => {
@@ -97,7 +98,7 @@ function ChatInner() {
     },
     [originalCacheAndAddMessage]
   )
-  
+
   const { user } = useUser()
   const { preferences } = useUserPreferences()
   const { draftValue, clearDraft } = useChatDraft(chatId)

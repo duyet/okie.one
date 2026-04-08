@@ -1,6 +1,5 @@
 "use client"
 
-import type { Message as MessageType, MessagePart } from "@/lib/ai-sdk-types"
 import { useEffect, useState } from "react"
 
 import {
@@ -9,6 +8,7 @@ import {
 } from "@/components/prompt-kit/chat-container"
 import { Loader } from "@/components/prompt-kit/loader"
 import { ScrollButton } from "@/components/prompt-kit/scroll-button"
+import type { MessagePart, Message as MessageType } from "@/lib/ai-sdk-types"
 import { getModelInfo } from "@/lib/models"
 import { PROVIDERS } from "@/lib/providers"
 import { cn } from "@/lib/utils"

@@ -823,8 +823,10 @@ export const openrouterModels: ModelConfig[] = [
     speed: "Medium",
     intelligence: "High",
     website: "https://openrouter.ai",
-    apiDocs: "https://openrouter.ai/cognitivecomputations/dolphin-mixtral-8x22b:free",
-    modelPage: "https://huggingface.co/cognitivecomputations/dolphin-mixtral-8x22b",
+    apiDocs:
+      "https://openrouter.ai/cognitivecomputations/dolphin-mixtral-8x22b:free",
+    modelPage:
+      "https://huggingface.co/cognitivecomputations/dolphin-mixtral-8x22b",
     releasedAt: "2024-01-01",
     icon: "openrouter",
     apiSdk: (apiKey?: string) =>
@@ -856,8 +858,10 @@ export const openrouterModels: ModelConfig[] = [
     speed: "Fast",
     intelligence: "High",
     website: "https://openrouter.ai",
-    apiDocs: "https://openrouter.ai/NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO:free",
-    modelPage: "https://huggingface.co/NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
+    apiDocs:
+      "https://openrouter.ai/NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO:free",
+    modelPage:
+      "https://huggingface.co/NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO",
     releasedAt: "2024-01-01",
     icon: "openrouter",
     apiSdk: (apiKey?: string) =>
@@ -874,7 +878,8 @@ export const openrouterModels: ModelConfig[] = [
     providerId: "openrouter",
     modelFamily: "Gemma",
     baseProviderId: "google",
-    description: "Google's latest Gemma with enhanced instruction following and reasoning (262k context)",
+    description:
+      "Google's latest Gemma with enhanced instruction following and reasoning (262k context)",
     tags: ["latest", "instruction", "reasoning", "free"],
     contextWindow: 262144,
     inputCost: 0,
@@ -905,7 +910,8 @@ export const openrouterModels: ModelConfig[] = [
     providerId: "openrouter",
     modelFamily: "Step",
     baseProviderId: "stepfun",
-    description: "Ultra-fast Flash model optimized for quick responses (256k context)",
+    description:
+      "Ultra-fast Flash model optimized for quick responses (256k context)",
     tags: ["ultra-fast", "flash", "free"],
     contextWindow: 256000,
     inputCost: 0,
@@ -936,7 +942,8 @@ export const openrouterModels: ModelConfig[] = [
     providerId: "openrouter",
     modelFamily: "Nemotron",
     baseProviderId: "nvidia",
-    description: "NVIDIA's massive 120B model with exceptional reasoning capabilities (262k context)",
+    description:
+      "NVIDIA's massive 120B model with exceptional reasoning capabilities (262k context)",
     tags: ["massive", "reasoning", "super", "free"],
     contextWindow: 262144,
     inputCost: 0,
@@ -958,7 +965,9 @@ export const openrouterModels: ModelConfig[] = [
     apiSdk: (apiKey?: string) =>
       createOpenRouter({
         apiKey: apiKey || process.env.OPENROUTER_API_KEY,
-      }).chat("nvidia/nemotron-3-super-120b-a12b:free") as unknown as LanguageModel,
+      }).chat(
+        "nvidia/nemotron-3-super-120b-a12b:free"
+      ) as unknown as LanguageModel,
   },
   {
     id: "openrouter:arcee-ai/trinity-large-preview:free",
@@ -967,7 +976,8 @@ export const openrouterModels: ModelConfig[] = [
     providerId: "openrouter",
     modelFamily: "Trinity",
     baseProviderId: "arcee-ai",
-    description: "Arcee AI's large preview model with strong performance (131k context)",
+    description:
+      "Arcee AI's large preview model with strong performance (131k context)",
     tags: ["preview", "large", "free"],
     contextWindow: 131000,
     inputCost: 0,
@@ -989,7 +999,9 @@ export const openrouterModels: ModelConfig[] = [
     apiSdk: (apiKey?: string) =>
       createOpenRouter({
         apiKey: apiKey || process.env.OPENROUTER_API_KEY,
-      }).chat("arcee-ai/trinity-large-preview:free") as unknown as LanguageModel,
+      }).chat(
+        "arcee-ai/trinity-large-preview:free"
+      ) as unknown as LanguageModel,
   },
   {
     id: "openrouter:z-ai/glm-4.5-air:free",
@@ -998,7 +1010,8 @@ export const openrouterModels: ModelConfig[] = [
     providerId: "openrouter",
     modelFamily: "GLM",
     baseProviderId: "z-ai",
-    description: "Lightweight and efficient Chinese-English bilingual model (131k context)",
+    description:
+      "Lightweight and efficient Chinese-English bilingual model (131k context)",
     tags: ["lightweight", "bilingual", "efficient", "free"],
     contextWindow: 131072,
     inputCost: 0,
@@ -1051,7 +1064,9 @@ export const openrouterModels: ModelConfig[] = [
     apiSdk: (apiKey?: string) =>
       createOpenRouter({
         apiKey: apiKey || process.env.OPENROUTER_API_KEY,
-      }).chat("nvidia/nemotron-3-nano-30b-a3b:free") as unknown as LanguageModel,
+      }).chat(
+        "nvidia/nemotron-3-nano-30b-a3b:free"
+      ) as unknown as LanguageModel,
   },
   {
     id: "openrouter:minimax/minimax-m2.5:free",
@@ -1060,7 +1075,8 @@ export const openrouterModels: ModelConfig[] = [
     providerId: "openrouter",
     modelFamily: "MiniMax",
     baseProviderId: "minimax",
-    description: "MiniMax's latest model with strong Chinese and English capabilities (196k context)",
+    description:
+      "MiniMax's latest model with strong Chinese and English capabilities (196k context)",
     tags: ["latest", "bilingual", "free"],
     contextWindow: 196608,
     inputCost: 0,
@@ -1091,7 +1107,8 @@ export const openrouterModels: ModelConfig[] = [
     providerId: "openrouter",
     modelFamily: "OpenRouter",
     baseProviderId: "openrouter",
-    description: "OpenRouter's free model routing to best available free model (200k context)",
+    description:
+      "OpenRouter's free model routing to best available free model (200k context)",
     tags: ["routing", "free", "flexible"],
     contextWindow: 200000,
     inputCost: 0,
