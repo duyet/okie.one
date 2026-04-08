@@ -7,7 +7,12 @@ import {
 } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
-import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import {
+  ALLOWED_FILE_TYPES,
+  MAX_FILE_SIZE,
+  MAX_FILES_PER_MESSAGE,
+  SYSTEM_PROMPT_DEFAULT,
+} from "@/lib/config"
 import { trackMessageSent } from "@/lib/event-tracking/api"
 import {
   getModelFileCapabilities,
@@ -166,7 +171,7 @@ export async function POST(req: Request) {
     }
 
     const userMessage = messages[messages.length - 1]
-    const attachments =
+    const rawAttachments =
       userMessage?.parts
         ?.filter((part) => (part as { type?: string }).type === "file")
         ?.map((part) => {
@@ -183,6 +188,51 @@ export async function POST(req: Request) {
             content: filePart.data || "",
           }
         }) || []
+
+    // Validate file attachments for security
+    const validatedAttachments = rawAttachments.filter((attachment) => {
+      // Validate file type
+      if (!attachment.contentType || !ALLOWED_FILE_TYPES.includes(attachment.contentType)) {
+        apiLogger.warn("Invalid file type rejected", {
+          contentType: attachment.contentType,
+          fileName: attachment.name,
+        })
+        return false
+      }
+
+      // Validate file size from base64
+      if (attachment.content) {
+        try {
+          const sizeInBytes = Buffer.byteLength(attachment.content, "base64")
+          if (sizeInBytes > MAX_FILE_SIZE) {
+            apiLogger.warn("File size exceeds limit", {
+              size: sizeInBytes,
+              maxSize: MAX_FILE_SIZE,
+              fileName: attachment.name,
+            })
+            return false
+          }
+        } catch (error) {
+          apiLogger.error("Failed to validate file size", {
+            error,
+            fileName: attachment.name,
+          })
+          return false
+        }
+      }
+
+      // Validate base64 format
+      if (attachment.content && !/^[A-Za-z0-9+/]+=*$/.test(attachment.content)) {
+        apiLogger.warn("Malformed base64 data rejected", {
+          fileName: attachment.name,
+        })
+        return false
+      }
+
+      return true
+    })
+
+    const attachments = validatedAttachments
 
     // Validate file attachments for the selected model
     if (attachments.length > 0) {

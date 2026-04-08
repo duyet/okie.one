@@ -12,7 +12,20 @@ export async function middleware(request: NextRequest) {
     const csrfCookie = request.cookies.get("csrf_token")?.value
     const headerToken = request.headers.get("x-csrf-token")
 
-    if (!csrfCookie || !headerToken || !validateCsrfToken(headerToken)) {
+    // Critical: Compare cookie value with header value to prevent token substitution attacks
+    if (
+      !csrfCookie ||
+      !headerToken ||
+      csrfCookie !== headerToken ||
+      !validateCsrfToken(headerToken)
+    ) {
+      // Log security violation for monitoring
+      console.warn("[SECURITY] CSRF validation failed", {
+        method: request.method,
+        path: request.nextUrl,
+        hasCookie: !!csrfCookie,
+        hasHeader: !!headerToken,
+      })
       return new NextResponse("Invalid CSRF token", { status: 403 })
     }
   }
@@ -35,7 +48,10 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // Include API routes for CSRF protection (fixes critical security issue)
+    "/api/:path*",
+    // Page routes for other middleware
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
   runtime: "nodejs",
 }
