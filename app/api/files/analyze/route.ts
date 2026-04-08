@@ -4,6 +4,7 @@ import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { validateModelSupportsFiles } from "@/lib/file-handling"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
+import { getUserProfile } from "@/lib/user/api"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
 import { createErrorResponse } from "../../chat/utils"
@@ -14,9 +15,7 @@ type AnalyzeRequest = {
   fileUrl: string
   fileName: string
   fileType: string | null
-  userId: string
   model?: string
-  isAuthenticated: boolean
 }
 
 const ANALYSIS_PROMPT = `You are an AI assistant specialized in analyzing files and documents. 
@@ -39,16 +38,20 @@ Format your response as JSON with the following structure:
 
 export async function POST(req: Request) {
   try {
-    const {
-      fileUrl,
-      fileName,
-      fileType,
-      userId,
-      model = "gpt-4-turbo",
-      isAuthenticated,
-    } = (await req.json()) as AnalyzeRequest
+    // Get authenticated user
+    const userProfile = await getUserProfile()
+    if (!userProfile) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401 }
+      )
+    }
 
-    if (!fileUrl || !fileName || !userId) {
+    const { fileUrl, fileName, fileType, model = "gpt-4-turbo" } =
+      (await req.json()) as AnalyzeRequest
+    const userId = userProfile.id // Force use authenticated user's ID
+
+    if (!fileUrl || !fileName) {
       return new Response(
         JSON.stringify({ error: "Missing required information" }),
         { status: 400 }
@@ -74,7 +77,7 @@ export async function POST(req: Request) {
     }
 
     let apiKey: string | undefined
-    if (isAuthenticated && userId) {
+    if (userId) {
       const { getEffectiveApiKey } = await import("@/lib/user-keys")
       const provider = getProviderForModel(model)
       apiKey =
