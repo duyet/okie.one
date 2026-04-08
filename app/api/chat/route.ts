@@ -7,12 +7,7 @@ import {
 } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
-import {
-  ALLOWED_FILE_TYPES,
-  MAX_FILE_SIZE,
-  MAX_FILES_PER_MESSAGE,
-  SYSTEM_PROMPT_DEFAULT,
-} from "@/lib/config"
+import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { trackMessageSent } from "@/lib/event-tracking/api"
 import {
   getModelFileCapabilities,
@@ -22,6 +17,7 @@ import { apiLogger } from "@/lib/logger"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
+import { ChatRequestSchema, type ChatRequest } from "@/lib/api-validation"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
 // Extended usage type to handle different provider formats
@@ -48,22 +44,6 @@ export const maxDuration = 60
 
 type ToolConfig = { type: "mcp"; name: string } | { type: "web_search" }
 
-// AI SDK v5 - Modern chat request format
-type ChatRequest = {
-  messages: UIMessage[]
-  chatId: string
-  userId: string
-  model: string
-  isAuthenticated: boolean
-  systemPrompt: string
-  tools?: ToolConfig[]
-  enableThink?: boolean // Native thinking capability
-  // Legacy support - will be deprecated
-  enableSearch?: boolean
-  thinkingMode?: "none" | "regular" | "sequential"
-  message_group_id?: string
-}
-
 export async function POST(req: Request) {
   const requestStartTime = Date.now()
   let assistantMessageId: string | null = null
@@ -73,12 +53,19 @@ export async function POST(req: Request) {
   try {
     let requestBody: ChatRequest
     try {
-      requestBody = await req.json()
-    } catch (parseError) {
-      console.error("[/api/chat] JSON parse error:", parseError)
-      return new Response(JSON.stringify({ error: "Invalid request body" }), {
-        status: 400,
-      })
+      requestBody = ChatRequestSchema.parse(await req.json())
+    } catch (validationError) {
+      apiLogger.warn("Request validation failed", { error: validationError })
+      return new Response(
+        JSON.stringify({
+          error: "Validation failed",
+          details:
+            validationError instanceof Error
+              ? validationError.message
+              : "Invalid input",
+        }),
+        { status: 400 }
+      )
     }
 
     const {
@@ -116,49 +103,6 @@ export async function POST(req: Request) {
       thinkingMode,
     })
 
-    // Enhanced validation with specific error messages
-    const missingFields: string[] = []
-
-    if (!messages || !Array.isArray(messages) || messages.length === 0) {
-      missingFields.push("messages (must be non-empty array)")
-    }
-    if (!chatId) {
-      missingFields.push("chatId or id")
-    }
-    if (!userId) {
-      missingFields.push("userId")
-    }
-    if (!model) {
-      missingFields.push("model")
-    }
-
-    if (missingFields.length > 0) {
-      const errorMessage = `Missing required fields: ${missingFields.join(", ")}. Please provide all required fields in the request body.`
-      apiLogger.error("Request validation failed", {
-        missingFields,
-        receivedFields: Object.keys(requestBody),
-      })
-
-      return new Response(
-        JSON.stringify({
-          error: errorMessage,
-          missingFields,
-          // Help developers understand the current API format
-          expectedFormat: {
-            messages: "[{role: 'user', content: '...', parts: [...]}]",
-            chatId: "string (required)",
-            userId: "string (required)",
-            model: "string (required)",
-            isAuthenticated: "boolean (required)",
-            systemPrompt: "string (required)",
-            tools: "[{type: 'web_search' | 'mcp', name?: string}] (optional)",
-            thinkingMode: "'none' | 'regular' | 'sequential' (optional)",
-          },
-        }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      )
-    }
-
     const supabase = await validateAndTrackUsage({
       userId,
       model,
@@ -171,7 +115,7 @@ export async function POST(req: Request) {
     }
 
     const userMessage = messages[messages.length - 1]
-    const rawAttachments =
+    const attachments =
       userMessage?.parts
         ?.filter((part) => (part as { type?: string }).type === "file")
         ?.map((part) => {
@@ -188,52 +132,6 @@ export async function POST(req: Request) {
             content: filePart.data || "",
           }
         }) || []
-
-    // Validate file attachments for security
-    const validatedAttachments = rawAttachments.filter((attachment) => {
-      // Validate file type
-      if (!attachment.contentType || !ALLOWED_FILE_TYPES.includes(attachment.contentType)) {
-        apiLogger.warn("Invalid file type rejected", {
-          contentType: attachment.contentType,
-          fileName: attachment.name,
-        })
-        return false
-      }
-
-      // Validate file size from base64
-      if (attachment.content) {
-        try {
-          const sizeInBytes = Buffer.byteLength(attachment.content, "base64")
-          if (sizeInBytes > MAX_FILE_SIZE) {
-            apiLogger.warn("File size exceeds limit", {
-              size: sizeInBytes,
-              maxSize: MAX_FILE_SIZE,
-              fileName: attachment.name,
-            })
-            return false
-          }
-        } catch (error) {
-          apiLogger.error("Failed to validate file size", {
-            error,
-            fileName: attachment.name,
-          })
-          return false
-        }
-      }
-
-      // Validate base64 format (strict check to prevent injection attacks)
-      // Only accepts standard base64 charset with optional padding
-      if (attachment.content && !/^[A-Za-z0-9+/]+=*$/.test(attachment.content)) {
-        apiLogger.warn("Malformed base64 data rejected", {
-          fileName: attachment.name,
-        })
-        return false
-      }
-
-      return true
-    })
-
-    const attachments = validatedAttachments
 
     // Validate file attachments for the selected model
     if (attachments.length > 0) {
