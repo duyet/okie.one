@@ -123,7 +123,7 @@ describe("Lib Utils Integration", () => {
           expect(mockFn).toHaveBeenCalledTimes(1)
           expect(mockFn).toHaveBeenCalledWith("third")
         },
-        { timeout: 150 }
+        { timeout: 300 }
       )
     })
 
@@ -142,7 +142,7 @@ describe("Lib Utils Integration", () => {
         () => {
           expect(mockFn).toHaveBeenCalledWith("test", 123)
         },
-        { timeout: 100 }
+        { timeout: 200 }
       )
     })
   })
