@@ -17,6 +17,7 @@ import { getMCPServer, hasMCPServer } from "@/lib/mcp/servers"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
+import { trackMessageSent } from "@/lib/event-tracking/api"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
 // Extended usage type to handle different provider formats
@@ -456,6 +457,16 @@ ${mcpServer.getSystemPromptEnhancement()}`
                   streamingDuration,
                 }
               )
+
+              // Track message event for analytics
+              try {
+                await trackMessageSent(userId, chatId, model, usage.totalTokens)
+              } catch (trackError) {
+                // Don't fail the request if event tracking fails
+                apiLogger.error("Failed to track message event", {
+                  error: trackError,
+                })
+              }
             } catch (tokenError) {
               apiLogger.error("Failed to record token usage", {
                 error: tokenError,

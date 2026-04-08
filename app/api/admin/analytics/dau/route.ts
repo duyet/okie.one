@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { adminCheck } from "@/app/api/lib/admin-auth"
-import { getDailyActiveUsers } from "@/lib/event-tracking/api"
+import { createClient } from "@/lib/supabase/server"
 import { analyticsLogger } from "@/lib/logger"
 
 export async function GET(request: NextRequest) {
@@ -31,20 +31,35 @@ export async function GET(request: NextRequest) {
 
     analyticsLogger.info("DAU analytics request", { daysBack })
 
-    const data = await getDailyActiveUsers(daysBack)
+    const supabase = await createClient()
+
+    // Call the get_dau_trend function from our migration
+    const { data, error } = await (supabase as any).rpc("get_dau_trend", {
+      days_back: daysBack,
+    })
+
+    if (error) {
+      analyticsLogger.error("Failed to get DAU data", { error })
+      return NextResponse.json(
+        { error: "Failed to retrieve DAU data" },
+        { status: 500 }
+      )
+    }
+
+    const dauData = data || []
 
     // Calculate summary statistics
-    const totalActiveUsers = data.reduce((sum, day) => sum + day.active_users, 0)
-    const averageActiveUsers = data.length > 0 ? totalActiveUsers / data.length : 0
-    const peakActiveUsers = data.length > 0 ? Math.max(...data.map((d) => d.active_users)) : 0
-    const totalNewUsers = data.reduce((sum, day) => sum + day.new_users, 0)
+    const totalActiveUsers = dauData.reduce((sum: number, day: any) => sum + (day.total_users || 0), 0)
+    const averageActiveUsers = dauData.length > 0 ? totalActiveUsers / dauData.length : 0
+    const peakActiveUsers = dauData.length > 0 ? Math.max(...dauData.map((d: any) => d.total_users || 0)) : 0
+    const totalNewUsers = dauData.reduce((sum: number, day: any) => sum + (day.new_users || 0), 0)
 
     const summary = {
       totalActiveUsers,
       averageActiveUsers: Math.round(averageActiveUsers * 100) / 100,
       peakActiveUsers,
       totalNewUsers,
-      periodDays: data.length,
+      periodDays: dauData.length,
     }
 
     analyticsLogger.info("DAU analytics retrieved", {

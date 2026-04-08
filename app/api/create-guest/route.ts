@@ -1,4 +1,5 @@
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
+import { trackSignup } from "@/lib/event-tracking/api"
 
 export async function POST(request: Request) {
   try {
@@ -79,6 +80,9 @@ export async function POST(request: Request) {
 
       userData = data
       console.log("Successfully created guest user profile for:", userId)
+
+      // Track signup event
+      await trackSignup(userId, "anonymous")
     } else {
       console.log("Guest user already exists:", userId)
     }

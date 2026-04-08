@@ -1,245 +1,84 @@
 /**
  * Event Tracking API
  *
- * Provides functions for tracking and querying user engagement events
- * Works with the event_tracking table for analytics
- *
- * Note: The event_tracking table schema will be created by the database worker
- * These functions use RPC calls to avoid TypeScript type errors during development
+ * Simple event tracking for user engagement analytics
+ * Works with the user_events table created in the database migration
  */
 
 import { createClient } from "@/lib/supabase/server"
-import { analyticsLogger } from "@/lib/logger"
 
-export interface EventRecord {
-  id: string
-  user_id: string
-  event_name: string
-  event_properties?: Record<string, unknown>
-  created_at: string
-}
+export type EventType = "signup" | "login" | "chat_created" | "message_sent"
 
-export interface DailyActiveUsers {
-  date: string
-  active_users: number
-  new_users: number
-  returning_users: number
-}
-
-export interface EventSummary {
-  event_name: string
-  count: number
-  unique_users: number
-}
-
-export interface UserEventCount {
-  user_id: string
-  event_count: number
-  first_event: string
-  last_event: string
+export interface EventMetadata {
+  [key: string]: unknown
 }
 
 /**
  * Records an event for analytics tracking
  *
  * @param userId - User ID
- * @param eventName - Name of the event
- * @param properties - Optional event properties
- * @returns The created event record
+ * @param eventType - Type of event
+ * @param metadata - Optional event metadata
  */
 export async function trackEvent(
   userId: string,
-  eventName: string,
-  properties?: Record<string, unknown>
-): Promise<EventRecord> {
+  eventType: EventType,
+  metadata?: EventMetadata
+): Promise<void> {
   try {
     const supabase = await createClient()
     if (!supabase) {
-      throw new Error("Database connection failed")
+      console.warn("Supabase not available, skipping event tracking")
+      return
     }
 
-    // Use RPC to insert event (bypasses TypeScript type checking)
-    const { data, error } = await (supabase as any).rpc("track_event", {
-      p_user_id: userId,
-      p_event_name: eventName,
-      p_event_properties: properties || null,
+    // Insert event into user_events table
+    // Use type assertion since table doesn't exist in types until migration is deployed
+    const { error } = await (supabase as any).from("user_events").insert({
+      user_id: userId,
+      event_type: eventType,
+      event_metadata: metadata || null,
     })
 
     if (error) {
-      throw new Error(`Failed to track event: ${error.message}`)
+      // Log but don't throw - event tracking shouldn't block the app
+      console.error("Event tracking failed:", error)
     }
-
-    analyticsLogger.debug("Event tracked", {
-      userId,
-      eventName,
-      properties,
-    })
-
-    return data as EventRecord
   } catch (error) {
-    analyticsLogger.error("Error tracking event", {
-      userId,
-      eventName,
-      error: error instanceof Error ? error.message : String(error),
-    })
-    throw error
+    // Non-blocking - log and continue
+    console.error("Event tracking error:", error)
   }
 }
 
 /**
- * Gets daily active users for a date range
- *
- * @param daysBack - Number of days to look back (default: 30)
- * @returns Array of daily active user statistics
+ * Tracks user signup event
  */
-export async function getDailyActiveUsers(
-  daysBack: number = 30
-): Promise<DailyActiveUsers[]> {
-  try {
-    const supabase = await createClient()
-    if (!supabase) {
-      throw new Error("Database connection failed")
-    }
-
-    const startDate = new Date()
-    startDate.setDate(startDate.getDate() - daysBack)
-    const startDateStr = startDate.toISOString().split("T")[0]
-
-    const { data, error } = await (supabase as any).rpc(
-      "get_daily_active_users",
-      {
-        start_date: startDateStr,
-        days_back: daysBack,
-      }
-    )
-
-    if (error) {
-      throw new Error(`Failed to get daily active users: ${error.message}`)
-    }
-
-    return (data || []) as DailyActiveUsers[]
-  } catch (error) {
-    analyticsLogger.error("Error getting daily active users", {
-      error: error instanceof Error ? error.message : String(error),
-    })
-    throw error
-  }
+export async function trackSignup(userId: string, method: "google" | "email" | "anonymous"): Promise<void> {
+  return trackEvent(userId, "signup", { method })
 }
 
 /**
- * Gets event summary statistics for a date range
- *
- * @param daysBack - Number of days to look back (default: 7)
- * @returns Array of event summaries
+ * Tracks user login event
  */
-export async function getEventSummary(
-  daysBack: number = 7
-): Promise<EventSummary[]> {
-  try {
-    const supabase = await createClient()
-    if (!supabase) {
-      throw new Error("Database connection failed")
-    }
-
-    // Use RPC to get event summary
-    const { data, error } = await (supabase as any).rpc("get_event_summary", {
-      days_back: daysBack,
-    })
-
-    if (error) {
-      throw new Error(`Failed to get event summary: ${error.message}`)
-    }
-
-    return (data || []) as EventSummary[]
-  } catch (error) {
-    analyticsLogger.error("Error getting event summary", {
-      error: error instanceof Error ? error.message : String(error),
-    })
-    throw error
-  }
+export async function trackLogin(userId: string): Promise<void> {
+  return trackEvent(userId, "login")
 }
 
 /**
- * Gets top users by event count for a date range
- *
- * @param daysBack - Number of days to look back (default: 7)
- * @param limit - Maximum number of users to return (default: 10)
- * @returns Array of user event counts
+ * Tracks chat creation event
  */
-export async function getTopUsersByEvents(
-  daysBack: number = 7,
-  limit: number = 10
-): Promise<UserEventCount[]> {
-  try {
-    const supabase = await createClient()
-    if (!supabase) {
-      throw new Error("Database connection failed")
-    }
-
-    // Use RPC to get top users by events
-    const { data, error } = await (supabase as any).rpc("get_top_users_by_events", {
-      days_back: daysBack,
-      limit_count: limit,
-    })
-
-    if (error) {
-      throw new Error(`Failed to get top users: ${error.message}`)
-    }
-
-    return (data || []) as UserEventCount[]
-  } catch (error) {
-    analyticsLogger.error("Error getting top users", {
-      error: error instanceof Error ? error.message : String(error),
-    })
-    throw error
-  }
+export async function trackChatCreated(userId: string, chatId: string, model: string): Promise<void> {
+  return trackEvent(userId, "chat_created", { chatId, model })
 }
 
 /**
- * Gets user activity metrics for analytics
- *
- * @param userId - User ID to analyze
- * @param daysBack - Number of days to look back (default: 30)
- * @returns User activity statistics
+ * Tracks message sent event
  */
-export async function getUserActivityMetrics(
+export async function trackMessageSent(
   userId: string,
-  daysBack: number = 30
-): Promise<{
-  totalEvents: number
-  uniqueEventTypes: number
-  firstEventDate: string | null
-  lastEventDate: string | null
-  averageEventsPerDay: number
-}> {
-  try {
-    const supabase = await createClient()
-    if (!supabase) {
-      throw new Error("Database connection failed")
-    }
-
-    // Use RPC to get user activity metrics
-    const { data, error } = await (supabase as any).rpc("get_user_activity_metrics", {
-      target_user_id: userId,
-      days_back: daysBack,
-    })
-
-    if (error) {
-      throw new Error(`Failed to get user activity: ${error.message}`)
-    }
-
-    return data as {
-      totalEvents: number
-      uniqueEventTypes: number
-      firstEventDate: string | null
-      lastEventDate: string | null
-      averageEventsPerDay: number
-    }
-  } catch (error) {
-    analyticsLogger.error("Error getting user activity metrics", {
-      userId,
-      error: error instanceof Error ? error.message : String(error),
-    })
-    throw error
-  }
+  chatId: string,
+  model: string,
+  tokenCount?: number
+): Promise<void> {
+  return trackEvent(userId, "message_sent", { chatId, model, tokenCount })
 }

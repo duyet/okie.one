@@ -4,6 +4,7 @@ import { MODEL_DEFAULT } from "@/lib/config"
 import { isSupabaseEnabled } from "@/lib/supabase/config"
 import { createClient } from "@/lib/supabase/server"
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
+import { trackLogin, trackSignup } from "@/lib/event-tracking/api"
 
 export async function GET(request: Request) {
   const { searchParams, origin, hash } = new URL(request.url)
@@ -87,7 +88,13 @@ export async function GET(request: Request) {
 
     if (insertError && insertError.code !== "23505") {
       console.error("Error inserting user:", insertError)
+    } else if (!insertError) {
+      // New user created - track signup
+      await trackSignup(user.id, "google")
     }
+
+    // Track login event for both new and existing users
+    await trackLogin(user.id)
   } catch (err) {
     console.error("Unexpected user insert error:", err)
   }
