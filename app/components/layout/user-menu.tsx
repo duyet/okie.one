@@ -1,8 +1,8 @@
 "use client"
 
-import { SignIn, SignOut, User as UserIcon } from "@phosphor-icons/react"
+import { ChartBar, SignIn, SignOut, User as UserIcon } from "@phosphor-icons/react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
@@ -17,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { checkIsAdmin } from "@/app/api/lib/admin-auth"
 import { useSettings } from "@/lib/settings-store/provider"
 import { useUser } from "@/lib/user-store/provider"
 
@@ -28,6 +29,16 @@ export function UserMenu() {
   const { user, signOut } = useUser()
   const { isOpen: isSettingsOpen } = useSettings()
   const [isMenuOpen, setMenuOpen] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  // Check if user is admin (server action)
+  useEffect(() => {
+    async function checkAdmin() {
+      const adminCheck = await checkIsAdmin()
+      setIsAdmin(adminCheck)
+    }
+    checkAdmin()
+  }, [])
 
   if (!user) return null
 
@@ -107,6 +118,17 @@ export function UserMenu() {
           </>
         ) : (
           <>
+            {isAdmin && (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link href="/analytics" className="cursor-pointer">
+                    <ChartBar className="mr-2 h-4 w-4" />
+                    <span>Analytics</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <SettingsTrigger onOpenChange={handleSettingsOpenChange} />
             <FeedbackTrigger />
             <AppInfoTrigger />

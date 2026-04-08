@@ -5,6 +5,8 @@
  * Uses ADMIN_EMAILS environment variable for access control
  */
 
+"use server"
+
 import { NextResponse } from "next/server"
 
 import { analyticsLogger } from "@/lib/logger"
@@ -117,4 +119,15 @@ export async function getAdminEmail(): Promise<string | null> {
 
   const userEmail = user.email.toLowerCase()
   return ADMIN_EMAILS.includes(userEmail) ? userEmail : null
+}
+
+/**
+ * Server action to check if current user is an admin
+ * Can be called from client components via "use server"
+ *
+ * @returns Promise<boolean> - True if user is an admin
+ */
+export async function checkIsAdmin(): Promise<boolean> {
+  const adminEmail = await getAdminEmail()
+  return adminEmail !== null
 }
