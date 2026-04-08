@@ -1,4 +1,6 @@
 import type { UIMessage as MessageAISDK } from "ai"
+import { apiLogger } from "@/lib/logger"
+import { isDev } from "@/lib/utils"
 
 /**
  * Clean messages when switching between agents with different tool capabilities.
@@ -271,6 +273,13 @@ export function extractErrorMessage(error: unknown): string {
 }
 
 /**
+ * Get sanitized error message based on environment
+ */
+function getSanitizedErrorMessage(userMessage?: string): string {
+  return isDev && userMessage ? userMessage : "An error occurred processing your request"
+}
+
+/**
  * Create error response for API endpoints
  * @param error - Error object with optional statusCode and code
  * @returns Response object with proper status and JSON body
@@ -280,10 +289,20 @@ export function createErrorResponse(error: {
   message?: string
   statusCode?: number
 }): Response {
+  // Log detailed error server-side for debugging
+  apiLogger.error("API error response", {
+    code: error.code,
+    message: error.message,
+    statusCode: error.statusCode,
+  })
+
   // Handle daily limit first (existing logic)
   if (error.code === "DAILY_LIMIT_REACHED") {
     return new Response(
-      JSON.stringify({ error: error.message, code: error.code }),
+      JSON.stringify({
+        error: getSanitizedErrorMessage(error.message) || "Daily limit reached",
+        code: error.code,
+      }),
       { status: 403 }
     )
   }
@@ -292,8 +311,8 @@ export function createErrorResponse(error: {
   if (error.statusCode) {
     return new Response(
       JSON.stringify({
-        error: error.message || "Request failed",
-        code: error.code || "REQUEST_ERROR",
+        error: getSanitizedErrorMessage(error.message),
+        code: error.code || "OPERATION_FAILED",
       }),
       { status: error.statusCode }
     )
@@ -301,7 +320,10 @@ export function createErrorResponse(error: {
 
   // Fallback for other errors
   return new Response(
-    JSON.stringify({ error: error.message || "Internal server error" }),
+    JSON.stringify({
+      error: getSanitizedErrorMessage(error.message),
+      code: "OPERATION_FAILED",
+    }),
     { status: 500 }
   )
 }
