@@ -29,12 +29,6 @@ const nextConfig: NextConfig = withBundleAnalyzer({
       },
     ],
   },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
-  typescript: {
-    tsconfigPath: "./tsconfig.json",
-  },
   async headers() {
     return [
       {
