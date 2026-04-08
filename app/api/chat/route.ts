@@ -221,7 +221,8 @@ export async function POST(req: Request) {
         }
       }
 
-      // Validate base64 format
+      // Validate base64 format (strict check to prevent injection attacks)
+      // Only accepts standard base64 charset with optional padding
       if (attachment.content && !/^[A-Za-z0-9+/]+=*$/.test(attachment.content)) {
         apiLogger.warn("Malformed base64 data rejected", {
           fileName: attachment.name,
