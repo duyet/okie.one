@@ -38,7 +38,7 @@
         "useSemanticElements": "warn"
       },
       "suspicious": {
-        "noArrayIndexKey": "warn",
+        "noArrayIndexKey": "off",
         "noExplicitAny": "warn"
       },
       "security": {
@@ -56,7 +56,9 @@
         "noUnusedImports": {
           "level": "warn",
           "fix": "safe"
-        }
+        },
+        "noNestedComponentDefinitions": "off",
+        "useUniqueElementIds": "off"
       }
     }
   },

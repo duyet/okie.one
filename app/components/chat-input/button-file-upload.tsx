@@ -31,6 +31,26 @@ type ButtonFileUploadProps = {
   isUserAuthenticated: boolean
 }
 
+// Common button component with proper ref forwarding (moved outside parent component)
+const FileUploadButton = React.forwardRef<
+  HTMLButtonElement,
+  { disabled?: boolean }
+>(({ disabled = false }, ref) => (
+  <Button
+    ref={ref}
+    size="sm"
+    variant="secondary"
+    className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
+    type="button"
+    disabled={!!disabled}
+    aria-label="Add files"
+  >
+    <Paperclip className="size-4" />
+  </Button>
+))
+
+FileUploadButton.displayName = "FileUploadButton"
+
 export function ButtonFileUpload({
   onFileUpload,
   model,
@@ -41,26 +61,6 @@ export function ButtonFileUpload({
 
   // Generate accept string from model capabilities
   const acceptTypes = fileCapabilities?.supportedTypes?.join(",") || "image/*"
-
-  // Common button component with proper ref forwarding
-  const FileUploadButton = React.forwardRef<
-    HTMLButtonElement,
-    { disabled?: boolean }
-  >(({ disabled = false }, ref) => (
-    <Button
-      ref={ref}
-      size="sm"
-      variant="secondary"
-      className="size-9 rounded-full border border-border bg-transparent dark:bg-secondary"
-      type="button"
-      disabled={!!disabled}
-      aria-label="Add files"
-    >
-      <Paperclip className="size-4" />
-    </Button>
-  ))
-
-  FileUploadButton.displayName = "FileUploadButton"
 
   // Determine if file upload should be disabled
   let popoverContent: React.ReactNode = null
