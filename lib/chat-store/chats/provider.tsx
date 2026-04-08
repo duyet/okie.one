@@ -93,8 +93,7 @@ export function ChatsProvider({ children }: { children: React.ReactNode }) {
         c.id === id ? { ...c, title, updated_at: new Date().toISOString() } : c
       )
       const sorted = updatedChatWithNewTitle.sort(
-        (a, b) =>
-          +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
+        (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
       )
       setChats(sorted)
       try {
@@ -108,11 +107,7 @@ export function ChatsProvider({ children }: { children: React.ReactNode }) {
   )
 
   const deleteChat = useCallback(
-    async (
-      id: string,
-      currentChatId?: string,
-      redirect?: () => void
-    ) => {
+    async (id: string, currentChatId?: string, redirect?: () => void) => {
       const prev = [...chats]
       setChats((prev) => prev.filter((c) => c.id !== id))
 
@@ -210,8 +205,7 @@ export function ChatsProvider({ children }: { children: React.ReactNode }) {
         c.id === id ? { ...c, updated_at: new Date().toISOString() } : c
       )
       const sorted = updatedChatWithNewUpdatedAt.sort(
-        (a, b) =>
-          +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
+        (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
       )
       setChats(sorted)
     },
