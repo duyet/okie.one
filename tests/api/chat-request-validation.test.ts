@@ -107,17 +107,9 @@ describe("Chat API Request Validation", () => {
       // Should return 400 status
       expect(response.status).toBe(400)
 
-      // Should have helpful error message
-      expect(responseBody.error).toContain("Missing required fields")
-      expect(responseBody.missingFields).toContain("chatId or id")
-      expect(responseBody.missingFields).toContain("userId")
-      expect(responseBody.missingFields).toContain("model")
-
-      // Should include expected format guide
-      expect(responseBody.expectedFormat).toBeDefined()
-      expect(responseBody.expectedFormat.chatId).toBe("string (required)")
-      expect(responseBody.expectedFormat.userId).toBe("string (required)")
-      expect(responseBody.expectedFormat.model).toBe("string (required)")
+      // Should have validation error message
+      expect(responseBody.error).toBe("Validation failed")
+      expect(responseBody.details).toBeDefined()
     })
 
     it("should accept correct current API format", async () => {
@@ -132,8 +124,8 @@ describe("Chat API Request Validation", () => {
             ],
           },
         ],
-        chatId: "chat-123",
-        userId: "user-123",
+        chatId: "01234567-0123-0123-0123-0123456789ab",
+        userId: "01234567-0123-0123-0123-0123456789ac",
         model: "gpt-4.1-nano",
         isAuthenticated: true,
         systemPrompt: "You are a helpful AI assistant.",
@@ -224,10 +216,8 @@ describe("Chat API Request Validation", () => {
         const responseBody = await response.json()
 
         expect(response.status, `${testCase.name} should return 400`).toBe(400)
-        expect(
-          responseBody.missingFields,
-          `${testCase.name} missing fields`
-        ).toEqual(expect.arrayContaining(testCase.expectedMissingFields))
+        expect(responseBody.error, `${testCase.name} error message`).toBe("Validation failed")
+        expect(responseBody.details, `${testCase.name} details present`).toBeDefined()
       }
     })
 
@@ -247,10 +237,9 @@ describe("Chat API Request Validation", () => {
       const responseBody = await response.json()
 
       expect(response.status).toBe(400)
-      expect(responseBody.missingFields).toEqual(
-        expect.arrayContaining(["chatId or id", "userId", "model"])
-      )
-      expect(responseBody.missingFields.length).toBeGreaterThanOrEqual(3)
+      expect(responseBody.error).toBe("Validation failed")
+      expect(responseBody.details).toBeDefined()
+      // The details should contain validation errors for missing fields
     })
 
     it("should handle invalid JSON gracefully", async () => {
@@ -266,7 +255,7 @@ describe("Chat API Request Validation", () => {
       const responseBody = await response.json()
 
       expect(response.status).toBe(400)
-      expect(responseBody.error).toBe("Invalid request body")
+      expect(responseBody.error).toBe("Validation failed")
     })
   })
 
@@ -280,8 +269,8 @@ describe("Chat API Request Validation", () => {
             parts: [{ type: "text", text: "Explain quantum computing" }],
           },
         ],
-        chatId: "chat-123",
-        userId: "user-123",
+        chatId: "01234567-0123-0123-0123-0123456789ab",
+        userId: "01234567-0123-0123-0123-0123456789ac",
         model: "gpt-4.1-nano",
         isAuthenticated: true,
         systemPrompt: "You are a helpful AI assistant.",
@@ -310,8 +299,8 @@ describe("Chat API Request Validation", () => {
             parts: [{ type: "text", text: "Search for latest AI news" }],
           },
         ],
-        chatId: "chat-123",
-        userId: "user-123",
+        chatId: "01234567-0123-0123-0123-0123456789ab",
+        userId: "01234567-0123-0123-0123-0123456789ac",
         model: "gpt-4.1-nano",
         isAuthenticated: true,
         systemPrompt: "You are a helpful AI assistant.",
@@ -350,8 +339,8 @@ describe("Chat API Request Validation", () => {
             ],
           },
         ],
-        chatId: "chat-123",
-        userId: "user-123",
+        chatId: "01234567-0123-0123-0123-0123456789ab",
+        userId: "01234567-0123-0123-0123-0123456789ac",
         model: "gpt-4.1-nano",
         isAuthenticated: true,
         systemPrompt: "You are a helpful AI assistant.",

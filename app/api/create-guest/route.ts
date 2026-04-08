@@ -1,4 +1,8 @@
 import { trackSignup } from "@/lib/event-tracking/api"
+import {
+  checkRateLimit,
+  rateLimitResponse,
+} from "@/lib/ratelimit"
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
 
 export async function POST(request: Request) {

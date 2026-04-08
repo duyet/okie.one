@@ -21,6 +21,10 @@ import {
 import { apiLogger } from "@/lib/logger"
 import type { MessagePart } from "@/lib/type-guards/message-parts"
 import { getAllModels } from "@/lib/models"
+import {
+  checkRateLimit,
+  rateLimitResponse,
+} from "@/lib/ratelimit"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
 import { ChatRequestSchema, type ChatRequest } from "@/lib/api-validation"
@@ -132,8 +136,8 @@ export async function POST(req: Request) {
     const userMessage = messages[messages.length - 1]
     const rawAttachments =
       userMessage?.parts
-        ?.filter((part) => (part as { type?: string }).type === "file")
-        ?.map((part) => {
+        ?.filter((part: MessagePart) => (part as { type?: string }).type === "file")
+        ?.map((part: MessagePart) => {
           const filePart = part as {
             name?: string
             mediaType?: string
@@ -235,8 +239,8 @@ export async function POST(req: Request) {
         chatId,
         content:
           userMessage.parts
-            ?.filter((part) => (part as { type?: string }).type === "text")
-            ?.map((part) => (part as { text?: string }).text)
+            ?.filter((part: MessagePart) => (part as { type?: string }).type === "text")
+            ?.map((part: MessagePart) => (part as { text?: string }).text)
             ?.join("\n") || "",
         attachments: attachments,
         model,

@@ -5,17 +5,6 @@ import { authLogger } from "../logger"
 import { isSupabaseEnabled } from "../supabase/config"
 
 /**
- * Validates UUID format with strict checking
- * @param userId - The ID to validate
- * @returns True if valid UUID v4 format
- */
-function isValidUUID(userId: string): boolean {
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-  return uuidRegex.test(userId)
-}
-
-/**
  * Validates the user's identity
  * @param userId - The ID of the user.
  * @param isAuthenticated - Whether the user is authenticated.
@@ -25,50 +14,60 @@ export async function validateUserIdentity(
   userId: string,
   isAuthenticated: boolean
 ) {
-  // Check for guest users first, regardless of Supabase configuration
+  // Check for fallback guest users first, regardless of Supabase configuration
   if (!isAuthenticated && userId) {
-    // Strict UUID-only validation - no legacy formats allowed
-    if (!isValidUUID(userId)) {
-      authLogger.warn("Invalid guest user ID format detected", { userId })
-      throw new Error(
-        "Invalid guest user ID format. Please refresh the page to get a new guest ID."
+    // Handle both old format (guest-user-xxx) and new format (UUID)
+    const isOldFormatGuest = userId.startsWith("guest-user-")
+    const isValidUUID =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        userId
       )
-    }
 
-    authLogger.debug("Processing guest user", { userId })
+    if (isOldFormatGuest || isValidUUID) {
+      authLogger.debug("Processing fallback guest user", { userId })
 
-    // For guest users (when anonymous auth is disabled or fails)
-    if (isSupabaseEnabled) {
-      const supabase = await createGuestServerClient()
-      if (supabase) {
-        // Check if this guest user already exists in the database
-        // (may have been created by a previous successful anonymous auth)
-        const { data: existingUser } = await supabase
-          .from("users")
-          .select("id")
-          .eq("id", userId)
-          .maybeSingle()
+      // For old format guest IDs, reject with clear error message
+      if (isOldFormatGuest) {
+        authLogger.warn("Old format guest ID detected", { userId })
+        throw new Error(
+          "Invalid guest user ID format. Please refresh the page to get a new guest ID."
+        )
+      }
 
-        if (existingUser) {
-          authLogger.debug("Found existing guest user in database", {
+      // For fallback guest users (when anonymous auth is disabled or fails)
+      if (isSupabaseEnabled) {
+        const supabase = await createGuestServerClient()
+        if (supabase) {
+          // Check if this guest user already exists in the database
+          // (may have been created by a previous successful anonymous auth)
+          const { data: existingUser } = await supabase
+            .from("users")
+            .select("id")
+            .eq("id", userId)
+            .maybeSingle()
+
+          if (existingUser) {
+            authLogger.debug("Found existing guest user in database", {
+              userId,
+            })
+            return supabase
+          }
+
+          // Guest user exists in auth.users but not in public.users
+          // This shouldn't happen with proper anonymous auth, but handle gracefully
+          authLogger.warn("Guest user not found in database", {
             userId,
+            suggestion:
+              "Anonymous authentication may not be properly configured",
           })
+
+          // Return the supabase client for read operations
           return supabase
         }
-
-        // Guest user exists in auth.users but not in public.users
-        // This shouldn't happen with proper anonymous auth, but handle gracefully
-        authLogger.warn("Guest user not found in database", {
-          userId,
-          suggestion: "Anonymous authentication may not be properly configured",
-        })
-
-        // Return the supabase client for read operations
-        return supabase
       }
-    }
 
-    return null // Signal: valid guest user, no Supabase available
+      return null // Signal: valid guest user, no Supabase available
+    }
   }
 
   if (!isSupabaseEnabled) {

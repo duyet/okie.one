@@ -95,6 +95,12 @@ vi.mock("@/lib/user-keys", () => ({
   getEffectiveApiKey: vi.fn().mockResolvedValue("test-api-key"),
 }))
 
+// Mock rate limiting functions
+vi.mock("@/lib/ratelimit", () => ({
+  checkRateLimit: vi.fn(() => ({ allowed: true })),
+  rateLimitResponse: vi.fn(() => new Response("Rate limited", { status: 429 })),
+}))
+
 // Type the mocked functions
 const mockRecordTokenUsage = recordTokenUsage as MockedFunction<
   typeof recordTokenUsage
@@ -130,13 +136,13 @@ describe("Chat API Token Tracking", () => {
 
   const sampleRequest = {
     messages: [{ role: "user" as const, content: "Hello" }],
-    chatId: "chat-123",
-    userId: "user-456",
+    chatId: "01234567-0123-0123-0123-0123456789ab",
+    userId: "01234567-0123-0123-0123-0123456789ac",
     model: "gpt-4o",
     isAuthenticated: true,
     systemPrompt: "You are a helpful assistant",
     enableSearch: false,
-    message_group_id: "group-789",
+    message_group_id: "01234567-0123-0123-0123-0123456789ad",
   }
 
   const sampleModelConfig: ModelConfig = {
@@ -174,6 +180,8 @@ describe("Chat API Token Tracking", () => {
     let onFinishCallback: OnFinishCallback | null = null
     let onChunkCallback: OnChunkCallback | null = null
 
+    // Clear previous mock implementation and instances
+    mockStreamText.mockClear()
     mockStreamText.mockImplementation((config: any) => {
       // Store callbacks from streamText itself (AI SDK v5 pattern)
       if (config.onChunk) onChunkCallback = config.onChunk
@@ -226,7 +234,7 @@ describe("Chat API Token Tracking", () => {
         body: JSON.stringify(sampleRequest),
       })
 
-      await POST(request)
+      const response = await POST(request)
 
       // Verify streamText was called with onFinish callback
       expect(mockStreamText).toHaveBeenCalledWith(
@@ -251,8 +259,8 @@ describe("Chat API Token Tracking", () => {
 
       // Verify token usage was recorded
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
@@ -304,8 +312,8 @@ describe("Chat API Token Tracking", () => {
 
       // Verify timing metrics were captured
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
@@ -353,8 +361,8 @@ describe("Chat API Token Tracking", () => {
       })
 
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
@@ -397,8 +405,8 @@ describe("Chat API Token Tracking", () => {
       })
 
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
@@ -440,8 +448,8 @@ describe("Chat API Token Tracking", () => {
       })
 
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
@@ -661,8 +669,8 @@ describe("Chat API Token Tracking", () => {
         })
 
         expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-          "user-456",
-          "chat-123",
+          "01234567-0123-0123-0123-0123456789ac",
+          "01234567-0123-0123-0123-0123456789ab",
           "msg-123",
           testCase.expectedProvider,
           testCase.model,
@@ -712,8 +720,8 @@ describe("Chat API Token Tracking", () => {
 
       // Should use timing from first chunk only
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
@@ -753,8 +761,8 @@ describe("Chat API Token Tracking", () => {
       })
 
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
@@ -817,8 +825,8 @@ describe("Chat API Token Tracking", () => {
       }
 
       expect(mockRecordTokenUsage).toHaveBeenCalledWith(
-        "user-456",
-        "chat-123",
+        "01234567-0123-0123-0123-0123456789ac",
+        "01234567-0123-0123-0123-0123456789ab",
         "msg-123",
         "openai",
         "gpt-4o",
