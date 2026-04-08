@@ -216,8 +216,13 @@ describe("Chat API Request Validation", () => {
         const responseBody = await response.json()
 
         expect(response.status, `${testCase.name} should return 400`).toBe(400)
-        expect(responseBody.error, `${testCase.name} error message`).toBe("Validation failed")
-        expect(responseBody.details, `${testCase.name} details present`).toBeDefined()
+        expect(responseBody.error, `${testCase.name} error message`).toBe(
+          "Validation failed"
+        )
+        expect(
+          responseBody.details,
+          `${testCase.name} details present`
+        ).toBeDefined()
       }
     })
 

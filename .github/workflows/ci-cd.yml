@@ -224,7 +224,7 @@ jobs:
             typescript-${{ runner.os }}-
 
       - name: Run Lint
-        run: pnpm exec biome lint || true
+        run: pnpm exec biome check --diagnostic-level=error
 
       - name: Run TypeScript checks
         run: pnpm run type-check

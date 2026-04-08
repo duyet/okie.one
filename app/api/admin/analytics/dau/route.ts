@@ -18,7 +18,10 @@ interface DAUDataPoint {
 }
 
 type SupabaseRpc = {
-  rpc: (name: string, params: { days_back: number }) => Promise<{
+  rpc: (
+    name: string,
+    params: { days_back: number }
+  ) => Promise<{
     data: DAUDataPoint[] | null
     error: unknown
   }>

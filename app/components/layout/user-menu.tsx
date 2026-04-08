@@ -1,6 +1,11 @@
 "use client"
 
-import { ChartBar, SignIn, SignOut, User as UserIcon } from "@phosphor-icons/react"
+import {
+  ChartBar,
+  SignIn,
+  SignOut,
+  User as UserIcon,
+} from "@phosphor-icons/react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 

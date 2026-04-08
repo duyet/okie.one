@@ -12,9 +12,10 @@ const WINDOW = 10 * 1000 // 10 seconds in ms
  * @param identifier - Unique identifier for rate limiting (e.g., IP address, user ID)
  * @returns Object with allowed status and optional reset time in milliseconds
  */
-export function checkRateLimit(
-  identifier: string
-): { allowed: boolean; resetIn?: number } {
+export function checkRateLimit(identifier: string): {
+  allowed: boolean
+  resetIn?: number
+} {
   const now = Date.now()
   const entry = rateLimitMap.get(identifier)
 

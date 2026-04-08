@@ -4,10 +4,7 @@ import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { validateModelSupportsFiles } from "@/lib/file-handling"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
-import {
-  checkRateLimit,
-  rateLimitResponse,
-} from "@/lib/ratelimit"
+import { checkRateLimit, rateLimitResponse } from "@/lib/ratelimit"
 import { getUserProfile } from "@/lib/user/api"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
@@ -53,14 +50,17 @@ export async function POST(req: Request) {
     // Get authenticated user
     const userProfile = await getUserProfile()
     if (!userProfile) {
-      return new Response(
-        JSON.stringify({ error: "Unauthorized" }),
-        { status: 401 }
-      )
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+      })
     }
 
-    const { fileUrl, fileName, fileType, model = "gpt-4-turbo" } =
-      (await req.json()) as AnalyzeRequest
+    const {
+      fileUrl,
+      fileName,
+      fileType,
+      model = "gpt-4-turbo",
+    } = (await req.json()) as AnalyzeRequest
     const userId = userProfile.id // Force use authenticated user's ID
 
     if (!fileUrl || !fileName) {

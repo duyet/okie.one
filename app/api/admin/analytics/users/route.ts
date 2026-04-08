@@ -149,7 +149,9 @@ export async function GET(_request: NextRequest) {
     }
 
     const activeUsersSet = new Set(
-      activeUsersData?.map((e: MessageUserId) => e.user_id).filter((id): id is string => id !== null && id !== undefined) || []
+      activeUsersData
+        ?.map((e: MessageUserId) => e.user_id)
+        .filter((id): id is string => id !== null && id !== undefined) || []
     )
     const activeUsers = activeUsersSet.size
 
