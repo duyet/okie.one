@@ -1101,7 +1101,7 @@ export const openrouterModels: ModelConfig[] = [
       }).chat("minimax/minimax-m2.5:free") as unknown as LanguageModel,
   },
   {
-    id: "openrouter:free",
+    id: "openrouter:openrouter/free",
     name: "OpenRouter Free",
     provider: "OpenRouter",
     providerId: "openrouter",
@@ -1130,6 +1130,6 @@ export const openrouterModels: ModelConfig[] = [
     apiSdk: (apiKey?: string) =>
       createOpenRouter({
         apiKey: apiKey || process.env.OPENROUTER_API_KEY,
-      }).chat("free") as unknown as LanguageModel,
+      }).chat("openrouter/free") as unknown as LanguageModel,
   },
 ]
