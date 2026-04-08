@@ -20,7 +20,9 @@ describe("Home to Chat Navigation Message Persistence", () => {
         delete storage[key]
       }),
       clear: vi.fn(() =>
-        Object.keys(storage).forEach((key) => delete storage[key])
+        Object.keys(storage).forEach((key) => {
+          delete storage[key]
+        })
       ),
       key: vi.fn(),
       length: 0,

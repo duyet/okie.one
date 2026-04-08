@@ -1097,7 +1097,9 @@ test.describe("Chat API Comprehensive Tests", () => {
 
       if (qualityIssues.length > 0) {
         console.log("  ⚠️ Quality Concerns:")
-        qualityIssues.forEach((issue) => console.log(`    - ${issue}`))
+        qualityIssues.forEach((issue) => {
+          console.log(`    - ${issue}`)
+        })
       }
     }
 

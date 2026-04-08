@@ -144,7 +144,7 @@ export function useMultiChat(models: ModelConfig[]): ModelChat[] {
                 id?: string
                 role?: Message["role"]
               }),
-          options?: ChatRequestOptions
+          _options?: ChatRequestOptions
         ) => {
           const content = message.content || ""
           await chatHook.sendMessage({

@@ -115,7 +115,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     })
 
   // Create v4 compatibility functions
-  const handleSubmit = useCallback(
+  const _handleSubmit = useCallback(
     (e?: { preventDefault?: () => void }) => {
       e?.preventDefault?.()
       if (input.trim()) {
@@ -203,7 +203,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     systemPrompt: SYSTEM_PROMPT_DEFAULT,
     createNewChat,
     setHasDialogAuth: () => {}, // Not used in project context
-    setMessages: (msgs: any) => setMessages(msgs),
+    setMessages: (msgs: UIMessage[]) => setMessages(msgs),
     setInput,
   })
 
@@ -212,7 +212,7 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     (value: string) => {
       setInput(value)
     },
-    [setInput]
+    []
   )
 
   const submit = useCallback(async () => {
@@ -291,7 +291,6 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         experimental_attachments: attachments || undefined,
       }
 
-      const body = options?.body || {}
       const messageAttachments = options?.experimental_attachments
 
       // Send message with text and attachments
@@ -329,14 +328,13 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     files,
     createOptimisticAttachments,
     input,
+    sendMessage,
     setMessages,
-    setInput,
     setFiles,
     cleanupOptimisticAttachments,
     ensureChatExists,
     handleFileUploads,
     selectedModel,
-    handleSubmit,
     cacheAndAddMessage,
     messages.length,
     bumpChat,
@@ -350,18 +348,8 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       return
     }
 
-    const options = {
-      body: {
-        chatId: null,
-        userId: user.id,
-        model: selectedModel,
-        isAuthenticated: true,
-        systemPrompt: SYSTEM_PROMPT_DEFAULT,
-      },
-    }
-
     reload()
-  }, [user, selectedModel, reload])
+  }, [user, reload])
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {

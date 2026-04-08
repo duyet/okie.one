@@ -45,8 +45,8 @@ type MessageAssistantProps = {
   toolInvocations?: Array<{ toolCall?: unknown; [key: string]: unknown }>
 }
 
-// Type guard for tool invocations
-function isToolInvocationData(
+// Type guard for tool invocations (unused but kept for potential future use)
+function _isToolInvocationData(
   obj: unknown
 ): obj is { state: string; toolName: string } {
   return (
