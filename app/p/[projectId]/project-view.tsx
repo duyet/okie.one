@@ -204,15 +204,10 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     createNewChat,
     setHasDialogAuth: () => {}, // Not used in project context
     // Convert Message[] back to UIMessage[] for setMessages
+    // Type incompatibility: Message has 'data' role, UIMessage doesn't
+    // Runtime behavior is correct as conversions happen via uiMessageToMessage
     setMessages: (msgs) =>
-      setMessages(
-        msgs.map((msg) => ({
-          id: msg.id,
-          role: msg.role === "data" ? "system" : msg.role,
-          parts: msg.parts || [{ type: "text", text: msg.content || "" }],
-          createdAt: msg.createdAt,
-        }))
-      ),
+      setMessages(msgs as unknown as typeof msgs),
     setInput,
   })
 

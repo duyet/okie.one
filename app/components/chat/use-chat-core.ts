@@ -7,7 +7,7 @@ import { useChatDraft } from "@/app/hooks/use-chat-draft"
 import type { ContentPart } from "@/app/types/api.types"
 import { toast } from "@/components/ui/toast"
 import type { Message, UIMessage } from "@/lib/ai-sdk-types"
-import { getTextContent } from "@/lib/ai-sdk-types"
+import { getTextContent, type MessagePart } from "@/lib/ai-sdk-types"
 import { getOrCreateGuestUserId } from "@/lib/api"
 import {
   parseArtifacts,
@@ -16,7 +16,6 @@ import {
 import { MESSAGE_MAX_LENGTH, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import type { Attachment } from "@/lib/file-handling"
 import { API_ROUTE_CHAT } from "@/lib/routes"
-import type { MessagePart } from "@/lib/type-guards/message-parts"
 import type { UserProfile } from "@/lib/user/types"
 
 import type { ThinkingMode } from "../chat-input/button-think"

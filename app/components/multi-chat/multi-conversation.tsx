@@ -66,12 +66,15 @@ function ResponseCard({ response, group }: ResponseCardProps) {
             parts={response.message.parts}
             attachments={
               response.message.parts
-                ?.filter((p: MessagePart) => p.type === "file")
-                ?.map((p: MessagePart) => ({
-                  name: p.name,
-                  contentType: p.mediaType,
-                  url: p.url || p.data || "",
-                })) || []
+                ?.filter((p) => p.type === "file")
+                ?.map((p) => {
+                  const part = p as MessagePart & { name?: string; mediaType?: string; url?: string; data?: string }
+                  return {
+                    name: part.name || "file",
+                    contentType: part.mediaType,
+                    url: part.url || part.data || "",
+                  }
+                }) || []
             }
             onDelete={() => group.onDelete(response.model, response.message.id)}
             onEdit={(id, newText) => group.onEdit(response.model, id, newText)}
@@ -82,8 +85,8 @@ function ResponseCard({ response, group }: ResponseCardProps) {
             className="bg-transparent p-0 px-0"
           >
             {response.message.parts
-              ?.filter((p: MessagePart) => p.type === "text")
-              ?.map((p: MessagePart) => p.text)
+              ?.filter((p) => p.type === "text")
+              ?.map((p) => (p as MessagePart & { text?: string }).text)
               ?.join("") || ""}
           </Message>
         ) : response.isLoading ? (
@@ -151,12 +154,15 @@ export function MultiModelConversation({
                         parts={group.userMessage.parts}
                         attachments={
                           group.userMessage.parts
-                            ?.filter((p: MessagePart) => p.type === "file")
-                            ?.map((p: MessagePart) => ({
-                              name: p.name,
-                              contentType: p.mediaType,
-                              url: p.url || p.data || "",
-                            })) || []
+                            ?.filter((p) => p.type === "file")
+                            ?.map((p) => {
+                              const part = p as MessagePart & { name?: string; mediaType?: string; url?: string; data?: string }
+                              return {
+                                name: part.name || "file",
+                                contentType: part.mediaType,
+                                url: part.url || part.data || "",
+                              }
+                            }) || []
                         }
                         onDelete={() => {}}
                         onEdit={() => {}}
@@ -164,8 +170,8 @@ export function MultiModelConversation({
                         status="ready"
                       >
                         {group.userMessage.parts
-                          ?.filter((p: MessagePart) => p.type === "text")
-                          ?.map((p: MessagePart) => p.text)
+                          ?.filter((p) => p.type === "text")
+                          ?.map((p) => (p as MessagePart & { text?: string }).text)
                           ?.join("") || ""}
                       </Message>
                     </div>

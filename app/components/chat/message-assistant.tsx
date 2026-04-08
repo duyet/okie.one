@@ -18,6 +18,8 @@ import {
   isReasoningPart,
   isToolInvocationPart,
   type MessagePart,
+  type ReasoningPart,
+  type ToolInvocationPart,
 } from "@/lib/type-guards/message-parts"
 import { useUserPreferences } from "@/lib/user-preference-store/provider"
 import { useUser } from "@/lib/user-store/provider"
@@ -110,7 +112,7 @@ export function MessageAssistant({
   // Use proper type guards for safe type checking
   const sources = parts ? getSources(parts as MessageAISDK["parts"]) : undefined
   const toolInvocationParts = parts?.filter(isToolInvocationPart) || []
-  const reasoningParts = parts?.find(isReasoningPart)
+  const reasoningParts = parts?.find(isReasoningPart) as ReasoningPart | undefined
 
   // Memoize artifactParts to prevent unnecessary re-renders
   const artifactParts = useMemo(
@@ -124,7 +126,7 @@ export function MessageAssistant({
       hasArtifactMarkers: children.includes("[ARTIFACT_PREVIEW:"),
       artifactPartsCount: artifactParts.length,
       children: `${children.substring(0, 200)}...`,
-      artifactParts: artifactParts.map((p) => p.artifact?.title),
+      artifactParts: artifactParts.map((p) => (p as ContentPart).artifact?.title),
     })
   }
 
@@ -158,9 +160,9 @@ export function MessageAssistant({
   const searchImageResults =
     parts
       ?.filter((part) => {
-        if (part.type !== "tool-invocation" || !part.toolInvocation)
+        if (part.type !== "tool-invocation" || !(part as ToolInvocationPart).toolInvocation)
           return false
-        const ti = part.toolInvocation as ToolInvocationData
+        const ti = (part as ToolInvocationPart).toolInvocation as ToolInvocationData
         return (
           ti.state === "result" &&
           ti.toolName === "imageSearch" &&
@@ -168,8 +170,8 @@ export function MessageAssistant({
         )
       })
       .flatMap((part) => {
-        if (part.type !== "tool-invocation" || !part.toolInvocation) return []
-        const ti = part.toolInvocation as ToolInvocationData
+        if (part.type !== "tool-invocation" || !(part as ToolInvocationPart).toolInvocation) return []
+        const ti = (part as ToolInvocationPart).toolInvocation as ToolInvocationData
         return ti.state === "result" &&
           ti.toolName === "imageSearch" &&
           ti.result?.content?.[0]?.type === "images"
@@ -200,13 +202,13 @@ export function MessageAssistant({
               toolInvocations={toolInvocationParts.map((part) => ({
                 type: "tool-invocation" as const,
                 toolInvocation: {
-                  state: part.toolInvocation?.state || "unknown",
+                  state: (part as ToolInvocationPart).toolInvocation?.state || "unknown",
                   toolName:
-                    (part.toolInvocation as ToolInvocationData)?.toolName ||
+                    ((part as ToolInvocationPart).toolInvocation as ToolInvocationData)?.toolName ||
                     "unknown",
-                  toolCallId: part.toolInvocation?.toolCallId || "unknown",
-                  args: part.toolInvocation?.args,
-                  result: part.toolInvocation?.result as
+                  toolCallId: (part as ToolInvocationPart).toolInvocation?.toolCallId || "unknown",
+                  args: (part as ToolInvocationPart).toolInvocation?.args,
+                  result: (part as ToolInvocationPart).toolInvocation?.result as
                     | Record<string, unknown>
                     | undefined,
                 },
