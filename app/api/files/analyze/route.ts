@@ -4,6 +4,10 @@ import { SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
 import { validateModelSupportsFiles } from "@/lib/file-handling"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
+import {
+  checkRateLimit,
+  rateLimitResponse,
+} from "@/lib/ratelimit"
 import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
 import { createErrorResponse } from "../../chat/utils"
@@ -38,6 +42,14 @@ Format your response as JSON with the following structure:
 }`
 
 export async function POST(req: Request) {
+  // Rate limiting check
+  const ip = req.headers.get("x-forwarded-for") ?? "anonymous"
+  const { allowed, resetIn } = checkRateLimit(`file-analyze:${ip}`)
+
+  if (!allowed) {
+    return rateLimitResponse(resetIn!)
+  }
+
   try {
     const {
       fileUrl,

@@ -2,6 +2,14 @@ import { trackSignup } from "@/lib/event-tracking/api"
 import { createGuestServerClient } from "@/lib/supabase/server-guest"
 
 export async function POST(request: Request) {
+  // Rate limiting check
+  const ip = request.headers.get("x-forwarded-for") ?? "anonymous"
+  const { allowed, resetIn } = checkRateLimit(`create-guest:${ip}`)
+
+  if (!allowed) {
+    return rateLimitResponse(resetIn!)
+  }
+
   try {
     const { userId } = await request.json()
 

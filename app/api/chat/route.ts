@@ -7,13 +7,19 @@ import {
 } from "ai"
 
 import { parseArtifacts } from "@/lib/artifacts/parser"
-import { MAX_FILES_PER_MESSAGE, SYSTEM_PROMPT_DEFAULT } from "@/lib/config"
+import {
+  ALLOWED_FILE_TYPES,
+  MAX_FILE_SIZE,
+  MAX_FILES_PER_MESSAGE,
+  SYSTEM_PROMPT_DEFAULT,
+} from "@/lib/config"
 import { trackMessageSent } from "@/lib/event-tracking/api"
 import {
   getModelFileCapabilities,
   validateModelSupportsFiles,
 } from "@/lib/file-handling"
 import { apiLogger } from "@/lib/logger"
+import type { MessagePart } from "@/lib/type-guards/message-parts"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { recordTokenUsage } from "@/lib/token-tracking/api"
@@ -45,6 +51,15 @@ export const maxDuration = 60
 type ToolConfig = { type: "mcp"; name: string } | { type: "web_search" }
 
 export async function POST(req: Request) {
+  // Rate limiting check
+  const ip = req.headers.get("x-forwarded-for") ?? "anonymous"
+  const { allowed, resetIn } = checkRateLimit(`chat:${ip}`)
+
+  if (!allowed) {
+    apiLogger.warn("Rate limit exceeded for chat endpoint", { ip, resetIn })
+    return rateLimitResponse(resetIn!)
+  }
+
   const requestStartTime = Date.now()
   let assistantMessageId: string | null = null
   let timeToFirstChunk: number | undefined
@@ -115,7 +130,7 @@ export async function POST(req: Request) {
     }
 
     const userMessage = messages[messages.length - 1]
-    const attachments =
+    const rawAttachments =
       userMessage?.parts
         ?.filter((part) => (part as { type?: string }).type === "file")
         ?.map((part) => {
@@ -132,6 +147,57 @@ export async function POST(req: Request) {
             content: filePart.data || "",
           }
         }) || []
+
+    // Validate file attachments for security
+    const validatedAttachments = rawAttachments.filter((attachment: {
+      name: string
+      contentType: string
+      url: string
+      content: string
+    }) => {
+      // Validate file type
+      if (!attachment.contentType || !ALLOWED_FILE_TYPES.includes(attachment.contentType)) {
+        apiLogger.warn("Invalid file type rejected", {
+          contentType: attachment.contentType,
+          fileName: attachment.name,
+        })
+        return false
+      }
+
+      // Validate file size from base64
+      if (attachment.content) {
+        try {
+          const sizeInBytes = Buffer.byteLength(attachment.content, "base64")
+          if (sizeInBytes > MAX_FILE_SIZE) {
+            apiLogger.warn("File size exceeds limit", {
+              size: sizeInBytes,
+              maxSize: MAX_FILE_SIZE,
+              fileName: attachment.name,
+            })
+            return false
+          }
+        } catch (error) {
+          apiLogger.error("Failed to validate file size", {
+            error,
+            fileName: attachment.name,
+          })
+          return false
+        }
+      }
+
+      // Validate base64 format (strict check to prevent injection attacks)
+      // Only accepts standard base64 charset with optional padding
+      if (attachment.content && !/^[A-Za-z0-9+/]+=*$/.test(attachment.content)) {
+        apiLogger.warn("Malformed base64 data rejected", {
+          fileName: attachment.name,
+        })
+        return false
+      }
+
+      return true
+    })
+
+    const attachments = validatedAttachments
 
     // Validate file attachments for the selected model
     if (attachments.length > 0) {
