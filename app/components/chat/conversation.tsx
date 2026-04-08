@@ -1,4 +1,3 @@
-import type { UIMessage as MessageType } from "@/lib/ai-sdk-types"
 import React, { useRef } from "react"
 
 import {
@@ -7,6 +6,7 @@ import {
 } from "@/components/prompt-kit/chat-container"
 import { Loader } from "@/components/prompt-kit/loader"
 import { ScrollButton } from "@/components/prompt-kit/scroll-button"
+import type { UIMessage as MessageType } from "@/lib/ai-sdk-types"
 
 import { Message } from "./message"
 
