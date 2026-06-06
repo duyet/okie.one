@@ -1,6 +1,13 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 
 import { toast } from "@/components/ui/toast"
 import { useUser } from "@/lib/user-store/provider"
@@ -72,142 +79,168 @@ export function ChatsProvider({ children }: { children: React.ReactNode }) {
     load()
   }, [user?.id])
 
-  const refresh = async () => {
+  const refresh = useCallback(async () => {
     if (!user?.id) return
 
     const fresh = await fetchAndCacheChats(user.id)
     setChats(fresh)
-  }
+  }, [user?.id])
 
-  const updateTitle = async (id: string, title: string) => {
-    const prev = [...chats]
-    const updatedChatWithNewTitle = prev.map((c) =>
-      c.id === id ? { ...c, title, updated_at: new Date().toISOString() } : c
-    )
-    const sorted = updatedChatWithNewTitle.sort(
-      (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
-    )
-    setChats(sorted)
-    try {
-      await updateChatTitle(id, title)
-    } catch {
-      setChats(prev)
-      toast({ title: "Failed to update title", status: "error" })
-    }
-  }
-
-  const deleteChat = async (
-    id: string,
-    currentChatId?: string,
-    redirect?: () => void
-  ) => {
-    const prev = [...chats]
-    setChats((prev) => prev.filter((c) => c.id !== id))
-
-    try {
-      await deleteChatFromDb(id)
-      if (id === currentChatId && redirect) redirect()
-    } catch {
-      setChats(prev)
-      toast({ title: "Failed to delete chat", status: "error" })
-    }
-  }
-
-  const createNewChat = async (
-    userId: string,
-    title?: string,
-    model?: string,
-    isAuthenticated?: boolean,
-    systemPrompt?: string,
-    projectId?: string
-  ) => {
-    if (!userId) return
-    const prev = [...chats]
-
-    const optimisticId = `optimistic-${Date.now().toString()}`
-    const optimisticChat = {
-      id: optimisticId,
-      title: title || "New Chat",
-      created_at: new Date().toISOString(),
-      model: model || MODEL_DEFAULT,
-      system_prompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
-      user_id: userId,
-      public: true,
-      updated_at: new Date().toISOString(),
-      project_id: null,
-    }
-    setChats((prev) => [optimisticChat, ...prev])
-
-    try {
-      const newChat = await createNewChatFromDb(
-        userId,
-        title,
-        model,
-        isAuthenticated,
-        projectId
+  const updateTitle = useCallback(
+    async (id: string, title: string) => {
+      const prev = [...chats]
+      const updatedChatWithNewTitle = prev.map((c) =>
+        c.id === id ? { ...c, title, updated_at: new Date().toISOString() } : c
       )
-
-      setChats((prev) => [
-        newChat,
-        ...prev.filter((c) => c.id !== optimisticId),
-      ])
-
-      return newChat
-    } catch {
-      setChats(prev)
-      toast({ title: "Failed to create chat", status: "error" })
-      return undefined
-    }
-  }
-
-  const resetChats = async () => {
-    setChats([])
-  }
-
-  const getChatById = (id: string) => {
-    const chat = chats.find((c) => c.id === id)
-    return chat
-  }
-
-  const updateChatModel = async (id: string, model: string) => {
-    const prev = [...chats]
-    setChats((prev) => prev.map((c) => (c.id === id ? { ...c, model } : c)))
-    try {
-      await updateChatModelFromDb(id, model)
-    } catch {
-      setChats(prev)
-      toast({ title: "Failed to update model", status: "error" })
-    }
-  }
-
-  const bumpChat = async (id: string) => {
-    const prev = [...chats]
-    const updatedChatWithNewUpdatedAt = prev.map((c) =>
-      c.id === id ? { ...c, updated_at: new Date().toISOString() } : c
-    )
-    const sorted = updatedChatWithNewUpdatedAt.sort(
-      (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
-    )
-    setChats(sorted)
-  }
-
-  return (
-    <ChatsContext.Provider
-      value={{
-        chats,
-        refresh,
-        updateTitle,
-        deleteChat,
-        setChats,
-        createNewChat,
-        resetChats,
-        getChatById,
-        updateChatModel,
-        bumpChat,
-        isLoading,
-      }}
-    >
-      {children}
-    </ChatsContext.Provider>
+      const sorted = updatedChatWithNewTitle.sort(
+        (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
+      )
+      setChats(sorted)
+      try {
+        await updateChatTitle(id, title)
+      } catch {
+        setChats(prev)
+        toast({ title: "Failed to update title", status: "error" })
+      }
+    },
+    [chats]
   )
+
+  const deleteChat = useCallback(
+    async (id: string, currentChatId?: string, redirect?: () => void) => {
+      const prev = [...chats]
+      setChats((prev) => prev.filter((c) => c.id !== id))
+
+      try {
+        await deleteChatFromDb(id)
+        if (id === currentChatId && redirect) redirect()
+      } catch {
+        setChats(prev)
+        toast({ title: "Failed to delete chat", status: "error" })
+      }
+    },
+    [chats]
+  )
+
+  const createNewChat = useCallback(
+    async (
+      userId: string,
+      title?: string,
+      model?: string,
+      isAuthenticated?: boolean,
+      systemPrompt?: string,
+      projectId?: string
+    ) => {
+      if (!userId) return
+      const prev = [...chats]
+
+      const optimisticId = `optimistic-${Date.now().toString()}`
+      const optimisticChat = {
+        id: optimisticId,
+        title: title || "New Chat",
+        created_at: new Date().toISOString(),
+        model: model || MODEL_DEFAULT,
+        system_prompt: systemPrompt || SYSTEM_PROMPT_DEFAULT,
+        user_id: userId,
+        public: true,
+        updated_at: new Date().toISOString(),
+        project_id: null,
+      }
+      setChats((prev) => [optimisticChat, ...prev])
+
+      try {
+        const newChat = await createNewChatFromDb(
+          userId,
+          title,
+          model,
+          isAuthenticated,
+          projectId
+        )
+
+        setChats((prev) => [
+          newChat,
+          ...prev.filter((c) => c.id !== optimisticId),
+        ])
+
+        return newChat
+      } catch {
+        setChats(prev)
+        toast({ title: "Failed to create chat", status: "error" })
+        return undefined
+      }
+    },
+    [chats]
+  )
+
+  const resetChats = useCallback(async () => {
+    setChats([])
+  }, [])
+
+  const getChatById = useCallback(
+    (id: string) => {
+      const chat = chats.find((c) => c.id === id)
+      return chat
+    },
+    [chats]
+  )
+
+  const updateChatModel = useCallback(
+    async (id: string, model: string) => {
+      const prev = [...chats]
+      setChats((prev) => prev.map((c) => (c.id === id ? { ...c, model } : c)))
+      try {
+        await updateChatModelFromDb(id, model)
+      } catch {
+        setChats(prev)
+        toast({ title: "Failed to update model", status: "error" })
+      }
+    },
+    [chats]
+  )
+
+  const bumpChat = useCallback(
+    async (id: string) => {
+      const prev = [...chats]
+      const updatedChatWithNewUpdatedAt = prev.map((c) =>
+        c.id === id ? { ...c, updated_at: new Date().toISOString() } : c
+      )
+      const sorted = updatedChatWithNewUpdatedAt.sort(
+        (a, b) => +new Date(b.updated_at || "") - +new Date(a.updated_at || "")
+      )
+      setChats(sorted)
+    },
+    [chats]
+  )
+
+  // Memoize context value to prevent unnecessary re-renders
+  const value = useMemo(
+    () => ({
+      chats,
+      refresh,
+      updateTitle,
+      deleteChat,
+      setChats,
+      createNewChat,
+      resetChats,
+      getChatById,
+      updateChatModel,
+      bumpChat,
+      isLoading,
+    }),
+    [
+      chats,
+      refresh,
+      updateTitle,
+      deleteChat,
+      setChats,
+      createNewChat,
+      resetChats,
+      getChatById,
+      updateChatModel,
+      bumpChat,
+      isLoading,
+    ]
+  )
+
+  return <ChatsContext.Provider value={value}>{children}</ChatsContext.Provider>
 }

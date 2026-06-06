@@ -1,6 +1,5 @@
-import type { APIResponse } from "@playwright/test"
+import type { APIRequestContext, APIResponse } from "@playwright/test"
 import { expect, test } from "@playwright/test"
-import type { Page } from "playwright"
 
 /**
  * Comprehensive E2E tests for Chat API validation
@@ -35,7 +34,7 @@ test.describe("Chat API Validation E2E Tests", () => {
 
   // Helper function to make API request
   const makeApiRequest = async (
-    request: Page,
+    request: APIRequestContext,
     payload: Record<string, unknown>
   ): Promise<APIResponse> => {
     return await request.post(`${baseUrl}/api/chat`, {

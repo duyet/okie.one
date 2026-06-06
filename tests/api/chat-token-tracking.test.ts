@@ -183,7 +183,8 @@ describe("Chat API Token Tracking", () => {
     // Clear previous mock implementation and instances
     mockStreamText.mockClear()
     mockStreamText.mockImplementation(
-      (config: { onChunk?: OnChunkCallback; onFinish?: OnFinishCallback }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ((config: { onChunk?: OnChunkCallback; onFinish?: OnFinishCallback }) => {
         // Store callbacks from streamText itself (AI SDK v5 pattern)
         if (config.onChunk) onChunkCallback = config.onChunk
         if (config.onFinish) onFinishCallback = config.onFinish
@@ -201,7 +202,8 @@ describe("Chat API Token Tracking", () => {
               }
             ),
         } as MockStreamTextResult
-      }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      }) as any
     )
 
     return {

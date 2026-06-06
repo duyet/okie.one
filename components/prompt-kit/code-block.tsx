@@ -3,7 +3,6 @@
 import { useTheme } from "next-themes"
 import type React from "react"
 import { useEffect, useState } from "react"
-import { codeToHtml } from "shiki"
 
 import { cn } from "@/lib/utils"
 
@@ -52,6 +51,10 @@ function CodeBlockCode({
       }
 
       try {
+        // Dynamic import: only load Shiki when code blocks are rendered
+        // Saves ~400KB from initial bundle
+        const { codeToHtml } = await import("shiki")
+
         const html = await codeToHtml(code, {
           lang: language,
           theme: appTheme === "dark" ? "github-dark" : "github-light",

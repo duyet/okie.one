@@ -110,7 +110,10 @@ export function ProjectView({ projectId }: ProjectViewProps) {
         api: API_ROUTE_CHAT,
       }),
       messages: [],
-      onFinish: ({ message }) => cacheAndAddMessage(message),
+      onFinish: ({ message }) =>
+        cacheAndAddMessage(
+          message as unknown as Parameters<typeof cacheAndAddMessage>[0]
+        ),
       onError: handleError,
     })
 
@@ -206,7 +209,8 @@ export function ProjectView({ projectId }: ProjectViewProps) {
     // Convert Message[] back to UIMessage[] for setMessages
     // Type incompatibility: Message has 'data' role, UIMessage doesn't
     // Runtime behavior is correct as conversions happen via uiMessageToMessage
-    setMessages: (msgs) => setMessages(msgs as unknown as typeof msgs),
+    setMessages: (msgs) =>
+      setMessages(msgs as unknown as Parameters<typeof setMessages>[0]),
     setInput,
   })
 
@@ -310,7 +314,9 @@ export function ProjectView({ projectId }: ProjectViewProps) {
       }
       setMessages((prev) => prev.filter((msg) => msg.id !== optimisticId))
       cleanupOptimisticAttachments(optimisticAttachments)
-      cacheAndAddMessage(optimisticMessage)
+      cacheAndAddMessage(
+        optimisticMessage as unknown as Parameters<typeof cacheAndAddMessage>[0]
+      )
 
       // Bump existing chats to top (non-blocking, after submit)
       if (messages.length > 0) {
