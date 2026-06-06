@@ -15,6 +15,7 @@ import {
   validateModelSupportsFiles,
 } from "@/lib/file-handling"
 import { apiLogger } from "@/lib/logger"
+import { getMCPServer, hasMCPServer } from "@/lib/mcp/servers"
 import { getAllModels } from "@/lib/models"
 import { getProviderForModel } from "@/lib/openproviders/provider-map"
 import { checkRateLimit, rateLimitResponse } from "@/lib/ratelimit"
@@ -24,13 +25,13 @@ import type { ProviderWithoutOllama } from "@/lib/user-keys"
 
 // Extended usage type to handle different provider formats
 type ExtendedUsage = {
-  totalTokens?: number
-  inputTokens?: number
-  outputTokens?: number
-  promptTokens?: number
-  completionTokens?: number
-  cachedTokens?: number
-}
+  totalTokens?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  promptTokens?: number;
+  completionTokens?: number;
+  cachedTokens?: number;
+};
 
 // AI SDK v5 - Simplified types, leveraging built-in UIMessage format
 
@@ -39,12 +40,12 @@ import {
   logUserMessage,
   storeAssistantMessage,
   validateAndTrackUsage,
-} from "./api"
-import { createErrorResponse } from "./utils"
+} from "./api";
+import { createErrorResponse } from "./utils";
 
-export const maxDuration = 60
+export const maxDuration = 60;
 
-type ToolConfig = { type: "mcp"; name: string } | { type: "web_search" }
+type ToolConfig = { type: "mcp"; name: string } | { type: "web_search" };
 
 export async function POST(req: Request) {
   // Rate limiting check
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
   let streamingStartTime: number | undefined
 
   try {
-    let requestBody: ChatRequest
+    let requestBody: ChatRequest;
     try {
       requestBody = ChatRequestSchema.parse(await req.json())
     } catch (validationError) {
@@ -92,19 +93,22 @@ export async function POST(req: Request) {
       enableThink,
       thinkingMode = "none",
       message_group_id,
-    } = requestBody
+    } = requestBody;
 
     // Convert legacy flags to new tools format for backward compatibility
-    const effectiveTools: ToolConfig[] = tools || []
-    const effectiveEnableThink = enableThink || thinkingMode === "regular"
+    const effectiveTools: ToolConfig[] = tools || [];
+    const effectiveEnableThink = enableThink || thinkingMode === "regular";
 
     if (!tools) {
       // Legacy mode - convert old flags to new tools format
       if (enableSearch) {
-        effectiveTools.push({ type: "web_search" })
+        effectiveTools.push({ type: "web_search" });
       }
       if (thinkingMode === "sequential") {
-        effectiveTools.push({ type: "mcp", name: "server-sequential-thinking" })
+        effectiveTools.push({
+          type: "mcp",
+          name: "server-sequential-thinking",
+        });
       }
     }
 
@@ -112,17 +116,17 @@ export async function POST(req: Request) {
       tools: effectiveTools,
       enableThink: effectiveEnableThink,
       thinkingMode,
-    })
+    });
 
     const supabase = await validateAndTrackUsage({
       userId,
       model,
       isAuthenticated,
-    })
+    });
 
     // Increment message count for successful validation
     if (supabase) {
-      await incrementMessageCount({ supabase, userId })
+      await incrementMessageCount({ supabase, userId });
     }
 
     const userMessage = messages[messages.length - 1]
@@ -133,18 +137,18 @@ export async function POST(req: Request) {
         )
         ?.map((part: MessagePart) => {
           const filePart = part as {
-            name?: string
-            mediaType?: string
-            url?: string
-            data?: string
-          }
+            name?: string;
+            mediaType?: string;
+            url?: string;
+            data?: string;
+          };
           return {
             name: filePart.name || "file",
             contentType: filePart.mediaType || "application/octet-stream",
             url: filePart.url || "",
             content: filePart.data || "",
-          }
-        }) || []
+          };
+        }) || [];
 
     // Validate file attachments for security
     const validatedAttachments = rawAttachments.filter(
@@ -214,23 +218,23 @@ export async function POST(req: Request) {
             error:
               "This model does not support file attachments. Please select a vision-enabled model like GPT-4, Claude, or Gemini.",
           }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        )
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
       }
 
       // Check file count limits
-      const capabilities = getModelFileCapabilities(model)
+      const capabilities = getModelFileCapabilities(model);
       const maxFiles = capabilities?.maxFiles
         ? Math.min(capabilities.maxFiles, MAX_FILES_PER_MESSAGE)
-        : MAX_FILES_PER_MESSAGE
+        : MAX_FILES_PER_MESSAGE;
 
       if (attachments.length > maxFiles) {
         return new Response(
           JSON.stringify({
             error: `This model supports maximum ${maxFiles} files per message. You have ${attachments.length} files.`,
           }),
-          { status: 400, headers: { "Content-Type": "application/json" } }
-        )
+          { status: 400, headers: { "Content-Type": "application/json" } },
+        );
       }
     }
 
@@ -250,43 +254,78 @@ export async function POST(req: Request) {
         model,
         isAuthenticated,
         message_group_id,
-      })
+      });
     }
 
-    const allModels = await getAllModels()
-    const modelConfig = allModels.find((m) => m.id === model)
+    const allModels = await getAllModels();
+    const modelConfig = allModels.find((m) => m.id === model);
 
     if (!modelConfig || !modelConfig.apiSdk) {
-      throw new Error(`Model ${model} not found`)
+      throw new Error(`Model ${model} not found`);
     }
 
-    const effectiveSystemPrompt = systemPrompt || SYSTEM_PROMPT_DEFAULT
+    const effectiveSystemPrompt = systemPrompt || SYSTEM_PROMPT_DEFAULT;
 
-    let apiKey: string | undefined
+    let apiKey: string | undefined;
     if (isAuthenticated && userId) {
-      const { getEffectiveApiKey } = await import("@/lib/user-keys")
-      const provider = getProviderForModel(model)
+      const { getEffectiveApiKey } = await import("@/lib/user-keys");
+      const provider = getProviderForModel(model);
       apiKey =
         (await getEffectiveApiKey(userId, provider as ProviderWithoutOllama)) ||
-        undefined
+        undefined;
     }
 
     // Configure tools based on unified tools configuration
     const apiTools: ToolSet = {}
-    const enhancedSystemPrompt = effectiveSystemPrompt
+    let enhancedSystemPrompt = effectiveSystemPrompt
     const enabledCapabilities = {
       webSearch: false,
+      mcpSequentialThinking: false,
     }
+    let _sequentialThinkingServer: {
+      getTools: () => ToolSet
+      getMaxSteps: () => number
+    } | null = null
 
-    apiLogger.info("Configuring tools", { tools: effectiveTools })
+    apiLogger.info("Configuring tools", { tools: effectiveTools });
 
     // Process each tool configuration
     for (const tool of effectiveTools) {
       switch (tool.type) {
         case "web_search":
-          enabledCapabilities.webSearch = true
-          apiLogger.info("Web search enabled")
-          break
+          enabledCapabilities.webSearch = true;
+          apiLogger.info("Web search enabled");
+          break;
+
+        case "mcp": {
+          const serverName = tool.name as string;
+          if (hasMCPServer(serverName)) {
+            const mcpServer = getMCPServer(serverName);
+            if (mcpServer) {
+              if (serverName === "server-sequential-thinking") {
+                enabledCapabilities.mcpSequentialThinking = true;
+                _sequentialThinkingServer = mcpServer;
+                apiLogger.info(
+                  "MCP Sequential thinking enabled, adding tools from server",
+                );
+
+                // Add tools from the MCP server
+                const serverTools = mcpServer.getTools();
+                Object.assign(apiTools, serverTools);
+
+                // Enhance system prompt with server's enhancement
+                enhancedSystemPrompt = `${effectiveSystemPrompt}
+
+${mcpServer.getSystemPromptEnhancement()}`;
+              }
+            }
+          } else {
+            apiLogger.warn("MCP server requested but not implemented", {
+              serverName: tool.name,
+            });
+          }
+          break;
+        }
 
         default:
           apiLogger.warn("Unknown tool type encountered", {
@@ -298,7 +337,7 @@ export async function POST(req: Request) {
                 ? (tool as { type: string }).type
                 : "unknown",
             tool,
-          })
+          });
       }
     }
 
@@ -313,13 +352,13 @@ export async function POST(req: Request) {
       tools: apiTools,
       maxOutputTokens: 8192, // Modern token limit for better responses
       onError: (err: unknown) => {
-        apiLogger.error("Streaming error occurred", { error: err })
+        apiLogger.error("Streaming error occurred", { error: err });
 
         if (err instanceof Error) {
           apiLogger.error("Error details", {
             message: err.message,
             stack: err.stack,
-          })
+          });
 
           // Log additional context for tool-related errors
           if (
@@ -330,7 +369,7 @@ export async function POST(req: Request) {
               toolsEnabled: Object.keys(apiTools),
               messagesCount: messages?.length,
               lastFewMessages: messages?.slice(-3),
-            })
+            });
           }
         }
 
@@ -339,8 +378,8 @@ export async function POST(req: Request) {
       onChunk: () => {
         // Set timeToFirstChunk and streamingStartTime only once, on the first chunk
         if (timeToFirstChunk === undefined) {
-          timeToFirstChunk = Date.now() - requestStartTime
-          streamingStartTime = Date.now()
+          timeToFirstChunk = Date.now() - requestStartTime;
+          streamingStartTime = Date.now();
         }
       },
 
@@ -350,7 +389,7 @@ export async function POST(req: Request) {
           usage,
           finishReason,
           responseKeys: Object.keys(response),
-        })
+        });
 
         // Parse artifacts from the response text for all users (not just Supabase users)
         const responseText = response.messages
@@ -363,15 +402,15 @@ export async function POST(req: Request) {
                     .filter((part) => part.type === "text")
                     .map((part) => part.text)
                     .join("\n")
-                : ""
+                : "",
           )
-          .join("\n")
+          .join("\n");
 
-        const artifactParts = parseArtifacts(responseText, false)
+        const artifactParts = parseArtifacts(responseText, false);
         apiLogger.info("Parsed artifacts", {
           artifactCount: artifactParts.length,
           responseLength: responseText.length,
-        })
+        });
 
         // Store in database only if Supabase is available
         if (supabase) {
@@ -383,16 +422,16 @@ export async function POST(req: Request) {
             message_group_id,
             model,
             artifactParts,
-          })
+          });
 
           // Record token usage if available
           if (usage && assistantMessageId) {
             try {
-              const provider = getProviderForModel(model)
-              const requestDuration = Date.now() - requestStartTime
+              const provider = getProviderForModel(model);
+              const requestDuration = Date.now() - requestStartTime;
               const streamingDuration = streamingStartTime
                 ? Date.now() - streamingStartTime
-                : undefined
+                : undefined;
 
               await recordTokenUsage(
                 userId,
@@ -422,8 +461,8 @@ export async function POST(req: Request) {
                   timeToFirstTokenMs: timeToFirstChunk, // Using first chunk as proxy for first token
                   timeToFirstChunkMs: timeToFirstChunk,
                   streamingDurationMs: streamingDuration,
-                }
-              )
+                },
+              );
 
               apiLogger.tokenUsage(
                 model,
@@ -454,47 +493,28 @@ export async function POST(req: Request) {
             } catch (tokenError) {
               apiLogger.error("Failed to record token usage", {
                 error: tokenError,
-              })
+              });
               // Don't fail the request if token tracking fails
             }
           }
         }
       },
-    })
+    });
 
     // AI SDK v5 - Modern streaming response with enhanced features
+    // NOTE: Message storage is handled by the onFinish handler in streamText() above.
+    // Do not add another onFinish handler here to avoid duplicate message inserts.
     return result.toUIMessageStreamResponse({
       originalMessages: messages,
-      onFinish: async ({ messages: finishedMessages }) => {
-        // Enhanced message persistence with proper AI SDK v5 format
-        if (supabase) {
-          try {
-            const finalMessage = finishedMessages[finishedMessages.length - 1]
-            if (finalMessage?.role === "assistant") {
-              await storeAssistantMessage({
-                supabase,
-                chatId,
-                messages:
-                  finishedMessages as unknown as import("@/app/types/api.types").Message[],
-                message_group_id,
-                model,
-                artifactParts: [], // Will be processed separately if needed
-              })
-            }
-          } catch (error) {
-            apiLogger.error("Failed to store assistant message", { error })
-          }
-        }
-      },
-    })
+    });
   } catch (err: unknown) {
-    apiLogger.error("Error in /api/chat", { error: err })
+    apiLogger.error("Error in /api/chat", { error: err });
     const error = err as {
-      code?: string
-      message?: string
-      statusCode?: number
-    }
+      code?: string;
+      message?: string;
+      statusCode?: number;
+    };
 
-    return createErrorResponse(error)
+    return createErrorResponse(error);
   }
 }
