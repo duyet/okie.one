@@ -115,23 +115,9 @@ function ConversationComponent({
 }
 
 /**
- * Memoized Conversation component
- *
- * Only re-renders when messages array or status changes
- * Prevents unnecessary re-renders of the entire message list
+ * Memoized Conversation component using default shallow equality.
+ * Relies on callers to stabilize callbacks with useCallback.
  */
-export const Conversation = React.memo(
-  ConversationComponent,
-  (prevProps, nextProps) => {
-    // Re-render if messages changed (reference equality check)
-    if (prevProps.messages !== nextProps.messages) return false
-
-    // Re-render if status changed
-    if (prevProps.status !== nextProps.status) return false
-
-    // Functions are assumed stable (from useCallback)
-    return true
-  }
-)
+export const Conversation = React.memo(ConversationComponent)
 
 Conversation.displayName = "Conversation"

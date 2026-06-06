@@ -29,14 +29,14 @@ export interface SourcePart {
 
 // Union type for all possible part types
 export type MessagePart =
-  | (ContentPart & { [key: string]: unknown })
-  | (ToolInvocationPart & { [key: string]: unknown })
-  | (ReasoningPart & { [key: string]: unknown })
+  | ContentPart
+  | ToolInvocationPart
+  | ReasoningPart
   | SourcePart
-  | { type: "text"; text?: string; [key: string]: unknown }
-  | { type: "file"; [key: string]: unknown }
-  | { type: "step-start"; [key: string]: unknown }
-  | { type: string; [key: string]: unknown } // Fallback for AI SDK compatibility - consider narrowing based on actual usage
+  | { type: "text"; text?: string }
+  | { type: "file" }
+  | { type: "step-start" }
+  | { type: string } // Fallback for AI SDK compatibility
 
 // Type guards
 export function isArtifactPart(part: MessagePart): part is ContentPart {
