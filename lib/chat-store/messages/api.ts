@@ -38,7 +38,7 @@ export async function getMessagesFromDb(
         id: String(message.id),
         role: message.role as "system" | "user" | "assistant",
         content: message.content || "",
-        parts: message?.parts as MessagePart[] | undefined,
+        parts: message?.parts as unknown as MessageAISDK["parts"] | undefined,
         model: message.model || undefined,
         message_group_id: message.message_group_id || undefined,
       })

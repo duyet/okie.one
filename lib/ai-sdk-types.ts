@@ -71,8 +71,8 @@ export function uiMessageToMessage(uiMessage: UIMessage): Message {
   return {
     id: uiMessage.id,
     role: uiMessage.role as "system" | "user" | "assistant" | "data",
-    content: getTextContent(uiMessage.parts as MessagePart[]),
-    parts: uiMessage.parts as MessagePart[],
+    content: getTextContent(uiMessage.parts as unknown as MessagePart[]),
+    parts: uiMessage.parts,
     createdAt: uiMessage.createdAt,
   }
 }
@@ -86,7 +86,7 @@ export function messageToUIMessage(message: Message): UIMessage {
   return {
     id: message.id,
     role: message.role === "data" ? "system" : message.role,
-    parts,
+    parts: parts as unknown as UIMessage["parts"],
     createdAt: message.createdAt,
     // Preserve additional fields but exclude content
     ...Object.fromEntries(

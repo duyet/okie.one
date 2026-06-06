@@ -92,7 +92,6 @@ function ChatInner() {
     (message: Message) => {
       const uiMessage = convertToUIMessage(message)
       if (uiMessage) {
-        // @ts-expect-error AI SDK v5 compatibility issue - will be properly fixed in PR #85
         originalCacheAndAddMessage(uiMessage)
       }
     },

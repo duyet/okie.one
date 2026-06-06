@@ -14,24 +14,37 @@ export async function middleware(request: NextRequest) {
 
   // CSRF protection for state-changing requests
   if (!isTestMode && ["POST", "PUT", "DELETE"].includes(request.method)) {
-    const csrfCookie = request.cookies.get("csrf_token")?.value
-    const headerToken = request.headers.get("x-csrf-token")
+    // Public endpoints that don't need CSRF protection
+    const publicEndpoints = [
+      "/api/csrf", // CSRF token generation itself
+      "/api/health", // Health check
+    ]
 
-    // Critical: Compare cookie value with header value to prevent token substitution attacks
-    if (
-      !csrfCookie ||
-      !headerToken ||
-      csrfCookie !== headerToken ||
-      !validateCsrfToken(headerToken)
-    ) {
-      // Log security violation for monitoring
-      console.warn("[SECURITY] CSRF validation failed", {
-        method: request.method,
-        path: request.nextUrl,
-        hasCookie: !!csrfCookie,
-        hasHeader: !!headerToken,
-      })
-      return new NextResponse("Invalid CSRF token", { status: 403 })
+    // Use exact matching to prevent subpath bypass (e.g. /api/csrf/malicious)
+    const isPublicEndpoint = publicEndpoints.some(
+      (endpoint) => request.nextUrl.pathname === endpoint
+    )
+
+    if (!isPublicEndpoint) {
+      const csrfCookie = request.cookies.get("csrf_token")?.value
+      const headerToken = request.headers.get("x-csrf-token")
+
+      // Compare cookie value with header value to prevent token substitution attacks
+      if (
+        !csrfCookie ||
+        !headerToken ||
+        csrfCookie !== headerToken ||
+        !validateCsrfToken(headerToken)
+      ) {
+        // Log security violation for monitoring
+        console.warn("[SECURITY] CSRF validation failed", {
+          method: request.method,
+          path: request.nextUrl.pathname,
+          hasCookie: !!csrfCookie,
+          hasHeader: !!headerToken,
+        })
+        return new NextResponse("Invalid CSRF token", { status: 403 })
+      }
     }
   }
 
@@ -41,6 +54,9 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).origin : "";
 
+  // Content Security Policy with strict security
+  // Note: 'unsafe-inline' for scripts is kept for Next.js compatibility
+  // TODO: Implement nonce-based CSP to remove 'unsafe-inline'
   response.headers.set(
     "Content-Security-Policy",
     isDev
@@ -53,7 +69,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Include API routes for CSRF protection (fixes critical security issue)
+    // Include API routes for CSRF protection
     "/api/:path*",
     // Page routes for other middleware
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",

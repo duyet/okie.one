@@ -47,14 +47,14 @@ test.describe("Chat API Integration Tests", () => {
     console.log("🔧 Testing API request structure and validation fix...")
 
     const capture = setupNetworkCapture(page)
-    let interceptedRequest: Record<string, unknown> | null = null
+    let interceptedRequest: ChatRequestBody | null = null
 
     try {
       // Intercept and analyze the actual request being sent
       await page.route("**/api/chat", async (route) => {
         const request = route.request()
-        const requestBody = request.postDataJSON() as Record<string, unknown>
-        interceptedRequest = requestBody as ChatRequestBody
+        const requestBody = request.postDataJSON() as unknown as ChatRequestBody
+        interceptedRequest = requestBody
 
         console.log("📤 Intercepted API request:", {
           method: request.method(),
@@ -88,23 +88,26 @@ test.describe("Chat API Integration Tests", () => {
       // Verify the API request was made with proper structure
       expect(interceptedRequest).not.toBeNull()
 
-      if (interceptedRequest) {
+      // Use non-null assertion after verifying above
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const capturedRequest = interceptedRequest!
+      if (capturedRequest) {
         console.log("🔍 Validating request structure...")
 
         // Verify required fields are present (this is the main validation fix)
-        expect(interceptedRequest.model).toBeTruthy()
-        expect(typeof interceptedRequest.model).toBe("string")
-        console.log(`✅ Model field present: ${interceptedRequest.model}`)
+        expect(capturedRequest.model).toBeTruthy()
+        expect(typeof capturedRequest.model).toBe("string")
+        console.log(`✅ Model field present: ${capturedRequest.model}`)
 
-        expect(interceptedRequest.messages).toBeTruthy()
-        expect(Array.isArray(interceptedRequest.messages)).toBe(true)
-        expect(interceptedRequest.messages.length).toBeGreaterThan(0)
+        expect(capturedRequest.messages).toBeTruthy()
+        expect(Array.isArray(capturedRequest.messages)).toBe(true)
+        expect(capturedRequest.messages.length).toBeGreaterThan(0)
         console.log(
-          `✅ Messages array present with ${interceptedRequest.messages.length} messages`
+          `✅ Messages array present with ${capturedRequest.messages.length} messages`
         )
 
         // Verify message structure
-        const userMessage = interceptedRequest.messages?.find(
+        const userMessage = capturedRequest.messages?.find(
           (msg: Record<string, unknown>) => msg.role === "user"
         )
         expect(userMessage).toBeTruthy()
@@ -114,22 +117,18 @@ test.describe("Chat API Integration Tests", () => {
         )
 
         // Verify optional fields are handled correctly
-        expect(typeof interceptedRequest.userId).toBe("string")
-        expect(typeof interceptedRequest.isAuthenticated).toBe("boolean")
+        expect(typeof capturedRequest.userId).toBe("string")
+        expect(typeof capturedRequest.isAuthenticated).toBe("boolean")
         console.log(
-          `✅ User context fields present: userId=${interceptedRequest.userId}, authenticated=${interceptedRequest.isAuthenticated}`
+          `✅ User context fields present: userId=${capturedRequest.userId}, authenticated=${capturedRequest.isAuthenticated}`
         )
 
         // Verify thinking mode fields
-        if ("thinkingMode" in interceptedRequest) {
-          console.log(
-            `✅ Thinking mode field: ${interceptedRequest.thinkingMode}`
-          )
+        if ("thinkingMode" in capturedRequest) {
+          console.log(`✅ Thinking mode field: ${capturedRequest.thinkingMode}`)
         }
-        if ("enableThink" in interceptedRequest) {
-          console.log(
-            `✅ Enable think field: ${interceptedRequest.enableThink}`
-          )
+        if ("enableThink" in capturedRequest) {
+          console.log(`✅ Enable think field: ${capturedRequest.enableThink}`)
         }
       }
 
@@ -156,10 +155,17 @@ test.describe("Chat API Integration Tests", () => {
           "Intercepted request keys:",
           Object.keys(interceptedRequest)
         )
-        console.log("Model:", interceptedRequest.model)
-        console.log("Messages count:", interceptedRequest.messages?.length)
-        console.log("User ID:", interceptedRequest.userId)
-        console.log("Authenticated:", interceptedRequest.isAuthenticated)
+        // biome-ignore lint: non-null safe after if-check above
+        console.log("Model:", (interceptedRequest as ChatRequestBody).model)
+        console.log(
+          "Messages count:",
+          (interceptedRequest as ChatRequestBody).messages?.length
+        )
+        console.log("User ID:", (interceptedRequest as ChatRequestBody).userId)
+        console.log(
+          "Authenticated:",
+          (interceptedRequest as ChatRequestBody).isAuthenticated
+        )
       } else {
         console.log("No request was intercepted")
       }
@@ -205,7 +211,7 @@ test.describe("Chat API Integration Tests", () => {
 
       await page.route("**/api/chat", async (route) => {
         const requestBody = route.request().postDataJSON()
-        interceptedRequest = requestBody as ChatRequestBody
+        interceptedRequest = requestBody as unknown as ChatRequestBody
 
         await route.fulfill({
           status: 200,
@@ -231,11 +237,12 @@ test.describe("Chat API Integration Tests", () => {
 
         // Verify request structure
         if (interceptedRequest) {
-          expect(interceptedRequest.model).toBeTruthy()
-          expect(interceptedRequest.messages).toBeTruthy()
-          expect(interceptedRequest.messages.length).toBeGreaterThan(0)
+          const req = interceptedRequest as ChatRequestBody
+          expect(req.model).toBeTruthy()
+          expect(req.messages).toBeTruthy()
+          expect(req.messages.length).toBeGreaterThan(0)
 
-          const userMessage = interceptedRequest.messages.find(
+          const userMessage = req.messages.find(
             (msg: { role: string; content: string }) => msg.role === "user"
           )
           expect(userMessage?.content).toBe(testCase.content)
@@ -314,33 +321,31 @@ test.describe("Chat API Integration Tests", () => {
 
       // Verify session context consistency
       if (firstRequest && secondRequest) {
+        const req1 = firstRequest as ChatRequestBody
+        const req2 = secondRequest as ChatRequestBody
         // User ID should be consistent
-        expect(firstRequest.userId).toBe(secondRequest.userId)
-        console.log(`✅ User ID consistent: ${firstRequest.userId}`)
+        expect(req1.userId).toBe(req2.userId)
+        console.log(`✅ User ID consistent: ${req1.userId}`)
 
         // Authentication status should be consistent
-        expect(firstRequest.isAuthenticated).toBe(secondRequest.isAuthenticated)
-        console.log(
-          `✅ Auth status consistent: ${firstRequest.isAuthenticated}`
-        )
+        expect(req1.isAuthenticated).toBe(req2.isAuthenticated)
+        console.log(`✅ Auth status consistent: ${req1.isAuthenticated}`)
 
         // Model should be consistent within session
-        expect(firstRequest.model).toBe(secondRequest.model)
-        console.log(`✅ Model consistent: ${firstRequest.model}`)
+        expect(req1.model).toBe(req2.model)
+        console.log(`✅ Model consistent: ${req1.model}`)
 
         // Second request should have conversation history
-        expect(secondRequest.messages.length).toBeGreaterThan(
-          firstRequest.messages.length
-        )
+        expect(req2.messages.length).toBeGreaterThan(req1.messages.length)
         console.log(
-          `✅ Context maintained: ${firstRequest.messages.length} → ${secondRequest.messages.length} messages`
+          `✅ Context maintained: ${req1.messages.length} → ${req2.messages.length} messages`
         )
 
         // Verify conversation flow
-        const _firstUserMessage = firstRequest.messages.find(
-          (msg: any) => msg.role === "user"
+        const _firstUserMessage = req1.messages.find(
+          (msg: { role: string }) => msg.role === "user"
         )
-        const secondRequestMessages = secondRequest.messages
+        const secondRequestMessages = req2.messages
         const hasFirstMessage = secondRequestMessages.some(
           (msg: any) =>
             msg.role === "user" && msg.content.includes("First message")
@@ -384,7 +389,7 @@ test.describe("Chat API Integration Tests", () => {
 
       await page.route("**/api/chat", async (route) => {
         const requestBody = route.request().postDataJSON()
-        interceptedRequest = requestBody as ChatRequestBody
+        interceptedRequest = requestBody as unknown as ChatRequestBody
 
         // Simulate the API validation logic
         const hasValidModel =
@@ -449,11 +454,12 @@ test.describe("Chat API Integration Tests", () => {
 
         // Verify request was properly formed
         if (interceptedRequest) {
-          expect(interceptedRequest.model).toBeTruthy()
-          expect(interceptedRequest.messages).toBeTruthy()
-          expect(interceptedRequest.messages.length).toBeGreaterThan(0)
+          const req = interceptedRequest as ChatRequestBody
+          expect(req.model).toBeTruthy()
+          expect(req.messages).toBeTruthy()
+          expect(req.messages.length).toBeGreaterThan(0)
 
-          const userMessage = interceptedRequest.messages.find(
+          const userMessage = req.messages.find(
             (msg: { role: string; content: string }) => msg.role === "user"
           )
           expect(userMessage).toBeTruthy()
@@ -483,7 +489,7 @@ test.describe("Chat API Integration Tests", () => {
     try {
       await page.route("**/api/chat", async (route) => {
         const requestBody = route.request().postDataJSON()
-        interceptedRequest = requestBody as ChatRequestBody
+        interceptedRequest = requestBody as unknown as ChatRequestBody
 
         console.log("🔍 Thinking mode request:", {
           thinkingMode: requestBody.thinkingMode,
@@ -520,15 +526,15 @@ test.describe("Chat API Integration Tests", () => {
 
         // Verify thinking mode was properly sent to API
         if (interceptedRequest) {
+          const req = interceptedRequest as ChatRequestBody
           console.log("🧠 Thinking mode API fields:", {
-            thinkingMode: interceptedRequest.thinkingMode,
-            enableThink: interceptedRequest.enableThink,
+            thinkingMode: req.thinkingMode,
+            enableThink: req.enableThink,
           })
 
           // Should have thinking mode configuration
           expect(
-            interceptedRequest.thinkingMode !== undefined ||
-              interceptedRequest.enableThink !== undefined
+            req.thinkingMode !== undefined || req.enableThink !== undefined
           ).toBe(true)
 
           console.log("✅ Thinking mode properly integrated with API")
@@ -543,9 +549,10 @@ test.describe("Chat API Integration Tests", () => {
         await page.waitForTimeout(3000)
 
         if (interceptedRequest) {
+          const req = interceptedRequest as ChatRequestBody
           // Should have basic required fields
-          expect(interceptedRequest.model).toBeTruthy()
-          expect(interceptedRequest.messages).toBeTruthy()
+          expect(req.model).toBeTruthy()
+          expect(req.messages).toBeTruthy()
           console.log("✅ Standard mode properly integrated with API")
         }
       }
